@@ -1,6 +1,8 @@
 
+#pragma once
+
 #include <Rcpp.h>
 
 //------------------------------------------------
-// Example function
-Rcpp::List dummy1_cpp(Rcpp::List args);
+// Run MCMC
+Rcpp::List example_mcmc_cpp(Rcpp::List args);

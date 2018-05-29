@@ -5,20 +5,32 @@
 
 using namespace Rcpp;
 
-// dummy1_cpp
-Rcpp::List dummy1_cpp(Rcpp::List args);
-RcppExport SEXP _MALECOT_dummy1_cpp(SEXP argsSEXP) {
+// example_mcmc_cpp
+Rcpp::List example_mcmc_cpp(Rcpp::List args);
+RcppExport SEXP _MALECOT_example_mcmc_cpp(SEXP argsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(dummy1_cpp(args));
+    rcpp_result_gen = Rcpp::wrap(example_mcmc_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// call_hungarian_cpp
+Rcpp::List call_hungarian_cpp(Rcpp::List args);
+RcppExport SEXP _MALECOT_call_hungarian_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(call_hungarian_cpp(args));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_MALECOT_dummy1_cpp", (DL_FUNC) &_MALECOT_dummy1_cpp, 1},
+    {"_MALECOT_example_mcmc_cpp", (DL_FUNC) &_MALECOT_example_mcmc_cpp, 1},
+    {"_MALECOT_call_hungarian_cpp", (DL_FUNC) &_MALECOT_call_hungarian_cpp, 1},
     {NULL, NULL, 0}
 };
 

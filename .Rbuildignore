@@ -6,3 +6,4 @@ R_ignore/
 ^appveyor\.yml$
 ^_pkgdown\.yml$
 ^docs$
+^codecov\.yml$
