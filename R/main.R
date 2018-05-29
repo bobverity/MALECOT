@@ -21,6 +21,8 @@ NULL
 
 dummy1 <- function(x = 1:5) {
 
+
+
   # print message to console
   message("running R dummy1 function")
 
