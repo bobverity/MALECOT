@@ -3,3 +3,4 @@
 ignore/
 R_ignore/
 ^\.travis\.yml$
+^appveyor\.yml$
