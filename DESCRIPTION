@@ -17,6 +17,7 @@ LinkingTo: Rcpp
 Imports:
     Rcpp,
     assertthat,
+    parallel,
     coda
 SystemRequirements: C++11
 Suggests: testthat,

@@ -99,10 +99,10 @@ test_that("assert_symmetric_matrix works", {
 })
 
 #------------------------------------------------
-# test assert_covfefe_project
-#test_that("assert_covfefe_project works", {
-#  p <- covfefe_project()
-#  expect_true(assert_covfefe_project(p))
-#
-#  expect_error(assert_covfefe_project(1))
-#})
+# test assert_malecot_project
+test_that("assert_malecot_project works", {
+  p <- malecot_project()
+  expect_true(assert_malecot_project(p))
+
+  expect_error(assert_malecot_project(1))
+})

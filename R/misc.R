@@ -11,6 +11,29 @@ define_default <- function(x, default_value) {
 }
 
 # -----------------------------------
+# user_yes_no
+# ask user a yes/no question. Return TRUE/FALSE
+# (not exported)
+#' @noRd
+user_yes_no <- function(x="continue? (Y/N): ") {
+  userChoice <- NA
+  while (!userChoice %in% c("Y", "y" ,"N", "n")) {
+    userChoice <- readline(x)
+  }
+  return(userChoice %in% c("Y", "y"))
+}
+
+# -----------------------------------
+# draw from Dirichlet distribution
+# (not exported)
+#' @noRd
+rdirichlet <- function (alpha_vec) {
+  Y <- rgamma(length(alpha_vec), shape = alpha_vec, scale = 1)
+  output <- Y/sum(Y)
+  return(output)
+}
+
+# -----------------------------------
 # mat_to_Rcpp
 # takes matrix as input, converts to list format for use within Rcpp code
 # (not exported)
