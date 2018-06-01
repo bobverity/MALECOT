@@ -47,7 +47,17 @@ assert_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substitute(x))
 assert_gr <- function(x, y, name = deparse(substitute(x))) {
   assert_numeric(x, name)
   if (!all(x>y)) {
-    stop(sprintf("%x must be greater than %s", name, y), call. = FALSE)
+    stop(sprintf("%s must be greater than %s", name, y), call. = FALSE)
+  }
+  return(TRUE)
+}
+
+#------------------------------------------------
+# is greater than or equal to
+assert_greq <- function(x, y, name = deparse(substitute(x))) {
+  assert_numeric(x, name)
+  if (!all(x>=y)) {
+    stop(sprintf("%s must be greater than or equal to %s", name, y), call. = FALSE)
   }
   return(TRUE)
 }
@@ -80,7 +90,7 @@ assert_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclus
 #------------------------------------------------
 # value matches one of several strings
 assert_in <- function(x, s, name = deparse(substitute(x))) {
-  if (!x %in% s) {
+  if (!all(x %in% s)) {
     stop(sprintf("%s must be one of {%s}", name, paste(s, collapse=", ")))
   }
   return(TRUE)

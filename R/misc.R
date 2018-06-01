@@ -33,6 +33,15 @@ rdirichlet <- function (alpha_vec) {
   return(output)
 }
 
+#------------------------------------------------
+# forty_winks
+# short sleep to help console output catch up
+# (not exported)
+#' @noRd
+forty_winks <- function() {
+  Sys.sleep(0.01)
+}
+
 # -----------------------------------
 # mat_to_Rcpp
 # takes matrix as input, converts to list format for use within Rcpp code

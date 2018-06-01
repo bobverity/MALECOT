@@ -112,7 +112,7 @@ int sample2(int a, int b) {
 //------------------------------------------------
 // draw from gamma(shape,rate) distribution
 double rgamma1(double shape, double rate) {
-  double x = R::rgamma(shape, rate);
+  double x = R::rgamma(shape, 1/rate);
   
   // check for zero or infinite values (catches bug present in Visual Studio 2010)
   if (x<UNDERFLO) {

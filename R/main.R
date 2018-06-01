@@ -51,12 +51,17 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
   data[data==missing_data] <- -1
 
   # perform checks on data
+  # TODO - more checks on data format to ensure correct
   if (data_format=="multiallelic") {
     assert_that(ncol(data)==3)
     if (any( data[,3]<=0 & data[,3]!=missing_data )) {
       stop("for the multi-allelic format haplotypes must be coded as positive integers")
     }
-    # TODO - more checks
+    n <- length(unique(data[,1]))
+    L <- length(unique(data[,2]))
+  } else {
+    n <- nrow(data)
+    L <- ncol(data)
   }
 
   # check whether there is data loaded already
@@ -78,6 +83,8 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
   # update project with new data
   proj$data <- list(raw = as.matrix(data),
                     name = name,
+                    n = n,
+                    L = L,
                     missing_data = missing_data,
                     data_format = data_format)
 
@@ -223,7 +230,7 @@ delete_set <- function(proj, set = NULL, check_delete_output = TRUE) {
 #'
 #' @details TODO
 #'
-#' @param x the raw data (vector)
+#' @param proj TODO
 #' @param K the number of mixture components
 #' @param mu_prior_mean the mean of the (normal) prior on mixture component locations
 #' @param mu_prior_var the variance of the (normal) prior on mixture component locations
@@ -242,19 +249,111 @@ delete_set <- function(proj, set = NULL, check_delete_output = TRUE) {
 #' @examples
 #' # TODO
 
-example_mcmc <- function(x, K = 3, mu_prior_mean = 0, mu_prior_var = 1e3, sigma = 1, burnin =1e2, samples = 1e3, rungs = 10, solve_label_switching_on = TRUE, coupling_on = TRUE, scaffold_on = TRUE, scaffold_n = 10, splitmerge_on = TRUE, cluster = NULL) {
+run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE, scaffold_n = 10, split_merge_on = TRUE, solve_label_switching = TRUE, precision = 0.01, GTI_pow = 2, report_iteration = 1e2, flush_console = FALSE, silent = FALSE, output_format = 1, cluster = NULL) {
 
-  # check inputs
-  assert_that(length(x) > 1)
-  assert_that(all(K > 1))
-  assert_that(mu_prior_var > 0)
-  assert_that(sigma > 0)
-  assert_that(burnin > 0)
-  assert_that(samples > 0)
-  assert_that(rungs > 0)
-  assert_that(scaffold_n > 0)
+  # ---------- check inputs ----------
 
-  # define argument list
+  # check input arguments
+  assert_malecot_project(proj)
+  assert_pos_int(burnin)
+  assert_greq(burnin, 10)
+  assert_pos_int(samples, zero_allowed = FALSE)
+  assert_pos_int(rungs, zero_allowed = FALSE)
+  assert_pos_int(scaffold_n, zero_allowed = FALSE)
+  assert_int(GTI_pow)
+  assert_bounded(GTI_pow, left = 1, right = 10)
+  assert_pos_int(report_iteration, zero_allowed = FALSE)
+  assert_in(output_format, 1:2)
+
+  # get active set and check non-zero
+  s <- proj$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+
+  # check that precision is either zero or leads to simple sequence
+  if (precision!=0) {
+    if(!((1/precision)%%1)==0) {
+      stop("1/precision must be an integer")
+    }
+  }
+
+  # default value and checks on K
+  K <- define_default(K, proj$parameter_sets[[s]]$K_range)
+  assert_in(K, proj$parameter_sets[[s]]$K_range)
+
+
+  # ---------- process data ----------
+
+  # if bi-allelic
+  data <- proj$data$raw
+  data_format <- proj$data$data_format
+  missing_data <- proj$data$missing_data
+  if (data_format == "biallelic") {
+
+    # convert data to simple integer format for use in Rcpp function
+    data[data == 0.5] <- 2
+    data[data == 0] <- 3
+    data[data == missing_data] <- 0
+
+    # number of haplotypes at each locus
+    Jl <- rep(2, proj$data$L)
+  }
+
+  # if multi-allelic
+  if (data_format == "multiallelic") {
+
+    # convert data to simple integer format for use in Rcpp function
+    # TODO - check can convert data from text to numeric
+    Jl <- rep(0,L)	# number of haplotypes at each locus
+    for (l in 1:L) {
+      u <- sort(unique(data[,3][data[,2]==l]))
+      u <- u[u != missing_data]
+      data[,3][data[,2]==l] <- match(data[,3][data[,2]==l], u)
+      Jl[l] <- length(u)
+    }
+    data[,3][is.na(data[,3])] <- 0
+  }
+
+
+  # ---------- create argument lists ----------
+
+  # define data list
+  args_data <- list(data = mat_to_rcpp(data),
+                    n = proj$data$n,
+                    L = proj$data$L,
+                    Jl = Jl)
+
+  # get parameters from active set
+  args_model <- proj$parameter_sets[[s]]
+
+  # add to model parameters list
+  args_model <- c(args_model, list(burnin = burnin,
+                                   samples = samples,
+                                   rungs = rungs,
+                                   auto_converge = auto_converge,
+                                   coupling_on = coupling_on,
+                                   scaffold_on = scaffold_on,
+                                   scaffold_n = scaffold_n,
+                                   split_merge_on = split_merge_on,
+                                   solve_label_switching = solve_label_switching,
+                                   precision = precision,
+                                   GTI_pow = GTI_pow,
+                                   report_iteration = report_iteration,
+                                   flush_console = flush_console,
+                                   silent = silent,
+                                   output_format = output_format,
+                                   cluster = cluster))
+
+  # get COI_model in numeric form
+  args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
+
+  # R functions to pass to Rcpp
+  args_functions <- list(forty_winks = forty_winks,
+                         test_convergence = test_convergence,
+                         update_progress = update_progress)
+
+  # define final argument list over all K
   parallel_args <- list()
   for (i in 1:length(K)) {
 
@@ -262,24 +361,39 @@ example_mcmc <- function(x, K = 3, mu_prior_mean = 0, mu_prior_var = 1e3, sigma 
     pb_scaf <- txtProgressBar(min = 0, max = scaffold_n, initial = NA, style = 3)
     pb_burnin <- txtProgressBar(min = 0, max = burnin, initial = NA, style = 3)
     pb_samples <- txtProgressBar(min = 0, max = samples, initial = NA, style = 3)
+    args_pb <- list(pb_scaf = pb_scaf,
+                    pb_burnin = pb_burnin,
+                    pb_samples = pb_samples)
 
     # create argument list
-    parallel_args[[i]] <- list(x = x, K = K[i], mu_prior_mean = mu_prior_mean, mu_prior_var = mu_prior_var, sigma = sigma, burnin = burnin, samples = samples, rungs = rungs, solve_label_switching_on = solve_label_switching_on, coupling_on = coupling_on, scaffold_on = scaffold_on, scaf_n = scaffold_n, splitmerge_on = splitmerge_on, test_convergence = test_convergence, update_progress = update_progress, pb_scaf = pb_scaf, pb_burnin = pb_burnin, pb_samples = pb_samples)
+    parallel_args[[i]] <- c(list(K = K[i]), args_data, args_model, args_functions, args_pb)
   }
 
-  #------------------------
 
-  # run efficient Rcpp function
+  # ---------- run MCMC ----------
+
+  # split into parallel and serial implementations
   if (!is.null(cluster)) {  # run in parallel
     if (!inherits(cluster, "cluster")) {
       stop("expected a cluster object")
     }
-    clusterEvalQ(cluster, library(testmix))
-    output_raw <- clusterApplyLB(cl = cluster, parallel_args, example_mcmc_cpp)
+    clusterEvalQ(cluster, library(MALECOT))
+    if (data_format == "biallelic") {
+      output_raw <- clusterApplyLB(cl = cluster, parallel_args, run_mcmc_biallelic_cpp)
+    }
+    if (data_format == "multiallelic") {
+      output_raw <- clusterApplyLB(cl = cluster, parallel_args, run_mcmc_multiallelic_cpp)
+    }
   } else {  # run in serial
-    output_raw <- lapply(parallel_args, example_mcmc_cpp)
+    if (data_format == "biallelic") {
+      output_raw <- lapply(parallel_args, run_mcmc_biallelic_cpp)
+    }
+    if (data_format == "multiallelic") {
+      output_raw <- lapply(parallel_args, run_mcmc_multiallelic_cpp)
+    }
   }
 
+  return(output_raw)
   #------------------------
 
   # begin processing results
@@ -330,15 +444,18 @@ geweke_pvalue <- function(x) {
 
 #------------------------------------------------
 # test convergence
-# test if geweke p-value significant
+# check that geweke p-value non-significant on values x[1:n]
 # (not exported)
 #' @noRd
-test_convergence <- function(x) {
-
-  # get Geweke p-value
-  g <- geweke_pvalue(mcmc(x))
-  ret <- (g>0.05)
-
+test_convergence <- function(x, n) {
+  if (n==1) {
+    return(FALSE)
+  }
+  g <- geweke_pvalue(mcmc(x[1:n]))
+  ret <- (g>0.001)
+  if (is.na(ret)) {
+    ret <- FALSE;
+  }
   return(ret)
 }
 

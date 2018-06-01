@@ -5,14 +5,25 @@
 
 using namespace Rcpp;
 
-// example_mcmc_cpp
-Rcpp::List example_mcmc_cpp(Rcpp::List args);
-RcppExport SEXP _MALECOT_example_mcmc_cpp(SEXP argsSEXP) {
+// run_mcmc_biallelic_cpp
+Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args);
+RcppExport SEXP _MALECOT_run_mcmc_biallelic_cpp(SEXP argsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(example_mcmc_cpp(args));
+    rcpp_result_gen = Rcpp::wrap(run_mcmc_biallelic_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// run_mcmc_multiallelic_cpp
+Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args);
+RcppExport SEXP _MALECOT_run_mcmc_multiallelic_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(run_mcmc_multiallelic_cpp(args));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -29,7 +40,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_MALECOT_example_mcmc_cpp", (DL_FUNC) &_MALECOT_example_mcmc_cpp, 1},
+    {"_MALECOT_run_mcmc_biallelic_cpp", (DL_FUNC) &_MALECOT_run_mcmc_biallelic_cpp, 1},
+    {"_MALECOT_run_mcmc_multiallelic_cpp", (DL_FUNC) &_MALECOT_run_mcmc_multiallelic_cpp, 1},
     {"_MALECOT_call_hungarian_cpp", (DL_FUNC) &_MALECOT_call_hungarian_cpp, 1},
     {NULL, NULL, 0}
 };
