@@ -48,6 +48,7 @@ public:
   
   // grouping
   std::vector<int> group;
+  std::vector<int> group_order;
   
   // likelihood
   std::vector<std::vector<double>> loglike_old;
@@ -88,6 +89,7 @@ public:
   */
   // scaffold objects
   std::vector<std::vector<int>> scaf_group;
+  std::vector<int> scaf_count;
   /*
   // objects for split-merge
   std::vector<int> splitmerge_targets;
@@ -125,7 +127,7 @@ public:
   double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
   double logprob_genotype_lookup_varE(int S, double p, int m, double e1, double e2);
   
-  void group_increasing();
+  void get_group_order();
   double scaf_prop_logprob(const std::vector<int> &prop_group);
   void scaf_propose(int &scaf_accept);
   void splitmerge_propose(int &splitmerge_accept);

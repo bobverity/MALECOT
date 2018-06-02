@@ -37,7 +37,12 @@ using namespace std;
 
 //------------------------------------------------
 // test whether value can be found in vector
-// is_in_vec
+// is_in_vector
+// DEFINED IN HEADER
+
+//------------------------------------------------
+// test whether two vectors have all matching values
+// vectors_identical
 // DEFINED IN HEADER
 
 //------------------------------------------------

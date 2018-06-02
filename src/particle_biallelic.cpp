@@ -51,6 +51,7 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   
   // grouping
   group = vector<int>(n);
+  group_order = seq_int(0,K-1);
   
   // likelihood
   loglike_old = vector<vector<double>>(n, vector<double>(L));
@@ -91,6 +92,7 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   */
   // initialise scaffold objects
   scaf_group = vector<vector<int>>(scaffold_n, vector<int>(n));
+  scaf_count = vector<int>(scaffold_n);
   /*
   // initialise objects for split-merge
   splitmerge_targets = seq_int(0,K-1);
@@ -563,27 +565,21 @@ void particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
 }
 
 //------------------------------------------------
-// re-order group and other elements such that group is always-increasing
-void particle_biallelic::group_increasing() {
+// get group order such that group_order[group[i]] is always-increasing over i
+void particle_biallelic::get_group_order() {
   
   // get order of unique values in group
   vector<int> group_uniques = unique_int(group, K);
-  vector<int> group_order = order_unique_int(group_uniques, K);
-  
-  // reorder group
-  for (int i=0; i<n; i++) {
-    int this_group = group_order[group[i]];
-    group[i] = this_group;
-  }
-  
+  group_order = order_unique_int(group_uniques, K);
 }
 
 //------------------------------------------------
 // return log-probability of a particular scaffold group being drawn
-double particle_biallelic::scaf_prop_logprob(const vector<int> &prop_group) {
 /*
+double particle_biallelic::scaf_prop_logprob(const vector<int> &prop_group) {
+  
   int matches = 0;
-  for (int i=0; i<scaf_n; i++) {
+  for (int i=0; i<scaffold_n; i++) {
     bool exact_match = true;
     for (int j=0; j<n; j++) {
       if (prop_group[j] != scaf_group[i][j]) {
@@ -595,27 +591,26 @@ double particle_biallelic::scaf_prop_logprob(const vector<int> &prop_group) {
       matches ++;
     }
   }
-  double ret = log(matches/double(scaf_n));
+  double ret = log(matches/double(scaffold_n));
   return ret;
-*/
-  return 0;
 }
-
+*/
 //------------------------------------------------
 // propose swap with scaffold grouping
 void particle_biallelic::scaf_propose(int &scaf_accept) {
-/*
+  
   // re-order group allocation to be always-increasing
-  group_increasing();
-
+  //vector<int> group_inc = group_increasing();
+  
   // initialise backwards proposal probability
-  double prop_backwards = scaf_prop_logprob(group);
-
+  double prop_backwards = 0;//scaf_prop_logprob();
+  
   // break if no chance of backwards move
   if (std::isinf(prop_backwards)) {
     return;
   }
-
+  //print(prop_backwards);
+  /*
   // store old group and propose new group from scaffolds
   vector<int> group_old = group;
   int rand1 = sample2(0, scaf_n-1);

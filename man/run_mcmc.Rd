@@ -6,9 +6,8 @@
 \usage{
 run_mcmc(proj, K = NULL, burnin = 100, samples = 1000, rungs = 1,
   auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE,
-  scaffold_n = 10, split_merge_on = TRUE, solve_label_switching = TRUE,
-  precision = 0.01, GTI_pow = 2, report_iteration = 100,
-  flush_console = FALSE, silent = FALSE, output_format = 1,
+  scaffold_n = 10, split_merge_on = TRUE, solve_label_switching_on = TRUE,
+  precision = 0.01, GTI_pow = 2, silent = FALSE, output_format = 1,
   cluster = NULL)
 }
 \arguments{
@@ -22,23 +21,27 @@ run_mcmc(proj, K = NULL, burnin = 100, samples = 1000, rungs = 1,
 
 \item{rungs}{the number of temperature rungs}
 
+\item{auto_converge}{whether burn-in should be diagnosed automatically}
+
 \item{coupling_on}{whether to implement Metropolis-coupling over temperature rungs}
 
 \item{scaffold_on}{whether to use scaffolds to improve mixing}
 
 \item{scaffold_n}{the number of scaffolds to use}
 
+\item{split_merge_on}{whether to implement a split-merge proposal}
+
+\item{solve_label_switching_on}{whether to implement Stevens' solution to the label-switching problem}
+
+\item{precision}{the level of precision that allele frequencies are represented at}
+
+\item{GTI_pow}{the power used in the generalised thermodynamic integration method for estimating K}
+
+\item{silent}{supresses output messages}
+
+\item{output_format}{choose from a range of output formats}
+
 \item{cluster}{pass in a cluster environment}
-
-\item{mu_prior_mean}{the mean of the (normal) prior on mixture component locations}
-
-\item{mu_prior_var}{the variance of the (normal) prior on mixture component locations}
-
-\item{sigma}{the standard deviation of mixture components}
-
-\item{solve_label_switching_on}{whether to implement the Stevens' solution to the label-switching problem}
-
-\item{splitmerge_on}{whether to implement a split-merge proposal}
 }
 \description{
 Demonstrates good algorithmic and coding practices for a simple normal mixture model. Implements advanced MCMC methods, including Metropolis-coupling over temperature rungs, a split-merge proposal, and an additional form of proposal referred to here as a "scaffold" proposal. Uses Rcpp and the package parallel for speed and efficiency.

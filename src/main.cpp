@@ -87,13 +87,15 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( m.sampling_loglike ));
   ret.push_back(Rcpp::wrap( m.qmatrix_final ));
   ret.push_back(Rcpp::wrap( m.coupling_accept ));
-
+  ret.push_back(Rcpp::wrap( m.scaf_accept ));
+  
   Rcpp::StringVector ret_names;
   ret_names.push_back("burnin_loglike");
   ret_names.push_back("sampling_loglike");
   ret_names.push_back("qmatrix_final");
   ret_names.push_back("coupling_accept");
-
+  ret_names.push_back("scaf_accept");
+  
   ret.names() = ret_names;
   return ret;
 }

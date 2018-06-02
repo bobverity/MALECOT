@@ -34,12 +34,10 @@ public:
   bool scaffold_on;
   int scaffold_n;
   bool split_merge_on;
-  bool solve_label_switching;
+  bool solve_label_switching_on;
   double precision;
   int precision_size;
   double GTI_pow;
-  int report_iteration;
-  bool flush_console;
   bool silent;
   //output_format = rcpp_to_int(args["output_format"]);
   
@@ -57,6 +55,7 @@ public:
   
   // scaffold objects
   std::vector<std::vector<std::vector<int>>> scaf_group;
+  std::vector<std::vector<int>> scaf_count;
   
   // ordering of labels
   std::vector<int> label_order;

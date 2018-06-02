@@ -50,7 +50,7 @@ void push_back_multiple(std::vector<TYPE> &lhs, std::vector<TYPE> &rhs) {
 //------------------------------------------------
 // test whether value can be found in vector
 template<class TYPE>
-bool is_in_vec(TYPE x, std::vector<TYPE> &v) {
+bool is_in_vector(TYPE x, std::vector<TYPE> &v) {
   bool ret = false;
   for (int i=0; i<int(v.size()); i++) {
     if (v[i] == x) {
@@ -59,6 +59,18 @@ bool is_in_vec(TYPE x, std::vector<TYPE> &v) {
     }
   }
   return ret;
+}
+
+//------------------------------------------------
+// test whether two vectors have all matching values
+template<class TYPE>
+bool vectors_identical(std::vector<TYPE> &v1, std::vector<TYPE> &v2) {
+  for (int i=0; i<int(v1.size()); i++) {
+    if (v1[i] != v2[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 //------------------------------------------------

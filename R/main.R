@@ -232,27 +232,29 @@ delete_set <- function(proj, set = NULL, check_delete_output = TRUE) {
 #'
 #' @param proj TODO
 #' @param K the number of mixture components
-#' @param mu_prior_mean the mean of the (normal) prior on mixture component locations
-#' @param mu_prior_var the variance of the (normal) prior on mixture component locations
-#' @param sigma the standard deviation of mixture components
 #' @param burnin the number of burn-in iterations
 #' @param samples the number of sampling iterations
 #' @param rungs the number of temperature rungs
-#' @param solve_label_switching_on whether to implement the Stevens' solution to the label-switching problem
+#' @param auto_converge whether burn-in should be diagnosed automatically
 #' @param coupling_on whether to implement Metropolis-coupling over temperature rungs
 #' @param scaffold_on whether to use scaffolds to improve mixing
 #' @param scaffold_n the number of scaffolds to use
-#' @param splitmerge_on whether to implement a split-merge proposal
+#' @param split_merge_on whether to implement a split-merge proposal
+#' @param solve_label_switching_on whether to implement Stevens' solution to the label-switching problem
+#' @param precision the level of precision that allele frequencies are represented at
+#' @param GTI_pow the power used in the generalised thermodynamic integration method for estimating K
+#' @param silent supresses output messages
+#' @param output_format choose from a range of output formats
 #' @param cluster pass in a cluster environment
 #'
 #' @export
 #' @examples
 #' # TODO
 
-run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE, scaffold_n = 10, split_merge_on = TRUE, solve_label_switching = TRUE, precision = 0.01, GTI_pow = 2, report_iteration = 1e2, flush_console = FALSE, silent = FALSE, output_format = 1, cluster = NULL) {
-
+run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE, scaffold_n = 10, split_merge_on = TRUE, solve_label_switching_on = TRUE, precision = 0.01, GTI_pow = 2, silent = FALSE, output_format = 1, cluster = NULL) {
+  
   # ---------- check inputs ----------
-
+  
   # check input arguments
   assert_malecot_project(proj)
   assert_pos_int(burnin)
@@ -262,47 +264,47 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, aut
   assert_pos_int(scaffold_n, zero_allowed = FALSE)
   assert_int(GTI_pow)
   assert_bounded(GTI_pow, left = 1, right = 10)
-  assert_pos_int(report_iteration, zero_allowed = FALSE)
   assert_in(output_format, 1:2)
-
+  
   # get active set and check non-zero
   s <- proj$active_set
   if (s==0) {
     stop("no active parameter set")
   }
-
+  
   # check that precision is either zero or leads to simple sequence
   if (precision!=0) {
     if(!((1/precision)%%1)==0) {
       stop("1/precision must be an integer")
     }
   }
-
+  
   # default value and checks on K
   K <- define_default(K, proj$parameter_sets[[s]]$K_range)
   assert_in(K, proj$parameter_sets[[s]]$K_range)
-
-
+  
+  
   # ---------- process data ----------
-
+  
   # if bi-allelic
   data <- proj$data$raw
+  L <- proj$data$L
   data_format <- proj$data$data_format
   missing_data <- proj$data$missing_data
   if (data_format == "biallelic") {
-
+  
     # convert data to simple integer format for use in Rcpp function
     data[data == 0.5] <- 2
     data[data == 0] <- 3
     data[data == missing_data] <- 0
-
+    
     # number of haplotypes at each locus
-    Jl <- rep(2, proj$data$L)
+    Jl <- rep(2,L)
   }
-
+  
   # if multi-allelic
   if (data_format == "multiallelic") {
-
+    
     # convert data to simple integer format for use in Rcpp function
     # TODO - check can convert data from text to numeric
     Jl <- rep(0,L)	# number of haplotypes at each locus
@@ -314,19 +316,19 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, aut
     }
     data[,3][is.na(data[,3])] <- 0
   }
-
-
+  
+  
   # ---------- create argument lists ----------
-
+  
   # define data list
   args_data <- list(data = mat_to_rcpp(data),
                     n = proj$data$n,
                     L = proj$data$L,
                     Jl = Jl)
-
+  
   # get parameters from active set
   args_model <- proj$parameter_sets[[s]]
-
+  
   # add to model parameters list
   args_model <- c(args_model, list(burnin = burnin,
                                    samples = samples,
@@ -336,27 +338,25 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, aut
                                    scaffold_on = scaffold_on,
                                    scaffold_n = scaffold_n,
                                    split_merge_on = split_merge_on,
-                                   solve_label_switching = solve_label_switching,
+                                   solve_label_switching_on = solve_label_switching_on,
                                    precision = precision,
                                    GTI_pow = GTI_pow,
-                                   report_iteration = report_iteration,
-                                   flush_console = flush_console,
                                    silent = silent,
                                    output_format = output_format,
                                    cluster = cluster))
-
+  
   # get COI_model in numeric form
   args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
-
+  
   # R functions to pass to Rcpp
   args_functions <- list(forty_winks = forty_winks,
                          test_convergence = test_convergence,
                          update_progress = update_progress)
-
+  
   # define final argument list over all K
   parallel_args <- list()
   for (i in 1:length(K)) {
-
+    
     # create progress bars
     pb_scaf <- txtProgressBar(min = 0, max = scaffold_n, initial = NA, style = 3)
     pb_burnin <- txtProgressBar(min = 0, max = burnin, initial = NA, style = 3)
@@ -364,14 +364,14 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, aut
     args_pb <- list(pb_scaf = pb_scaf,
                     pb_burnin = pb_burnin,
                     pb_samples = pb_samples)
-
+    
     # create argument list
     parallel_args[[i]] <- c(list(K = K[i]), args_data, args_model, args_functions, args_pb)
   }
-
-
+  
+  
   # ---------- run MCMC ----------
-
+  
   # split into parallel and serial implementations
   if (!is.null(cluster)) {  # run in parallel
     if (!inherits(cluster, "cluster")) {
@@ -392,7 +392,7 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e2, samples = 1e3, rungs = 1, aut
       output_raw <- lapply(parallel_args, run_mcmc_multiallelic_cpp)
     }
   }
-
+  
   return(output_raw)
   #------------------------
 
@@ -452,7 +452,7 @@ test_convergence <- function(x, n) {
     return(FALSE)
   }
   g <- geweke_pvalue(mcmc(x[1:n]))
-  ret <- (g>0.001)
+  ret <- (g>0.01)
   if (is.na(ret)) {
     ret <- FALSE;
   }
