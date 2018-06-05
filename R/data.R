@@ -75,14 +75,15 @@
 #'   alleles at each locus, or if a single value is used then the same value
 #'   applies for all loci. In the bi-allelic case this parameter is ignored as
 #'   the number of alleles is fixed at 2
-#' @param lambda shape parameters governing the prior on allele frequencies,
-#'   which is a Beta distribution for the bi-allelic case or a Dirichlet
-#'   distribution for the multi-allelic case. In the simplest case this can be a
-#'   single scalar value, in which case the same shape paremeter will be used
-#'   for all loci and all alleles (i.e. a symmetric Beta or Dirichlet prior). In
-#'   the more general case this can be a list of length \code{L}, containing
-#'   vectors of length equal to the number of alleles at each locus, allowing
-#'   different shape parameters to be defined for each allele individually
+#' @param lambda shape parameter(s) governing the prior on allele frequencies. 
+#'   This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
+#'   distribution for the multi-allelic case. In the simplest case,
+#'   \code{lambda} can be a single scalar value, in which case the same shape
+#'   paremeter will be used for all loci and all alleles (i.e. a symmetric Beta
+#'   or Dirichlet prior). In the more general case \code{lambda} can be a list
+#'   of length \code{L}, containing vectors of length equal to the number of
+#'   alleles at each locus, allowing different shape parameters to be defined
+#'   for each allele individually
 #' @param COI_model the type of prior distribution on COI in each subpopulation.
 #'   Can be \code{uniform}, \code{poisson} or \code{nb} (negative binomial).
 #'   Note that the poisson and negative binomial distributions use a
@@ -118,8 +119,8 @@
 #' @examples
 #' # TODO
 
-sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles = 2, lambda = 2, COI_model = "poisson", COI_manual = NULL, COI_max = 20, COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0, prop_missing = 0) {
-
+sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles = 2, lambda = 1, COI_model = "poisson", COI_manual = NULL, COI_max = 20, COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0, prop_missing = 0) {
+  
   # check inputs and force certain formats
   assert_pos_int(n, zero_allowed = FALSE)
   assert_pos_int(L, zero_allowed = FALSE)
@@ -128,7 +129,7 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   assert_pos_int(alleles, zero_allowed = FALSE)
   assert_gr(alleles, 1)
   assert_in(length(alleles), 1, L)
-  assert_bounded(lambda, left = 0, right = 100)
+  assert_bounded(unlist(lambda), left = 0, right = 100)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   if (!is.null(COI_manual)) {
     assert_that(length(COI_manual) == n)
@@ -145,12 +146,12 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   assert_bounded(e1)
   assert_bounded(e2)
   assert_bounded(prop_missing)
-
+  
   # fix alleles if biallelic format
   if (data_format=="biallelic") {
     alleles <- 2
   }
-
+  
   # define COI mean and dispersion under uniform and Poisson priors
   if (COI_model =="uniform") {
     COI_mean <- (COI_max+1)/2
@@ -158,12 +159,12 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   } else if (COI_model =="poisson") {
     COI_dispersion <- 1 - 1/COI_mean
   }
-
+  
   # force alleles to vector over loci
   if (length(alleles)==1) {
     alleles <- rep(alleles, L)
   }
-
+  
   # force lambda to list
   if (is.list(lambda)) {
     if (length(lambda)!=L) {
@@ -175,7 +176,12 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
     }
     lambda <- lapply(alleles, function(x){rep(lambda,x)})
   }
-
+  
+  # check that lambda compatible with number of alleles
+  if (!all(mapply(length, lambda)==alleles)) {
+    stop("lambda not compatible with number of alleles")
+  }
+  
   # force COI mean and dispersion to vector
   if (length(COI_mean)==1) {
     COI_mean <- rep(COI_mean, K)
@@ -184,16 +190,11 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
     COI_dispersion <- rep(COI_dispersion, K)
   }
 
-  # check that lambda compatible with number of alleles
-  if (!all(mapply(length, lambda)==alleles)) {
-    stop("lambda not compatible with number of alleles")
-  }
-
   # create names
   ind_names <- paste0("ind", 1:n)
   locus_names <- paste0("locus", 1:L)
   deme_names <- paste0("deme", 1:K)
-
+  
   # generate true grouping and allele frequencies
   true_group <- sort(sample(K, n, replace = TRUE))
   true_p <- list()
@@ -206,7 +207,7 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
     rownames(true_p[[l]]) <- deme_names
     colnames(true_p[[l]]) <- paste0("allele", 1:alleles[l])
   }
-
+  
 	# generate true COIs
   if (!is.null(COI_manual)) {
     true_m <- COI_manual
@@ -222,16 +223,18 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
       true_m <- rnbinom(n, size=(mu-1)^2/(v-mu+1), prob=(mu-1)/v) + 1
     }
   }
-
+  
   # truncate COIs at COI_max
   true_m[true_m>COI_max] <- COI_max
-
+  
+  # initialise loglikelihood
+  loglike <- 0
+  
   # name outputs
   names(true_group) <- ind_names
   names(true_m) <- ind_names
   names(true_p) <- locus_names
-  names(true_p) <- locus_names
-
+  
   # simulate bi-allelic data
   if (data_format=="biallelic") {
 
@@ -240,7 +243,8 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
     for (k in 1:K) {
       if (any(true_group==k)) {
         true_m_k <- true_m[true_group==k]
-        data_raw_k <- t(mapply(rbinom, n=L, size=true_m_k, MoreArgs=list(prob=true_p[[k]])))
+        true_p_k <- mapply(function(x){x[k,1]}, true_p)
+        data_raw_k <- t(mapply(rbinom, n=L, size=true_m_k, MoreArgs=list(prob=true_p_k)))
         data_k <- matrix(0.5, length(true_m_k), L)
         data_k[data_raw_k==matrix(true_m_k, length(true_m_k), L)] <- 1
         data_k[data_raw_k==0] <- 0
@@ -282,6 +286,25 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
         data[sample.int(n*L, prop_missing_round )] <- -1
       }
     }
+    
+    # calculate loglikelihood
+    loglike <- 0
+    for (i in 1:n) {
+      this_group <- true_group[i]
+      this_m <- true_m[i]
+      for (j in 1:L) {
+        this_p <- true_p[[j]][this_group,1]
+        if (data[i,j] == 1) {
+          delta <- this_m*log(this_p)
+        } else if (data[i,j] == 0) {
+          delta <- this_m*log(1-this_p)
+        } else if (data[i,j] == 0.5) {
+          delta <- log(1 - this_p^this_m - (1-this_p)^this_m)
+        }
+        loglike <- loglike + delta
+      }
+    }
+    
   } # end biallelic simulation
 
   # simulate multi-allelic data
@@ -315,7 +338,7 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
       row.names(data) <- NULL
     }
   } # end multiallelic simulation
-
+  
   # return simulated data and true parameter values
   output <- list()
   output$data <- data
@@ -325,8 +348,9 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   output$true_group <- true_group
   output$true_m <- true_m
   output$true_p <- true_p
+  output$loglike <- loglike
   output$call <- match.call()
-
+  
   return(output)
 }
 

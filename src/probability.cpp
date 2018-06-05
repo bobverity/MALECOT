@@ -135,8 +135,8 @@ double rbeta1(double shape1, double shape2) {
 
 //------------------------------------------------
 // probability density of beta(shape1,shape2) distribution
-double dbeta1(double x, double shape1, double shape2, bool returnLog) {
-  return R::dbeta(x, shape1, shape2, returnLog);
+double dbeta1(double x, double shape1, double shape2, bool return_log) {
+  return R::dbeta(x, shape1, shape2, return_log);
 }
 
 //------------------------------------------------

@@ -11,13 +11,14 @@
 #' # TODO
 #'
 malecot_project <- function() {
-
+  
   # initialise project with default values
   ret <- list(data = list(),
               parameter_sets = list(),
               active_set = 0,
+              scaffolds = list(),
               output = list())
-
+  
   # create class and return invisibly
   class(ret) <- "malecot_project"
   invisible(ret)
@@ -27,10 +28,10 @@ malecot_project <- function() {
 # overload print() function to print without class specifier
 #' @export
 print.malecot_project <- function(x, ...) {
-
+  
   # print raw list
   print(unclass(x))
-
+  
   # return invisibly
   invisible(x)
 }
@@ -39,9 +40,9 @@ print.malecot_project <- function(x, ...) {
 # overload summary() function.
 #' @export
 summary.malecot_project <- function(object, ...) {
-
+  
   proj <- object
-
+  
   # print data summary
   cat("### DATA\n")
   if (length(proj$data)==0) {

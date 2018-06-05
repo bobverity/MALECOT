@@ -2,11 +2,11 @@
 % Please edit documentation in R/main.R
 \name{run_mcmc}
 \alias{run_mcmc}
-\title{Example MCMC}
+\title{Run MALECOT MCMC}
 \usage{
-run_mcmc(proj, K = NULL, burnin = 100, samples = 1000, rungs = 1,
+run_mcmc(proj, K = NULL, burnin = 1000, samples = 1000, rungs = 1,
   auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE,
-  scaffold_n = 10, split_merge_on = TRUE, solve_label_switching_on = TRUE,
+  split_merge_on = TRUE, solve_label_switching_on = TRUE,
   precision = 0.01, GTI_pow = 2, silent = FALSE, output_format = 1,
   cluster = NULL)
 }
@@ -27,8 +27,6 @@ run_mcmc(proj, K = NULL, burnin = 100, samples = 1000, rungs = 1,
 
 \item{scaffold_on}{whether to use scaffolds to improve mixing}
 
-\item{scaffold_n}{the number of scaffolds to use}
-
 \item{split_merge_on}{whether to implement a split-merge proposal}
 
 \item{solve_label_switching_on}{whether to implement Stevens' solution to the label-switching problem}
@@ -44,7 +42,7 @@ run_mcmc(proj, K = NULL, burnin = 100, samples = 1000, rungs = 1,
 \item{cluster}{pass in a cluster environment}
 }
 \description{
-Demonstrates good algorithmic and coding practices for a simple normal mixture model. Implements advanced MCMC methods, including Metropolis-coupling over temperature rungs, a split-merge proposal, and an additional form of proposal referred to here as a "scaffold" proposal. Uses Rcpp and the package parallel for speed and efficiency.
+TODO
 }
 \details{
 TODO

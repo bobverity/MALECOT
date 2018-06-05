@@ -22,6 +22,7 @@ public:
   
   // model and MCMC parameters
   int K;
+  std::vector<std::vector<double>> lambda;
   double precision;
   int precision_size;
   bool estimate_error;
@@ -29,7 +30,8 @@ public:
   int COI_max;
   double COI_dispersion;
   double beta_raised;
-  int scaffold_n;
+  int scaffold_group_n;
+  std::vector<std::vector<int>> scaffold_group;
   double e1;
   double e2;
   double e1_max;
@@ -48,7 +50,7 @@ public:
   
   // grouping
   std::vector<int> group;
-  std::vector<int> group_order;
+  std::vector<int> group_increasing;
   
   // likelihood
   std::vector<std::vector<double>> loglike_old;
@@ -66,18 +68,13 @@ public:
   
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
-  std::vector<double> p_prop;
+  std::vector<std::vector<double>> p_prop;
   std::vector<double> COI_mean_prop;
-  
-  
-  // Q matrix
-  //std::vector<std::vector<double>> qmatrix;
-  //std::vector<std::vector<double>> log_qmatrix;
   
   // initialise ordering of labels
   std::vector<int> label_order;
   std::vector<int> label_order_new;
-  /*
+  
   // objects for solving label switching problem
   std::vector<std::vector<double>> cost_mat;
   std::vector<int> best_perm;
@@ -86,10 +83,14 @@ public:
   std::vector<int> edges_right;
   std::vector<int> blocked_left;
   std::vector<int> blocked_right;
-  */
+  
   // scaffold objects
-  std::vector<std::vector<int>> scaf_group;
-  std::vector<int> scaf_count;
+  std::vector<std::vector<int>> het_m_table;
+  std::vector<std::vector<int>> het_m_prop_table;
+  std::vector<int> n_homo0;
+  std::vector<int> n_homo1;
+  std::vector<int> n_homo0_prop;
+  std::vector<int> n_homo1_prop;
   /*
   // objects for split-merge
   std::vector<int> splitmerge_targets;
@@ -127,9 +128,9 @@ public:
   double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
   double logprob_genotype_lookup_varE(int S, double p, int m, double e1, double e2);
   
-  void get_group_order();
-  double scaf_prop_logprob(const std::vector<int> &prop_group);
-  void scaf_propose(int &scaf_accept);
+  void get_group_increasing();
+  bool scaf_prop_current();
+  void scaf_propose(int &scaf_trials, int &scaf_accept);
   void splitmerge_propose(int &splitmerge_accept);
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   

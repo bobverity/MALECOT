@@ -63,7 +63,7 @@ double rbeta1(double shape1, double shape2);
 
 //------------------------------------------------
 // probability density of beta(shape1,shape2) distribution
-double dbeta1(double x, double shape1, double shape2, bool returnLog=true);
+double dbeta1(double x, double shape1, double shape2, bool return_log=true);
 
 //------------------------------------------------
 // draw from dirichlet distribution using vector of shape parameters

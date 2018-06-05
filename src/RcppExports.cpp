@@ -5,6 +5,17 @@
 
 using namespace Rcpp;
 
+// generate_scaffolds_biallelic_cpp
+Rcpp::List generate_scaffolds_biallelic_cpp(Rcpp::List args);
+RcppExport SEXP _MALECOT_generate_scaffolds_biallelic_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(generate_scaffolds_biallelic_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
 // run_mcmc_biallelic_cpp
 Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args);
 RcppExport SEXP _MALECOT_run_mcmc_biallelic_cpp(SEXP argsSEXP) {
@@ -16,6 +27,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// generate_scaffolds_multiallelic_cpp
+Rcpp::List generate_scaffolds_multiallelic_cpp(Rcpp::List args);
+RcppExport SEXP _MALECOT_generate_scaffolds_multiallelic_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(generate_scaffolds_multiallelic_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
 // run_mcmc_multiallelic_cpp
 Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args);
 RcppExport SEXP _MALECOT_run_mcmc_multiallelic_cpp(SEXP argsSEXP) {
@@ -24,6 +46,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
     rcpp_result_gen = Rcpp::wrap(run_mcmc_multiallelic_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fix_labels_cpp
+Rcpp::List fix_labels_cpp(Rcpp::List args_model);
+RcppExport SEXP _MALECOT_fix_labels_cpp(SEXP args_modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args_model(args_modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(fix_labels_cpp(args_model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -40,8 +73,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_MALECOT_generate_scaffolds_biallelic_cpp", (DL_FUNC) &_MALECOT_generate_scaffolds_biallelic_cpp, 1},
     {"_MALECOT_run_mcmc_biallelic_cpp", (DL_FUNC) &_MALECOT_run_mcmc_biallelic_cpp, 1},
+    {"_MALECOT_generate_scaffolds_multiallelic_cpp", (DL_FUNC) &_MALECOT_generate_scaffolds_multiallelic_cpp, 1},
     {"_MALECOT_run_mcmc_multiallelic_cpp", (DL_FUNC) &_MALECOT_run_mcmc_multiallelic_cpp, 1},
+    {"_MALECOT_fix_labels_cpp", (DL_FUNC) &_MALECOT_fix_labels_cpp, 1},
     {"_MALECOT_call_hungarian_cpp", (DL_FUNC) &_MALECOT_call_hungarian_cpp, 1},
     {NULL, NULL, 0}
 };

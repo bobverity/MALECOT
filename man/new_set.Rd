@@ -15,7 +15,15 @@ new_set(proj, set_description = NULL, K_range = 1:3, lambda = 1,
 
 \item{K_range}{TODO}
 
-\item{lambda}{TODO}
+\item{lambda}{shape parameter(s) governing the prior on allele frequencies. 
+This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
+distribution for the multi-allelic case. In the simplest case,
+\code{lambda} can be a single scalar value, in which case the same shape
+paremeter will be used for all loci and all alleles (i.e. a symmetric Beta
+or Dirichlet prior). In the more general case \code{lambda} can be a list
+of length \code{L}, containing vectors of length equal to the number of
+alleles at each locus, allowing different shape parameters to be defined
+for each allele individually}
 
 \item{COI_model}{TODO}
 

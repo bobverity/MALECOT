@@ -14,15 +14,11 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
   n = rcpp_to_int(args["n"]);
   L = rcpp_to_int(args["L"]);
   K = rcpp_to_int(args["K"]);
-  //lambda;
   COI_model = rcpp_to_int(args["COI_model_numeric"]);
   COI_max = rcpp_to_int(args["COI_max"]);
-  //COI_dispersion;
   e1 = rcpp_to_double(args["e1"]);
   e2 = rcpp_to_double(args["e2"]);
   estimate_error = rcpp_to_bool(args["estimate_error"]);
-  //e1_max;
-  //e2_max;
   burnin = rcpp_to_int(args["burnin"]);
   samples = rcpp_to_int(args["samples"]);
   rungs = rcpp_to_int(args["rungs"]);
@@ -30,12 +26,18 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
   coupling_on = rcpp_to_bool(args["coupling_on"]);
   scaffold_on = rcpp_to_bool(args["scaffold_on"]);
   scaffold_n = rcpp_to_int(args["scaffold_n"]);
+  scaffold_group_n = rcpp_to_int(args["scaffold_group_n"]);
   split_merge_on = rcpp_to_bool(args["split_merge_on"]);
   solve_label_switching_on = rcpp_to_bool(args["solve_label_switching_on"]);
   precision = rcpp_to_double(args["precision"]);
   GTI_pow = rcpp_to_double(args["GTI_pow"]);
   silent = rcpp_to_bool(args["silent"]);
   //output_format = rcpp_to_int(args["output_format"]);
+  
+  // cannot use scaffolds if none available
+  if (scaffold_group_n==0) {
+    scaffold_on = false;
+  }
   
   // create lookup tables
   if (precision!=0) {
@@ -88,26 +90,30 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
     particle_vec[rung] = particle_biallelic(data, args, lookup_homo, lookup_het, beta_raised_vec[rung]);
   }
   
-  // scaffold objects
-  scaf_group = vector<vector<vector<int>>>(rungs, vector<vector<int>>(scaffold_n, vector<int>(n)));
-  scaf_count = vector<vector<int>>(rungs, vector<int>(scaffold_n));
-  
   // initialise ordering of labels
   label_order = seq_int(0,K-1);
   label_order_new = vector<int>(K);
   
+  // Q-matrices
+  log_qmatrix_running = vector<vector<double>>(n, vector<double>(K));
+  qmatrix_final = vector<vector<double>>(n, vector<double>(K));
+  
   // objects for storing results
   burnin_loglike = vector<vector<double>>(rungs, vector<double>(burnin));
   sampling_loglike = vector<vector<double>>(rungs, vector<double>(samples));
-  log_qmatrix_running = vector<vector<double>>(n, vector<double>(K));
-  qmatrix_final = vector<vector<double>>(n, vector<double>(K));
+  m_store = vector<vector<int>>(samples, vector<int>(n));
+  p_store = vector<vector<vector<double>>>(K, vector<vector<double>>(L, vector<double>(samples)));
+  e1_store = vector<double>(samples, e1);
+  e2_store = vector<double>(samples, e2);
+  COI_mean_store = vector<vector<double>>(samples, vector<double>(K));
   
   // objects for storing acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
   e1_accept = 0;
   e2_accept = 0;
   coupling_accept = vector<int>(rungs-1);
-  scaf_accept = vector<int>(rungs);
+  scaf_trials = 0;
+  scaf_accept = 0;
   splitmerge_accept = vector<int>(rungs);
 }
 
@@ -136,83 +142,64 @@ void MCMC_biallelic::scaffold_mcmc(Rcpp::List &args) {
     update_progress(args, 1, 0, scaffold_n);
   }
   
+  // create scaffold particle
+  particle_biallelic particle_scaf(data, args, lookup_homo, lookup_het, 1);
+  
+  // objects for storing results
+  scaffold_group = vector<vector<int>>(scaffold_n, vector<int>(n));
+  scaffold_loglike = vector<double>(scaffold_n);
+  
   // generate multiple scaffolds
   int n_non_converge = 0;
   for (int scaf_rep=0; scaf_rep<scaffold_n; scaf_rep++) {
     
-    // reset particles
-    for (int r=0; r<rungs; r++) {
-      particle_vec[r].reset();
-      particle_vec[r].beta_raised = beta_raised_vec[r];
-    }
-    rung_order = seq_int(0,rungs-1);
+    // reset particle
+    particle_scaf.reset();
     
     // store log-likelihoods for checking convergence
-    vector<vector<double>> scaf_log_like(rungs, vector<double>(burnin));
+    vector<double> scaffold_loglike_conv(burnin);
     
     // loop through burn-in iterations
-    bool all_converged = false;
+    bool has_converged = false;
     for (int rep=0; rep<burnin; rep++) {
       
-      // update particles
-      for (int r=0; r<rungs; r++) {
-        int rung = rung_order[r];
-        
-        // update error estimates
-        if (estimate_error) {
-          particle_vec[rung].update_e(1, true, rep+1);
-          particle_vec[rung].update_e(2, true, rep+1);
-        }
-        
-        // update p
-        particle_vec[rung].update_p(true, rep+1);
-        
-        // update m
-        particle_vec[rung].update_m();
-        
-        // update COI_means
-        if (COI_model==2 || COI_model==3) {
-          particle_vec[rung].update_COI_mean(true, rep+1);
-        }
-        
-        // update group
-        particle_vec[rung].update_group();
-        
-        // split-merge step
-        //if (splitmerge_on) {
-        //  particle_vec[rung].splitmerge_propose(dummy_accept);
-        //}
-        
-        // calculate log-likelihood
-        particle_vec[rung].calculate_loglike();
-        
-      } // end loop over rungs
-      
-      // Metropolis-coupling
-      if (coupling_on) {
-        metropolis_coupling();
+      // update error estimates
+      if (estimate_error) {
+        particle_scaf.update_e(1, true, rep+1);
+        particle_scaf.update_e(2, true, rep+1);
       }
       
-      // store log-likelihoods
-      for (int r=0; r<rungs; r++) {
-        int rung = rung_order[r];
-        scaf_log_like[r][rep] = particle_vec[rung].loglike;
+      // update p
+      particle_scaf.update_p(true, rep+1);
+      
+      // update m
+      particle_scaf.update_m();
+      
+      // update COI_means
+      if (COI_model==2 || COI_model==3) {
+        particle_scaf.update_COI_mean(true, rep+1);
       }
+      
+      // update group
+      particle_scaf.update_group();
+      
+      // split-merge step
+      //if (splitmerge_on) {
+      //  particle_scaf.splitmerge_propose(dummy_accept);
+      //}
+      
+      // calculate log-likelihood
+      particle_scaf.calculate_loglike();
+      
+      // store log-likelihood
+      scaffold_loglike_conv[rep] = particle_scaf.loglike;
       
       // check for convergence
       if (auto_converge && (rep+1)==convergence_checkpoint[checkpoint_i]) {
         
-        // break if all rungs have converged
-        all_converged = true;
-        for (int r=0; r<rungs; r++) {
-          int rung = rung_order[r];
-          bool rung_converged = rcpp_to_bool(test_convergence(scaf_log_like[rung], rep+1));
-          if (!rung_converged) {
-            all_converged = false;
-            break;
-          }
-        }
-        if (all_converged) {
+        // break if converged
+        has_converged = rcpp_to_bool(test_convergence(scaffold_loglike_conv, rep+1));
+        if (has_converged) {
           break;
         }
         checkpoint_i++;
@@ -220,21 +207,17 @@ void MCMC_biallelic::scaffold_mcmc(Rcpp::List &args) {
       
     } // end scaffold burn-in iterations
     
+    // store final likelihood
+    scaffold_loglike[scaf_rep] = particle_scaf.loglike;
+    
     // check if still not converged at end of batches
-    if (!all_converged) {
+    if (!has_converged) {
       n_non_converge++;
     }
     
-    // loop over rungs
-    for (int r=0; r<rungs; r++) {
-      int rung = rung_order[r];
-      
-      // re-order group allocation to be always-increasing, and store this scaffold grouping
-      particle_vec[rung].get_group_order();
-      for (int i=0; i<n; i++) {
-        scaf_group[rung][scaf_rep][i] = particle_vec[rung].group_order[particle_vec[rung].group[i]];
-      }
-    }
+    // re-order group allocation to be always-increasing, and store this scaffold grouping
+    particle_scaf.get_group_increasing();
+    scaffold_group[scaf_rep] = particle_scaf.group_increasing;
     
     // update scaffold progress bar
     if (!silent) {
@@ -246,47 +229,6 @@ void MCMC_biallelic::scaffold_mcmc(Rcpp::List &args) {
   // throw warning if some scaffolds not converged
   if (n_non_converge>0) {
     print("   Warning:", n_non_converge, "out of", scaffold_n,"scaffolds did not converge"); 
-  }
-  
-  // count number of times each scaffold is represented
-  if (scaffold_n>1) {
-    for (int r=0; r<rungs; r++) {
-      
-      // get unique scaffolds
-      vector<vector<int>> scaf_unique;
-      scaf_unique.push_back(scaf_group[r][0]);
-      vector<int> unique_count(1,1);
-      vector<int> match_unique(1);
-      
-      for (int i=1; i<scaffold_n; i++) {
-        bool new_unique = true;
-        for (int j=0; j<int(scaf_unique.size()); j++) {
-          if (vectors_identical(scaf_group[r][i], scaf_unique[j])) {
-            new_unique = false;
-            unique_count[j]++;
-            match_unique.push_back(j);
-            break;
-          }
-        }
-        if (new_unique) {
-          scaf_unique.push_back(scaf_group[r][i]);
-          unique_count.push_back(1);
-          match_unique.push_back(scaf_unique.size()-1);
-        }
-      }
-      
-      // store number of times each scaf_group is represented in unique list
-      for (int i=0; i<scaffold_n; i++) {
-        scaf_count[r][i] = unique_count[match_unique[i]];
-      }
-      
-    } // end loop over rungs
-  }
-  
-  // load these scaffolds back into particles
-  for (int r=0; r<rungs; r++) {
-    particle_vec[r].scaf_group = scaf_group[r];
-    particle_vec[r].scaf_count = scaf_count[r];
   }
   
 }
@@ -349,11 +291,6 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args) {
       // calculate log-likelihood
       particle_vec[rung].calculate_loglike();
       
-      // propose swap with scaffolds
-      if (scaffold_on) {
-        particle_vec[rung].scaf_propose(scaf_accept[r]);
-      }
-      
       // split-merge step
       if (split_merge_on) {
         //particle_vec[rung].splitmerge_propose(splitmerge_accept[r]);
@@ -366,21 +303,21 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args) {
       metropolis_coupling();
     }
     
-    // store loglikelihood
-    for (int r=0; r<rungs; r++) {
-      int rung = rung_order[r];
-      burnin_loglike[r][rep] = particle_vec[rung].loglike;
-    }
+    // focus on cold rung
+    cold_rung = rung_order[rungs-1];
     
     // methods that only apply when K>1
     if (K>1) {
       
-      // focus on cold rung
-      cold_rung = rung_order[rungs-1];
+      // propose swap with scaffolds
+      if (scaffold_on) {
+        particle_vec[cold_rung].scaf_propose(scaf_trials, scaf_accept);
+      }
       
       // fix labels
       if (solve_label_switching_on) {
-        //fixLabels(particleMat[0][coldRung]);
+        particle_vec[cold_rung].solve_label_switching(log_qmatrix_running);
+        label_order = particle_vec[cold_rung].label_order;
       }
       
       // add particle log_qmatrix to log_qmatrix_running
@@ -389,6 +326,13 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args) {
           log_qmatrix_running[i][k] = log_sum(log_qmatrix_running[i][k], particle_vec[cold_rung].log_qmatrix[i][label_order[k]]);
         }
       }
+      
+    }
+    
+    // store loglikelihood
+    for (int r=0; r<rungs; r++) {
+      int rung = rung_order[r];
+      burnin_loglike[r][rep] = particle_vec[rung].loglike;
     }
     
     // update progress bars
@@ -403,7 +347,14 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args) {
     if (auto_converge && (rep+1)==convergence_checkpoint[checkpoint_i]) {
       
       // break if convergence reached
-      convergence_reached = rcpp_to_bool(test_convergence(burnin_loglike[cold_rung], rep+1));
+      convergence_reached = true;
+      for (int r=0; r<rungs; r++) {
+        bool this_converged = rcpp_to_bool(test_convergence(burnin_loglike[r], rep+1));
+        if (!this_converged) {
+          convergence_reached = false;
+          break;
+        }
+      }
       if (convergence_reached) {
         if (!silent) {
           update_progress(args, 2, burnin, burnin);
@@ -467,11 +418,6 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args) {
       // calculate log-likelihood
       particle_vec[rung].calculate_loglike();
       
-      // propose swap with scaffolds
-      if (scaffold_on) {
-        //particle_vec[rung].scaf_propose(scaf_accept[r]);
-      }
-      
       // split-merge step
       if (split_merge_on) {
         //particle_vec[rung].splitmerge_propose(splitmerge_accept[r]);
@@ -484,21 +430,21 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args) {
       metropolis_coupling();
     }
     
-    // store loglikelihood
-    for (int r=0; r<rungs; r++) {
-      int rung = rung_order[r];
-      sampling_loglike[r][rep] = particle_vec[rung].loglike;
-    }
+    // focus on cold rung
+    cold_rung = rung_order[rungs-1];
     
     // methods that only apply when K>1
     if (K>1) {
       
-      // focus on cold rung
-      cold_rung = rung_order[rungs-1];
+      // propose swap with scaffolds
+      if (scaffold_on) {
+        particle_vec[cold_rung].scaf_propose(scaf_trials, scaf_accept);
+      }
       
       // fix labels
       if (solve_label_switching_on) {
-        //fixLabels(particleMat[0][coldRung]);
+        particle_vec[cold_rung].solve_label_switching(log_qmatrix_running);
+        label_order = particle_vec[cold_rung].label_order;
       }
       
       // add particle log_qmatrix to log_qmatrix_running
@@ -508,13 +454,38 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args) {
         }
       }
       
-      // add particle qmatrix to 
+      // add particle qmatrix to qmatrix_final
       for (int i=0; i<n; i++) {
         for (int k=0; k<K; k++) {
           qmatrix_final[i][k] += particle_vec[cold_rung].qmatrix[i][label_order[k]];
         }
       }
       
+    }
+    
+    // store loglikelihood
+    for (int r=0; r<rungs; r++) {
+      int rung = rung_order[r];
+      sampling_loglike[r][rep] = particle_vec[rung].loglike;
+    }
+    
+    // store m and p
+    m_store[rep] = particle_vec[cold_rung].m;
+    for (int k=0; k<K; k++) {
+      for (int j=0; j<L; j++) {
+        p_store[k][j][rep] = particle_vec[cold_rung].p[label_order[k]][j];
+      }
+    }
+    
+    // store e1 and e2
+    if (estimate_error) {
+      e1_store[rep] = particle_vec[cold_rung].e1;
+      e2_store[rep] = particle_vec[cold_rung].e2;
+    }
+    
+    // store COI_mean
+    if (COI_model==2 || COI_model==3) {
+      COI_mean_store[rep] = particle_vec[cold_rung].COI_mean;
     }
     
     // update progress bars

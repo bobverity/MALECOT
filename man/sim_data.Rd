@@ -5,7 +5,7 @@
 \title{Simulate genetic data}
 \usage{
 sim_data(n = 100, L = 24, K = 3, data_format = "biallelic",
-  alleles = 2, lambda = 2, COI_model = "poisson", COI_manual = NULL,
+  alleles = 2, lambda = 1, COI_model = "poisson", COI_manual = NULL,
   COI_max = 20, COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0,
   prop_missing = 0)
 }
@@ -28,14 +28,15 @@ alleles at each locus, or if a single value is used then the same value
 applies for all loci. In the bi-allelic case this parameter is ignored as
 the number of alleles is fixed at 2}
 
-\item{lambda}{shape parameters governing the prior on allele frequencies,
-which is a Beta distribution for the bi-allelic case or a Dirichlet
-distribution for the multi-allelic case. In the simplest case this can be a
-single scalar value, in which case the same shape paremeter will be used
-for all loci and all alleles (i.e. a symmetric Beta or Dirichlet prior). In
-the more general case this can be a list of length \code{L}, containing
-vectors of length equal to the number of alleles at each locus, allowing
-different shape parameters to be defined for each allele individually}
+\item{lambda}{shape parameter(s) governing the prior on allele frequencies. 
+This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
+distribution for the multi-allelic case. In the simplest case,
+\code{lambda} can be a single scalar value, in which case the same shape
+paremeter will be used for all loci and all alleles (i.e. a symmetric Beta
+or Dirichlet prior). In the more general case \code{lambda} can be a list
+of length \code{L}, containing vectors of length equal to the number of
+alleles at each locus, allowing different shape parameters to be defined
+for each allele individually}
 
 \item{COI_model}{the type of prior distribution on COI in each subpopulation.
 Can be \code{uniform}, \code{poisson} or \code{nb} (negative binomial).

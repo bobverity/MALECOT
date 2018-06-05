@@ -17,15 +17,11 @@ public:
   int n;
   int L;
   int K;
-  //lambda;
   int COI_model;
   int COI_max;
-  //COI_dispersion;
   double e1;
   double e2;
   bool estimate_error;
-  //e1_max;
-  //e2_max;
   int burnin;
   int samples;
   int rungs;
@@ -33,6 +29,8 @@ public:
   bool coupling_on;
   bool scaffold_on;
   int scaffold_n;
+  int scaffold_group_n;
+  std::vector<std::vector<int>> scaffold_group;
   bool split_merge_on;
   bool solve_label_switching_on;
   double precision;
@@ -54,25 +52,32 @@ public:
   std::vector<particle_biallelic> particle_vec;
   
   // scaffold objects
-  std::vector<std::vector<std::vector<int>>> scaf_group;
-  std::vector<std::vector<int>> scaf_count;
+  std::vector<double> scaffold_loglike;
   
   // ordering of labels
   std::vector<int> label_order;
   std::vector<int> label_order_new;
   
+  // Q-matrices
+  std::vector<std::vector<double>> log_qmatrix_running;
+  std::vector<std::vector<double>> qmatrix_final;
+  
   // objects for storing results
   std::vector<std::vector<double>> burnin_loglike;
   std::vector<std::vector<double>> sampling_loglike;
-  std::vector<std::vector<double>> log_qmatrix_running;
-  std::vector<std::vector<double>> qmatrix_final;
+  std::vector<std::vector<int>> m_store;
+  std::vector<std::vector<std::vector<double>>> p_store;
+  std::vector<double> e1_store;
+  std::vector<double> e2_store;
+  std::vector<std::vector<double>> COI_mean_store;
   
   // objects for storing acceptance rates
   std::vector<std::vector<int>> p_accept;
   int e1_accept;
   int e2_accept;
   std::vector<int> coupling_accept;
-  std::vector<int> scaf_accept;
+  int scaf_trials;
+  int scaf_accept;
   std::vector<int> splitmerge_accept;
   
   // PUBLIC FUNCTIONS

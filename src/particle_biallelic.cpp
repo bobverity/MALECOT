@@ -25,6 +25,7 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   
   // model and MCMC parameters
   K = rcpp_to_int(args["K"]);
+  lambda = rcpp_to_mat_double(args["lambda"]);
   precision = rcpp_to_double(args["precision"]);
   precision_size = 1/precision;
   estimate_error = rcpp_to_bool(args["estimate_error"]);
@@ -32,7 +33,10 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   COI_max = rcpp_to_int(args["COI_max"]);
   COI_dispersion = rcpp_to_double(args["COI_dispersion"]);
   beta_raised = beta_raised_;
-  scaffold_n = rcpp_to_int(args["scaffold_n"]);
+  scaffold_group_n = rcpp_to_int(args["scaffold_group_n"]);
+  if (scaffold_group_n>0) {
+    scaffold_group = rcpp_to_mat_int(args["scaffold_group"]);
+  }
   e1 = rcpp_to_double(args["e1"]);
   e2 = rcpp_to_double(args["e2"]);
   e1_max = rcpp_to_double(args["e1_max"]);
@@ -51,7 +55,7 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   
   // grouping
   group = vector<int>(n);
-  group_order = seq_int(0,K-1);
+  group_increasing = vector<int>(n);
   
   // likelihood
   loglike_old = vector<vector<double>>(n, vector<double>(L));
@@ -69,18 +73,13 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   
   sum_loglike_old_vec = vector<double>(K);
   sum_loglike_new_vec = vector<double>(K);
-  p_prop = vector<double>(K);
+  p_prop = vector<vector<double>>(K, vector<double>(L));
   COI_mean_prop = vector<double>(K);
-  
-  
-  // initialise Q matrix
-  //qmatrix = vector<vector<double>>(n, vector<double>(K));
-  //log_qmatrix = vector<vector<double>>(n, vector<double>(K));
   
   // initialise ordering of labels
   label_order = seq_int(0,K-1);
   label_order_new = vector<int>(K);
-  /*
+  
   // objects for solving label switching problem
   cost_mat = vector<vector<double>>(K, vector<double>(K));
   best_perm = vector<int>(K);
@@ -89,10 +88,14 @@ particle_biallelic::particle_biallelic(vector<vector<int>> &data, Rcpp::List &ar
   edges_right = vector<int>(K);
   blocked_left = vector<int>(K);
   blocked_right = vector<int>(K);
-  */
+  
   // initialise scaffold objects
-  scaf_group = vector<vector<int>>(scaffold_n, vector<int>(n));
-  scaf_count = vector<int>(scaffold_n);
+  het_m_table = vector<vector<int>>(K, vector<int>(COI_max));
+  het_m_prop_table = vector<vector<int>>(K, vector<int>(COI_max));
+  n_homo0 = vector<int>(K);
+  n_homo1 = vector<int>(K);
+  n_homo0_prop = vector<int>(K);
+  n_homo1_prop = vector<int>(K);
   /*
   // initialise objects for split-merge
   splitmerge_targets = seq_int(0,K-1);
@@ -188,6 +191,17 @@ void particle_biallelic::reset() {
     fill(log_qmatrix[i].begin(), log_qmatrix[i].end(), 0);
   }
   
+  // reset allele frequencies
+  p = vector<vector<double>>(K, vector<double>(L,0.5));
+  p_propSD = vector<vector<double>>(K, vector<double>(L,1));
+  for (int k=0; k<K; k++) {
+    fill(p[k].begin(), p[k].end(), 0.5);
+    fill(p_propSD[k].begin(), p_propSD[k].end(), 1);
+  }
+  
+  // reset COI_mean
+  fill(COI_mean.begin(), COI_mean.end(), COI_max);
+  
   // reset order of labels
   label_order = seq_int(0,K-1);
   
@@ -210,11 +224,11 @@ void particle_biallelic::reset() {
 //------------------------------------------------
 // update error parameters e1 or e2
 void particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iteration) {
-
+  
   // define sum over old and new likelihood
   double sum_loglike_old = 0;
   double sum_loglike_new = 0;
-
+  
   // propose new value
   double e_prop;
   if (which_e==1) {
@@ -222,7 +236,7 @@ void particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iterat
   } else {
     e_prop = rnorm1_interval(e2, e2_propSD, 0, e2_max);
   }
-
+  
   // calculate likelihood
   for (int i=0; i<n; i++) {
     for (int j=0; j<L; j++) {
@@ -235,22 +249,22 @@ void particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iterat
       sum_loglike_new += loglike_new[i][j];
     }
   }
-
+  
   // catch impossible proposed values
-  if (sum_loglike_new < -OVERFLO) {
+  if (sum_loglike_new <= -OVERFLO) {
     return;
   }
-
+  
   // Metropolis step
   if (log(runif_0_1())<beta_raised*(sum_loglike_new - sum_loglike_old)) {
-
+    
     // update loglike
     for (int i=0; i<n; i++) {
       for (int j=0; j<L; j++) {
         loglike_old[i][j] = loglike_new[i][j];
       }
     }
-
+    
     // update selected parameter, apply Robbins-Monro positive update step, and
     // update acceptance rate.
     if (which_e==1) {
@@ -266,7 +280,7 @@ void particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iterat
       }
       e2_accept++;
     }
-
+  
   } else {
 
     // Robbins-Monro negative update step
@@ -285,67 +299,70 @@ void particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iterat
         }
       }
     }
-
+  
   } // end Metropolis step
-
+  
 }
 
 //------------------------------------------------
 // update allele frequencies p
 void particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
-
+  
   // loop through loci
   for (int j=0; j<L; j++) {
-
+    
     // clear vectors storing sum over old and new likelihood
     fill(sum_loglike_old_vec.begin(), sum_loglike_old_vec.end(), 0);
     fill(sum_loglike_new_vec.begin(), sum_loglike_new_vec.end(), 0);
-
+    
     // draw p for all demes
     for (int k=0; k<K; k++) {
-      p_prop[k] = rnorm1_interval(p[k][j], p_propSD[k][j], 0, 1.0);
+      p_prop[k][j] = rnorm1_interval(p[k][j], p_propSD[k][j], 0, 1.0);
     }
-
+    
     // calculate likelihood
     for (int i=0; i<n; i++) {
-      loglike_new[i][j] = logprob_genotype((*data_ptr)[i][j], p_prop[group[i]], m[i], e1, e2);
-      sum_loglike_old_vec[group[i]] += loglike_old[i][j];
-      sum_loglike_new_vec[group[i]] += loglike_new[i][j];
+      int this_group = group[i];
+      loglike_new[i][j] = logprob_genotype((*data_ptr)[i][j], p_prop[this_group][j], m[i], e1, e2);
+      sum_loglike_old_vec[this_group] += loglike_old[i][j];
+      sum_loglike_new_vec[this_group] += loglike_new[i][j];
     }
-
-    // TODO - add lambda prior
-
+    
     // Metropolis step for all K
     for (int k=0; k<K; k++) {
-
+      
+      // incorporate lambda prior
+      sum_loglike_old_vec[k] += dbeta1(p[k][j], lambda[j][0], lambda[j][1]);
+      sum_loglike_new_vec[k] += dbeta1(p_prop[k][j], lambda[j][0], lambda[j][1]);
+      
       // catch impossible proposed values
-      if (sum_loglike_new_vec[k] < -OVERFLO) {
+      if (sum_loglike_new_vec[k] <= -OVERFLO) {
         continue;
       }
-
+      
       // Metropolis step
       if (log(runif_0_1())<beta_raised*(sum_loglike_new_vec[k] - sum_loglike_old_vec[k])) {
-
+        
         // update p
-        p[k][j] = p_prop[k];
-
+        p[k][j] = p_prop[k][j];
+        
         // update loglike in all individuals from this group
         for (int i=0; i<n; i++) {
           if (group[i]==k) {
             loglike_old[i][j] = loglike_new[i][j];
           }
         }
-
+        
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           p_propSD[k][j]  += (1-0.23)/sqrt(double(iteration));
         }
-
+        
         // update acceptance rates
         p_accept[k][j]++;
-
+        
       } else {
-
+        
         // Robbins-Monro negative update
         if (robbins_monro_on) {
           p_propSD[k][j]  -= 0.23/sqrt(double(iteration));
@@ -353,41 +370,41 @@ void particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
             p_propSD[k][j] = UNDERFLO;
           }
         }
-
+        
       }
     }  // end Metropolis step
   }   // end loop through loci
-
+  
 }
 
 //------------------------------------------------
 // linear update of m
 void particle_biallelic::update_m() {
-
+  
   // define sum over old and new likelihood
   double sum_loglike_old = 0;
   double sum_loglike_new = 0;
-
+  
   // loop through individuals
   for (int i=0; i<n; i++) {
     int this_group = group[i];
-
+    
     // propose new m
     int m_prop = rbernoulli1(0.5);
     m_prop = (m_prop==0) ? m[i]-1 : m[i]+1;
-
-    // TODO - skip if proposed m impossible?
+    
+    // TODO - skip if proposed m impossible? (and no error model)
     //if (m_prop==1 && (*anyHet_ptr)[i]) {
     //    continue;
     //}
-
+    
     // calculate likelihood
     if (m_prop>0 && m_prop<=COI_max) {
-
+      
       // reset sum over old and new likelihood
       sum_loglike_old = 0;
       sum_loglike_new = 0;
-
+      
       // calculate likelihood
       for (int j=0; j<L; j++) {
         loglike_new[i][j] = logprob_genotype((*data_ptr)[i][j], p[this_group][j], m_prop, e1, e2);
@@ -396,10 +413,10 @@ void particle_biallelic::update_m() {
       }
 
       // catch impossible proposed values
-      if (sum_loglike_new < -OVERFLO) {
+      if (sum_loglike_new <= -OVERFLO) {
         continue;
       }
-
+      
       // apply Poisson or negative Binomial prior
       if (COI_model==2) {
         sum_loglike_old += dpois1(m[i]-1, COI_mean[this_group]-1);
@@ -408,7 +425,7 @@ void particle_biallelic::update_m() {
         sum_loglike_old += dnbinom1(m[i]-1, COI_mean[this_group]-1, COI_dispersion);
         sum_loglike_new += dnbinom1(m_prop-1, COI_mean[this_group]-1, COI_dispersion);
       }
-
+      
       // Metropolis step
       if (log(runif_0_1()) < (sum_loglike_new - sum_loglike_old)) {
         m[i] = m_prop;
@@ -417,55 +434,63 @@ void particle_biallelic::update_m() {
         }
       }
     }
-
+    
   }   // end loop through individuals
-
+  
 }
 
 //------------------------------------------------
 // update group allocation
 void particle_biallelic::update_group() {
-
+  
   // no change if K==1
   if (K==1) {
     return;
   }
-
+  
   // loop through individuals
   for (int i=0; i<n; i++) {
     int this_group = group[i];
-
+    
     // reset log_qmatrix for this individual
     fill(log_qmatrix[i].begin(), log_qmatrix[i].end(), 0);
-
+    
     // calculate likelihood
     for (int k=0; k<K; k++) {
       fill(loglike_new_group[k].begin(), loglike_new_group[k].end(), 0);
       if (k==this_group) {  // likelihood already calculated for current group
         for (int j=0; j<L; j++) {
           loglike_new_group[k][j] = loglike_old[i][j];
-          log_qmatrix[i][k] += beta_raised*loglike_new_group[k][j];
+          if (loglike_new_group[k][j] > -OVERFLO) {
+            log_qmatrix[i][k] += beta_raised*loglike_new_group[k][j];
+          } else {
+            log_qmatrix[i][k] = -OVERFLO;
+          }
         }
       } else {  // calculate likelihood for group k
         for (int j=0; j<L; j++) {
           loglike_new_group[k][j] = logprob_genotype((*data_ptr)[i][j], p[k][j], m[i], e1, e2);
-          log_qmatrix[i][k] += beta_raised*loglike_new_group[k][j];
+          if (loglike_new_group[k][j] > -OVERFLO) {
+            log_qmatrix[i][k] += beta_raised*loglike_new_group[k][j];
+          } else {
+            log_qmatrix[i][k] = -OVERFLO;
+          }
         }
       }
-
+      
       // add prior information
       if (COI_model==2) {
         log_qmatrix[i][k] += dpois1(m[i]-1, COI_mean[k]-1);
       } else if (COI_model==3) {
         log_qmatrix[i][k] += dnbinom1(m[i]-1, COI_mean[k]-1, COI_dispersion);
       }
-
+      
       // limit small (-inf) values
       if (log_qmatrix[i][k] <= -OVERFLO) {
         log_qmatrix[i][k] = -OVERFLO;
       }
     }
-
+    
     // exponentiate without underflow
     double log_qmatrix_max = max(log_qmatrix[i]);
     double qmatrix_sum = 0;
@@ -477,21 +502,21 @@ void particle_biallelic::update_group() {
     for (int k=0; k<K; k++) {
       qmatrix[i][k] /= qmatrix_sum;
     }
-
+    
     // sample new group
     int new_group = sample1(qmatrix[i], 1.0)-1;
-
+    
     // if group has changed update likelihood
     if (new_group!=this_group) {
       for (int j=0; j<L; j++) {
         loglike_old[i][j] = loglike_new_group[new_group][j];
       }
     }
-
+    
     // update group
     group[i] = new_group;
   }
-
+  
 }
 
 //------------------------------------------------
@@ -515,7 +540,7 @@ void particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
     
     // draw new COI means from conditional posterior
     for (int k=0; k<K; k++) {
-      COI_mean[k] = rgamma1(COI_mean_shape[k], COI_mean_rate[k])+1;
+      COI_mean[k] = rgamma1(COI_mean_shape[k], COI_mean_rate[k]) + 1;
     }
   } // end poisson model
   
@@ -566,102 +591,154 @@ void particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
 
 //------------------------------------------------
 // get group order such that group_order[group[i]] is always-increasing over i
-void particle_biallelic::get_group_order() {
+void particle_biallelic::get_group_increasing() {
   
   // get order of unique values in group
-  vector<int> group_uniques = unique_int(group, K);
-  group_order = order_unique_int(group_uniques, K);
+  vector<int> group_order = order_unique_int(group, K);
+  
+  // save group_increasing
+  for (int i=0; i<n; i++) {
+    group_increasing[i] = group_order[group[i]];
+  }
 }
 
 //------------------------------------------------
-// return log-probability of a particular scaffold group being drawn
-/*
-double particle_biallelic::scaf_prop_logprob(const vector<int> &prop_group) {
+// return whether current group is represented in scaffold groups
+bool particle_biallelic::scaf_prop_current() {
   
-  int matches = 0;
-  for (int i=0; i<scaffold_n; i++) {
-    bool exact_match = true;
-    for (int j=0; j<n; j++) {
-      if (prop_group[j] != scaf_group[i][j]) {
-        exact_match = false;
-        break;
-      }
-    }
-    if (exact_match) {
-      matches ++;
+  // look for match with existing scaf_unique_group
+  for (int i=0; i<scaffold_group_n; i++) {
+    if (group_increasing == scaffold_group[i]) {
+      return true;
     }
   }
-  double ret = log(matches/double(scaffold_n));
-  return ret;
+  return false;
 }
-*/
+
 //------------------------------------------------
 // propose swap with scaffold grouping
-void particle_biallelic::scaf_propose(int &scaf_accept) {
+void particle_biallelic::scaf_propose(int &scaf_trials, int &scaf_accept) {
   
-  // re-order group allocation to be always-increasing
-  //vector<int> group_inc = group_increasing();
-  
-  // initialise backwards proposal probability
-  double prop_backwards = 0;//scaf_prop_logprob();
+  // get always-increasing group order
+  get_group_increasing();
   
   // break if no chance of backwards move
-  if (std::isinf(prop_backwards)) {
+  bool backwards_possible = scaf_prop_current();
+  if (!backwards_possible) {
     return;
   }
-  //print(prop_backwards);
-  /*
-  // store old group and propose new group from scaffolds
-  vector<int> group_old = group;
-  int rand1 = sample2(0, scaf_n-1);
-  double prop_forwards = scaf_prop_logprob(scaf_group[rand1]);
-
-  // propose new mu
-  for (int k=0; k<K; k++) {
-    double mu_post_var = 1/(beta*scaf_counts[rand1][k]/sigma_sq + 1/mu_prior_var);
-    double mu_post_mean = mu_post_var * (beta*scaf_x_sum[rand1][k]/sigma_sq + mu_prior_mean/mu_prior_var);
-    double mu_post_sd = sqrt(mu_post_var);
-    scaf_mu[k] = rnorm1(mu_post_mean, mu_post_sd);
-    prop_forwards += dnorm1(scaf_mu[k], mu_post_mean, mu_post_sd);
-  }
-
-  // calculate backwards probability of drawing current mu
-  for (int k=0; k<K; k++) {
-    double mu_post_var = 1/(beta*counts[k]/sigma_sq + 1/mu_prior_var);
-    double mu_post_mean = mu_post_var * (beta*x_sum[k]/sigma_sq + mu_prior_mean/mu_prior_var);
-    double mu_post_sd = sqrt(mu_post_var);
-    prop_backwards += dnorm1(mu[k], mu_post_mean, mu_post_sd);
-  }
-
-  // calculate new likelihood
-  double loglike_new = 0;
+  
+  // propose new group from scaffolds
+  int rand1 = sample2(0,scaffold_group_n-1);
+  
+  double prop_forwards = 0;
+  double prop_backwards = 0;
+  
+  // propose new allele frequency for each locus in turn
+  for (int j=0; j<L; j++) {
+    
+    // clear tables
+    fill(n_homo0.begin(), n_homo0.end(), 0);
+    fill(n_homo1.begin(), n_homo1.end(), 0);
+    fill(n_homo0_prop.begin(), n_homo0_prop.end(), 0);
+    fill(n_homo1_prop.begin(), n_homo1_prop.end(), 0);
+    for (int k=0; k<K; k++) {
+      fill(het_m_table[k].begin(), het_m_table[k].end(), 0);
+      fill(het_m_prop_table[k].begin(), het_m_prop_table[k].end(), 0);
+    }
+    
+    // populate tables
+    for (int i=0; i<n; i++) {
+      int this_data = (*data_ptr)[i][j];
+      int this_group = group[i];
+      int this_m = m[i];
+      int this_scaf_group = scaffold_group[rand1][i];
+      
+      if (this_data==1) {
+        n_homo0[this_group] += this_m;
+        n_homo0_prop[this_scaf_group] += this_m;
+      } else if (this_data==3) {
+        n_homo1[this_group] += this_m;
+        n_homo1_prop[this_scaf_group] += this_m;
+      } else if (this_data==2) {
+        het_m_table[this_group][this_m-1]++;
+        het_m_prop_table[this_scaf_group][this_m-1]++;
+      }
+    }
+    
+    // draw allele frequencies from beta distribution that approximates the
+    // posterior
+    for (int k=0; k<K; k++) {
+      
+      // define shape parameters of beta distribution for backwards proposal
+      double shape1 = lambda[j][0] + n_homo0[k];
+      double shape2 = lambda[j][1] + n_homo1[k];
+      for (int i=2; i<(COI_max+1); i++) {
+        if (het_m_table[k][i-1]==0) {
+          continue;
+        }
+        double z = double(het_m_table[k][i-1]) * 3/2*((i+2)*(i+3)/double((i+2)*(i+3)-4*i) - 1);
+        shape1 += z;
+        shape2 += z;
+      }
+      
+      // calculate backwards proposal probability
+      prop_backwards += dbeta1(p[k][j], shape1, shape2);
+      
+      // define shape parameters of beta distribution for forwards proposal
+      shape1 = lambda[j][0] + n_homo0_prop[k];
+      shape2 = lambda[j][1] + n_homo1_prop[k];
+      for (int i=2; i<(COI_max+1); i++) {
+        if (het_m_prop_table[k][i-1]==0) {
+          continue;
+        }
+        double z = double(het_m_prop_table[k][i-1]) * 3/2*((i+2)*(i+3)/double((i+2)*(i+3)-4*i) - 1);
+        shape1 += z;
+        shape2 += z;
+      }
+      
+      // draw new allele frequency and calculate forwards proposal probability
+      p_prop[k][j] = rbeta1(shape1, shape2);
+      prop_forwards += dbeta1(p_prop[k][j], shape1, shape2);
+      
+    } // end loop over K
+  } // end loop over L
+  
+  // calculate new loglikelihood
+  double loglike_new_sum = 0;
   for (int i=0; i<n; i++) {
-    loglike_new += dnorm1((*x_ptr)[i], scaf_mu[scaf_group[rand1][i]], sigma);
+    int this_group = scaffold_group[rand1][i];
+    for (int j=0; j<L; j++) {
+      loglike_new[i][j] = logprob_genotype((*data_ptr)[i][j], p_prop[this_group][j], m[i], e1, e2);
+      loglike_new_sum += loglike_new[i][j];
+    }
   }
-
-  // calculate old and new priors
+  
+  // incporate prior on allele frequencies
   double logprior_old = 0;
   double logprior_new = 0;
   for (int k=0; k<K; k++) {
-    logprior_old += dnorm1(mu[k], mu_prior_mean, sqrt(mu_prior_var));
-    logprior_new += dnorm1(scaf_mu[k], mu_prior_mean, sqrt(mu_prior_var));
+    for (int j=0; j<L; j++) {
+      logprior_old += dbeta1(p[k][j], lambda[j][0], lambda[j][1]);
+      logprior_new += dbeta1(p_prop[k][j], lambda[j][0], lambda[j][1]);
+    }
   }
-
+  
   // Metropolis-Hastings
-  double MH = ((beta*loglike_new + logprior_new) - (beta*loglike + logprior_old)) - (prop_forwards - prop_backwards);
+  double MH = ((beta_raised*loglike_new_sum + logprior_new) - (beta_raised*loglike + logprior_old)) - (prop_forwards - prop_backwards);
   if (log(runif1()) < MH) {
-
+    
     // jump to scaffold
-    group = scaf_group[rand1];
-    counts = scaf_counts[rand1];
-    x_sum = scaf_x_sum[rand1];
-    mu = scaf_mu;
-    loglike = loglike_new;
-
+    group = scaffold_group[rand1];
+    p = p_prop;
+    loglike_old = loglike_new;
+    loglike = loglike_new_sum;
+    
     // update acceptance rate
     scaf_accept ++;
   }
-*/
+  scaf_trials++;
+  
 }
 
 //------------------------------------------------
@@ -752,9 +829,9 @@ void particle_biallelic::splitmerge_propose(int &splitmerge_accept) {
 }
 
 //------------------------------------------------
-// fix label switching problem
+// solve label switching problem
 void particle_biallelic::solve_label_switching(const vector<vector<double>> &log_qmatrix_running) {
-/*
+  
   for (int k1=0; k1<K; k1++) {
     fill(cost_mat[k1].begin(), cost_mat[k1].end(), 0);
     for (int k2=0; k2<K; k2++) {
@@ -763,7 +840,7 @@ void particle_biallelic::solve_label_switching(const vector<vector<double>> &log
       }
     }
   }
-
+  
   // find best permutation of current labels using Hungarian algorithm
   best_perm = hungarian(cost_mat, edges_left, edges_right, blocked_left, blocked_right);
 
@@ -777,7 +854,7 @@ void particle_biallelic::solve_label_switching(const vector<vector<double>> &log
     label_order_new[k] = label_order[best_perm_order[k]];
   }
   label_order = label_order_new;
-*/
+  
 }
 
 //------------------------------------------------
