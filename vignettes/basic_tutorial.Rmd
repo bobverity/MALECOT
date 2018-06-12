@@ -2,7 +2,7 @@
 title: "Basic Tutorial"
 author: "Bob Verity"
 date: "12/06/2018"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
