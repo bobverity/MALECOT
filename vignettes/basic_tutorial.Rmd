@@ -1,8 +1,12 @@
 ---
 title: "Basic Tutorial"
 author: "Bob Verity"
-date: "12/06/2018"
-output: html_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{Basic Tutorial}
+  %\usepackage[UTF-8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
