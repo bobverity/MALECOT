@@ -7,9 +7,12 @@
 #' @import assertthat
 #' @import parallel
 #' @import coda
+#' @importFrom plotly plot_ly
 #' @importFrom Rcpp sourceCpp
+#' @importFrom grDevices colorRampPalette
 #' @import stats
 #' @import utils
+#' @import graphics
 NULL
 
 #------------------------------------------------
@@ -164,8 +167,11 @@ new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, C
                                    e2_max = e2_max)
   
   # add matching scaffolds and output objects
+  deme_names <- paste0("K", K_range)
   proj$scaffolds[[s]] <- replicate(length(K_range), NULL)
+  names(proj$scaffolds[[s]]) <- deme_names
   proj$output[[s]] <- replicate(length(K_range), NULL)
+  names(proj$output[[s]]) <- deme_names
   
   # rename sets
   set_names <- paste0("set", 1:s)
@@ -351,8 +357,7 @@ generate_scaffolds <- function(proj, scaffold_n = 10, K = NULL, burnin = 1e3, au
   args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
   
   # R functions to pass to Rcpp
-  args_functions <- list(forty_winks = forty_winks,
-                         test_convergence = test_convergence,
+  args_functions <- list(test_convergence = test_convergence,
                          update_progress = update_progress)
   
   # define final argument list over all K
@@ -474,8 +479,7 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
   assert_greq(burnin, 10)
   assert_pos_int(samples, zero_allowed = FALSE)
   assert_pos_int(rungs, zero_allowed = FALSE)
-  assert_int(GTI_pow)
-  assert_bounded(GTI_pow, left = 1, right = 10)
+  assert_bounded(GTI_pow, left = 2, right = 10)
   assert_in(output_format, 1:2)
   
   # get active set and check non-zero
@@ -494,7 +498,7 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
   # default value and checks on K
   K <- define_default(K, proj$parameter_sets[[s]]$K_range)
   assert_in(K, proj$parameter_sets[[s]]$K_range)
-  
+  K_which <- match(K, proj$parameter_sets[[s]]$K_range)
   
   # ---------- process data ----------
   
@@ -562,8 +566,7 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
   args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
   
   # R functions to pass to Rcpp
-  args_functions <- list(forty_winks = forty_winks,
-                         test_convergence = test_convergence,
+  args_functions <- list(test_convergence = test_convergence,
                          update_progress = update_progress)
   
   # define final argument list over all K
@@ -631,27 +634,28 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     ind_names <- paste0("ind", 1:n)
     locus_names <- paste0("locus", 1:L)
     deme_names <- paste0("deme", 1:K[i])
+    rung_names <- paste0("rung", 1:rungs)
+    
+    # ---------- full mcmc trace ----------
     
     # get loglikelihood in coda::mcmc format
     loglike_burnin <- mcmc(t(rcpp_to_mat(output_raw[[i]]$burnin_loglike)))
     loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$sampling_loglike)))
     
-    # get quantiles over sampling loglikelihoods
-    loglike_quantiles <- t(apply(loglike_sampling, 2, function(x){quantile(x, probs=c(0.025, 0.5, 0.975))}))
-    
     # get full m trace in coda::mcmc format
     full_m <- mcmc(rcpp_to_mat(output_raw[[i]]$m_store))
     colnames(full_m) <- ind_names
     
-    # get quantiles over m
-    m_quantiles <- t(apply(full_m, 2, function(x){quantile(x, probs=c(0.025, 0.5, 0.975))}))
-    
     # get full p trace in coda::mcmc format
     full_p <- list()
-    for (k in 1:K) {
-      full_p[[k]] <- t(rcpp_to_mat(output_raw[[i]]$p_store[[k]]))
-      colnames(full_p[[k]]) <- locus_names
-      full_p[[k]] <- mcmc(full_p[[k]])
+    for (k in 1:K[i]) {
+      full_p[[k]] <- list()
+      for (j in 1:L) {
+        p_j <- rcpp_to_mat(output_raw[[i]]$p_store[[k]][[j]])
+        colnames(p_j) <- paste0("allele", 1:ncol(p_j))
+        full_p[[k]][[j]] <- mcmc(p_j)
+      }
+      names(full_p[[k]]) <- locus_names
     }
     names(full_p) <- deme_names
     
@@ -670,32 +674,167 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
       full_COI_mean <- mcmc(full_COI_mean)
     }
     
+    # ---------- summary results ----------
+    
+    # get quantiles over sampling loglikelihoods
+    loglike_quantiles <- t(apply(loglike_sampling, 2, quantile_95))
+    rownames(loglike_quantiles) <- rung_names
+    class(loglike_quantiles) <- "malecot_loglike_quantiles"
+    
+    # get quantiles over m
+    m_quantiles <- t(apply(full_m, 2, quantile_95))
+    class(m_quantiles) <- "malecot_m_quantiles"
+    
+    # get quantiles over p
+    p_quantiles <- list()
+    for (k in 1:K[i]) {
+      p_quantiles[[k]] <- list()
+      for (j in 1:L) {
+        p_quantiles[[k]][[j]] <- t(apply(full_p[[k]][[j]], 2, quantile_95))
+      }
+      names(p_quantiles[[k]]) <- locus_names
+      class(p_quantiles[[k]]) <- "malecot_p_quantiles"
+    }
+    names(p_quantiles) <- deme_names
+    
+    # get quantiles over e1 and e2
+    e_quantiles <- NULL
+    if (args_model$estimate_error) {
+      e_quantiles <- rbind(quantile_95(full_e1), quantile_95(full_e2))
+      rownames(e_quantiles) <- c("e1", "e2")
+    }
+    
     # process Q-matrix
     q_matrix <- rcpp_to_mat(output_raw[[i]]$q_matrix)
     colnames(q_matrix) <- deme_names
+    rownames(q_matrix) <- ind_names
+    class(q_matrix) <- "malecot_q_matrix"
+    
+    # ---------- GTI path and model evidence ----------
+    
+    # only possible if more than 1 temperature rung
+    ESS <- GTI_path <- GTI_logevidence <- NULL
+    if (rungs>1) {
+      
+      # get ESS
+      ESS <- effectiveSize(loglike_sampling)
+      names(ESS) <- rung_names
+      
+      # weight likelihood according to GTI_pow
+      loglike_weighted <- loglike_sampling
+      for (j in 1:rungs) {
+        beta_j <- j/rungs
+        loglike_weighted[,j] <- GTI_pow*beta_j^(GTI_pow-1) * loglike_sampling[,j]
+      }
+      
+      # calculate GTI path mean and SE
+      GTI_path_mean <- colMeans(loglike_weighted)
+      GTI_path_var <- apply(loglike_weighted, 2, var)
+      GTI_path_SE <- sqrt(GTI_path_var/ESS)
+      GTI_path <- data.frame(mean = GTI_path_mean, SE = GTI_path_SE)
+      rownames(GTI_path) <- rung_names
+      class(GTI_path) <- "malecot_GTI_path"
+      
+      # calculate GTI estimate of log-evidence
+      GTI_vec <- 0.5*loglike_weighted[,1]/rungs
+      for (j in 2:rungs) {
+        GTI_vec <- GTI_vec + 0.5*(loglike_weighted[,j]+loglike_weighted[,j-1])/rungs
+      }
+      GTI_logevidence_mean <- mean(GTI_vec)
+      
+      # calculate standard error of GTI estimate
+      GTI_ESS <- as.numeric(effectiveSize(GTI_vec))
+      GTI_logevidence_SE <- sqrt(var(GTI_vec)/GTI_ESS)
+      
+      # produce final GTI_logevidence object
+      GTI_logevidence <- data.frame(estimate = GTI_logevidence_mean,
+                                    SE = GTI_logevidence_SE)
+    }
+    
+    # ---------- acceptance rates ----------
     
     # process acceptance rates
-    coupling_accept <- 100 * output_raw[[i]]$coupling_accept/(burnin+samples)
-    scaf_trials <- 100 * output_raw[[i]]$scaf_trials/(burnin+samples)
-    scaf_accept <- 100 * output_raw[[i]]$scaf_accept/(burnin+samples)
-    splitmerge_accept <- 100 * output_raw[[i]]$splitmerge_accept/(burnin+samples)
+    p_accept <- rcpp_to_mat(output_raw[[i]]$p_accept)/samples
+    e1_accept <- output_raw[[i]]$e1_accept/samples
+    e2_accept <- output_raw[[i]]$e2_accept/samples
+    coupling_accept <- output_raw[[i]]$coupling_accept/samples
+    scaf_trials <- output_raw[[i]]$scaf_trials/samples
+    scaf_accept <- output_raw[[i]]$scaf_accept/samples
+    split_merge_accept <- output_raw[[i]]$split_merge_accept/samples
+    
+    # ---------- save arguments ----------
+    
+    output_args <- list(burnin = burnin,
+                        samples = samples,
+                        rungs = rungs,
+                        auto_converge = auto_converge,
+                        coupling_on = coupling_on,
+                        scaffold_on = scaffold_on,
+                        split_merge_on = split_merge_on,
+                        solve_label_switching_on = solve_label_switching_on,
+                        precision = precision,
+                        GTI_pow = GTI_pow,
+                        silent = silent,
+                        output_format = output_format,
+                        cluster = cluster)
+    
+    # ---------- save results ----------
     
     # add to project
-    proj$output[[s]][[i]]$summary <- list(loglike_quantiles = loglike_quantiles,
+    proj$output[[s]][[K_which[i]]]$summary <- list(loglike_quantiles = loglike_quantiles,
+                                          m_quantiles = m_quantiles,
+                                          p_quantiles = p_quantiles,
+                                          e_quantiles = e_quantiles,
                                           q_matrix = q_matrix,
-                                          m_quantiles = m_quantiles)
+                                          ESS = ESS,
+                                          GTI_path = GTI_path,
+                                          GTI_logevidence = GTI_logevidence)
     
-    proj$output[[s]][[i]]$raw <- list(loglike_burnin = loglike_burnin,
+    proj$output[[s]][[K_which[i]]]$raw <- list(loglike_burnin = loglike_burnin,
                                       loglike_sampling = loglike_sampling,
                                       full_m = full_m,
                                       full_p = full_p,
                                       full_e1 = full_e1,
                                       full_e2 = full_e2,
                                       full_COI_mean = full_COI_mean,
+                                      p_accept = p_accept,
+                                      e1_accept = e1_accept,
+                                      e2_accept = e2_accept,
                                       coupling_accept = coupling_accept,
                                       scaf_trials = scaf_trials,
                                       scaf_accept = scaf_accept,
-                                      splitmerge_accept = splitmerge_accept)
+                                      split_merge_accept = split_merge_accept)
+    
+    proj$output[[s]][[K_which[i]]]$function_call <- list(args = output_args,
+                                                call = match.call())
+  }
+  
+  # ---------- recalculate evidence ----------
+  
+  # get logevidence over all K
+  GTI_logevidence <- mapply(function(x){
+    GTI_logevidence <- x$summary$GTI_logevidence
+    if (is.null(GTI_logevidence)) {
+      return(rep(FALSE,3))
+    } else {
+      return(c(TRUE, GTI_logevidence))
+    }
+  }, proj$output[[s]])
+  
+  # if there are logevidence estimates
+  if (any(unlist(GTI_logevidence[1,]))) {
+    
+    # produce raw evidence draws by simulation
+    w <- which(unlist(GTI_logevidence[1,]))
+    GTI_evidence_raw <- GTI_evidence_sim_cpp(list(mean = unlist(GTI_logevidence[2,w]),
+                                                  SE = unlist(GTI_logevidence[3,w]),
+                                                  reps = 1e6))
+    
+    # get quantiles and load back into output
+    for (i in 1:length(w)) {
+      GTI_evidence <- quantile_95(GTI_evidence_raw$ret[[i]])
+      proj$output[[s]][[w[i]]]$summary$GTI_evidence <- GTI_evidence
+    }
   }
   
   # return invisibly
@@ -775,14 +914,14 @@ fix_labels <- function(proj, target_group) {
     # re-order q_matrix
     q_matrix <- q_matrix[,best_perm_order, drop=FALSE]
     colnames(q_matrix) <- paste0("deme",1:ncol(q_matrix))
-    class(q_matrix) <- "malecot_project_q_matrix"
+    class(q_matrix) <- "malecot_q_matrix"
     proj$output[[s]][[i]]$summary$q_matrix <- q_matrix
     
-    # TODO - re-order allele frequencies
-    #p_quantiles <- proj$output[[s]][[i]]$summary$p_quantiles
-    #oldNames <- names(p_quantiles)
-    #proj[["output"]][[s]][[i]]$summary$p_quantiles <- p_quantiles[bestPermOrder]
-    #names(proj[["output"]][[s]][[i]]$summary$p_quantiles) <- oldNames
+    # re-order allele frequencies
+    p_quantiles <- proj$output[[s]][[i]]$summary$p_quantiles
+    old_names <- names(p_quantiles)
+    proj$output[[s]][[i]]$summary$p_quantiles <- p_quantiles[best_perm_order]
+    names(proj$output[[s]][[i]]$summary$p_quantiles) <- old_names
     
     # TODO - re-order COI_mean
     #COI_mean_quantiles <- proj[["output"]][[s]][[i]]$summary$COI_mean_quantiles
@@ -800,65 +939,4 @@ fix_labels <- function(proj, target_group) {
   invisible(proj)
 }
 
-#------------------------------------------------
-# geweke_pvalue
-# return p-value of Geweke's diagnostic convergence statistic, estimated from package coda
-# (not exported)
-#' @noRd
-geweke_pvalue <- function(x) {
-  ret <- 2*pnorm(abs(geweke.diag(x)$z), lower.tail=FALSE)
-  return(ret)
-}
 
-#------------------------------------------------
-# test convergence
-# check that geweke p-value non-significant on values x[1:n]
-# (not exported)
-#' @noRd
-test_convergence <- function(x, n) {
-  if (n==1) {
-    return(FALSE)
-  }
-  g <- geweke_pvalue(mcmc(x[1:n]))
-  ret <- (g>0.01)
-  if (is.na(ret)) {
-    ret <- FALSE;
-  }
-  return(ret)
-}
-
-#------------------------------------------------
-# update progress bar
-# (not exported)
-#' @noRd
-update_progress <- function(args, type, i, max_i) {
-
-  # split by type
-  if (type==1) { # scaffold progress bar
-    setTxtProgressBar(args$pb_scaf, i)
-    if (i==max_i) {
-      close(args$pb_scaf)
-    }
-  } else if (type==2) { # burn-in iterations progress bar
-    setTxtProgressBar(args$pb_burnin, i)
-    if (i==max_i) {
-      close(args$pb_burnin)
-    }
-  } else if (type==3) { # sampling iterations progress bar
-    setTxtProgressBar(args$pb_samples, i)
-    if (i==max_i) {
-      close(args$pb_samples)
-    }
-  }
-}
-
-#------------------------------------------------
-# call_hungarian
-# calls C++ implementation of the Hungarian algorithm for binding best matching
-# in a linear sum assigment problem. This is function is used in testing.
-# (not exported)
-#' @noRd
-call_hungarian <- function(x) {
-  args <- list(cost_mat = mat_to_rcpp(x))
-  call_hungarian_cpp(args)
-}

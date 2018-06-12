@@ -21,6 +21,10 @@ fix_labels_cpp <- function(args_model) {
     .Call('_MALECOT_fix_labels_cpp', PACKAGE = 'MALECOT', args_model)
 }
 
+GTI_evidence_sim_cpp <- function(args) {
+    .Call('_MALECOT_GTI_evidence_sim_cpp', PACKAGE = 'MALECOT', args)
+}
+
 call_hungarian_cpp <- function(args) {
     .Call('_MALECOT_call_hungarian_cpp', PACKAGE = 'MALECOT', args)
 }

@@ -78,7 +78,7 @@ public:
   std::vector<int> coupling_accept;
   int scaf_trials;
   int scaf_accept;
-  std::vector<int> splitmerge_accept;
+  std::vector<int> split_merge_accept;
   
   // PUBLIC FUNCTIONS
   

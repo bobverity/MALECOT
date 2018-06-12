@@ -79,7 +79,7 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
   // (the thermodynamic power), raised to the power GTI_pow
   beta_raised_vec = vector<double>(rungs);
   for (int rung=0; rung<rungs; rung++) {
-    beta_raised_vec[rung] = (rungs==1) ? 1 : pow(rung/double(rungs-1), GTI_pow);
+    beta_raised_vec[rung] = (rungs==1) ? 1 : pow((rung+1)/double(rungs), GTI_pow);
   }
   rung_order = seq_int(0,rungs-1);
   cold_rung = rung_order[rungs-1];
@@ -114,7 +114,7 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
   coupling_accept = vector<int>(rungs-1);
   scaf_trials = 0;
   scaf_accept = 0;
-  splitmerge_accept = vector<int>(rungs);
+  split_merge_accept = vector<int>(rungs);
 }
 
 //------------------------------------------------
@@ -388,6 +388,17 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args) {
   // extract R functions
   Rcpp::Function update_progress = args["update_progress"];
   
+  // reset acceptance rates
+  for (int r=0; r<rungs; r++) {
+    particle_vec[r].p_accept = vector<vector<int>>(K, vector<int>(L));
+    particle_vec[r].e1_accept = 0;
+    particle_vec[r].e2_accept = 0;
+  }
+  coupling_accept = vector<int>(rungs-1);
+  scaf_trials = 0;
+  scaf_accept = 0;
+  split_merge_accept = vector<int>(rungs);
+  
   // loop through sampling iterations
   for (int rep=0; rep<samples; rep++) {
     
@@ -490,7 +501,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args) {
     
     // update progress bars
     if (!silent) {
-      int remainder = rep % int(ceil(samples/100));
+      int remainder = rep % int(ceil(double(samples)/100));
       if (remainder==0 || (rep+1)==samples) {
         update_progress(args, 3, rep+1, samples);
       }
@@ -505,6 +516,10 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args) {
     }
   }
   
+  // store acceptance rates
+  p_accept = particle_vec[cold_rung].p_accept;
+  e1_accept = particle_vec[cold_rung].e1_accept;
+  e2_accept = particle_vec[cold_rung].e2_accept;
 }
 
 //------------------------------------------------

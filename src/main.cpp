@@ -92,9 +92,13 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( m.e2_store ));
   ret.push_back(Rcpp::wrap( m.COI_mean_store ));
   ret.push_back(Rcpp::wrap( m.qmatrix_final ));
+  ret.push_back(Rcpp::wrap( m.p_accept ));
+  ret.push_back(Rcpp::wrap( m.e1_accept ));
+  ret.push_back(Rcpp::wrap( m.e2_accept ));
   ret.push_back(Rcpp::wrap( m.coupling_accept ));
   ret.push_back(Rcpp::wrap( m.scaf_trials ));
   ret.push_back(Rcpp::wrap( m.scaf_accept ));
+  ret.push_back(Rcpp::wrap( m.split_merge_accept ));
   
   Rcpp::StringVector ret_names;
   ret_names.push_back("burnin_loglike");
@@ -105,9 +109,13 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret_names.push_back("e2_store");
   ret_names.push_back("COI_mean_store");
   ret_names.push_back("q_matrix");
+  ret_names.push_back("p_accept");
+  ret_names.push_back("e1_accept");
+  ret_names.push_back("e2_accept");
   ret_names.push_back("coupling_accept");
   ret_names.push_back("scaf_trials");
   ret_names.push_back("scaf_accept");
+  ret_names.push_back("split_merge_accept");
   
   ret.names() = ret_names;
   return ret;
@@ -167,3 +175,45 @@ Rcpp::List fix_labels_cpp(Rcpp::List args_model) {
   // return as Rcpp object
   return Rcpp::List::create(Rcpp::Named("best_perm")=best_perm);
 }
+
+//------------------------------------------------
+// estimate evidence quantiles by simulation
+// [[Rcpp::export]]
+Rcpp::List GTI_evidence_sim_cpp(Rcpp::List args) {
+  
+  // extract arguments
+  vector<double> m = rcpp_to_vector_double(args["mean"]);
+  vector<double> s = rcpp_to_vector_double(args["SE"]);
+  int reps = rcpp_to_int(args["reps"]);
+  int K = m.size();
+  
+  // obtain normalised draws
+  vector<double> y(K);
+  double y_max = 0;
+  vector<double> y_trans(K);
+  double y_trans_sum = 0;
+  double y_trans_inv_sum = 0;
+  vector<vector<double>> ret(K, vector<double>(reps));
+  for (int i=0; i<reps; i++) {
+    for (int k=0; k<K; k++) {
+      y[k] = rnorm1(m[k], s[k]);
+      if (k==0 || y[k]>y_max) {
+        y_max = y[k];
+      }
+    }
+    y_trans_sum = 0;
+    for (int k=0; k<K; k++) {
+      y_trans[k] = exp(y[k]-y_max);
+      y_trans_sum += y_trans[k];
+    }
+    y_trans_inv_sum = 1/y_trans_sum;
+    for (int k=0; k<K; k++) {
+      ret[k][i] = y_trans[k]*y_trans_inv_sum;
+    }
+  }
+  
+  // return as Rcpp object
+  return Rcpp::List::create(Rcpp::Named("ret")=ret);
+}
+
+

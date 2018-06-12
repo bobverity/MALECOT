@@ -332,8 +332,8 @@ void particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
     for (int k=0; k<K; k++) {
       
       // incorporate lambda prior
-      sum_loglike_old_vec[k] += dbeta1(p[k][j], lambda[j][0], lambda[j][1]);
-      sum_loglike_new_vec[k] += dbeta1(p_prop[k][j], lambda[j][0], lambda[j][1]);
+      double prior_old = dbeta1(p[k][j], lambda[j][0], lambda[j][1]);
+      double prior_new = dbeta1(p_prop[k][j], lambda[j][0], lambda[j][1]);
       
       // catch impossible proposed values
       if (sum_loglike_new_vec[k] <= -OVERFLO) {
@@ -341,7 +341,8 @@ void particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
       }
       
       // Metropolis step
-      if (log(runif_0_1())<beta_raised*(sum_loglike_new_vec[k] - sum_loglike_old_vec[k])) {
+      double MH = (beta_raised*sum_loglike_new_vec[k] + prior_new) - (beta_raised*sum_loglike_old_vec[k] + prior_old);
+      if (log(runif_0_1())<MH) {
         
         // update p
         p[k][j] = p_prop[k][j];
@@ -755,8 +756,8 @@ void particle_biallelic::splitmerge_propose(int &splitmerge_accept) {
   fill(splitmerge_x_sum.begin(), splitmerge_x_sum.end(), 0);
 
   // sample 3 groups (without replacement). Merge first to second, split third
-  // with first. Count the number of splits that take place in the forward
-  // proposal, and that must take place to do the reverse move.
+  // into first and third. Count the number of splits that take place in the forward
+  // proposal, and the number required for the reverse move.
   sample3(splitmerge_targets, 3);
   int n_forwards = 0;
   int n_backwards = 0;

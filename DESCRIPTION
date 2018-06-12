@@ -18,7 +18,8 @@ Imports:
     Rcpp,
     assertthat,
     parallel,
-    coda
+    coda,
+    plotly
 SystemRequirements: C++11
 Suggests: testthat,
     covr
