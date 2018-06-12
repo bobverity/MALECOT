@@ -57,14 +57,17 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
   # TODO - more checks on data format to ensure correct
   if (data_format=="multiallelic") {
     assert_that(ncol(data)==3)
-    if (any( data[,3]<=0 & data[,3]!=missing_data )) {
+    assert_that(identical(names(data), c("sample", "locus", "haplotype")))
+    if (any( data$haplotype<=0 & data$haplotype!=missing_data )) {
       stop("for the multi-allelic format, haplotypes must be coded as positive integers")
     }
-    n <- length(unique(data[,1]))
-    L <- length(unique(data[,2]))
+    n <- length(unique(data$sample))
+    L <- length(unique(data$locus))
+    alleles <- mapply(function(x){length(unique(x$haplotype))}, split(data, f=data$locus))
   } else {
     n <- nrow(data)
     L <- ncol(data)
+    alleles <- rep(2, L)
   }
   
   # check whether there is data loaded already
@@ -90,6 +93,7 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
                     name = name,
                     n = n,
                     L = L,
+                    alleles = alleles,
                     missing_data = missing_data,
                     data_format = data_format)
   
@@ -132,9 +136,15 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
 new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_dispersion = 1, estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2, e2_max = 0.2) {
   
   # check inputs
-  # TODO - further checks on input formats (e.g. lambda, which now must be a list)
   assert_malecot_project(proj)
   assert_pos_int(K_range, zero_allowed = FALSE)
+  if (length(lambda)==proj$data$L) {
+    lambda_length <- mapply(length, lambda)
+    assert_that(identical(proj$data$alleles, lambda_length))
+  } else {
+    assert_length(lambda, 1)
+  }
+  assert_pos(lambda)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   assert_pos_int(COI_max, zero_allowed = FALSE)
   if (COI_model=="nb") {
@@ -145,6 +155,11 @@ new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, C
   if (estimate_error) {
     assert_bounded(e1, right = e1_max)
     assert_bounded(e2, right = e2_max)
+  }
+  
+  # expand lambda to list
+  if (length(lambda)==1) {
+    lambda <- mapply(rep, lambda, times = proj$data$alleles, SIMPLIFY = FALSE)
   }
   
   # count current parameter sets and add one

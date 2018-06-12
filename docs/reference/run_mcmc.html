@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Delete MALECOT parameter set — delete_set • MALECOT</title>
+<title>Run MALECOT MCMC — run_mcmc • MALECOT</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -28,7 +28,7 @@
 
 
 
-<meta property="og:title" content="Delete MALECOT parameter set — delete_set" />
+<meta property="og:title" content="Run MALECOT MCMC — run_mcmc" />
 
 <meta property="og:description" content="TODO" />
 <meta name="twitter:card" content="summary" />
@@ -101,9 +101,9 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Delete MALECOT parameter set</h1>
+    <h1>Run MALECOT MCMC</h1>
     
-    <div class="hidden name"><code>delete_set.Rd</code></div>
+    <div class="hidden name"><code>run_mcmc.Rd</code></div>
     </div>
 
     <div class="ref-description">
@@ -112,22 +112,74 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>delete_set</span>(<span class='no'>proj</span>, <span class='kw'>set</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>check_delete_output</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>run_mcmc</span>(<span class='no'>proj</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>burnin</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>samples</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>rungs</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>auto_converge</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>coupling_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>scaffold_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>split_merge_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>solve_label_switching_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>precision</span> <span class='kw'>=</span> <span class='fl'>0.01</span>, <span class='kw'>GTI_pow</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>output_format</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>cluster</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>proj</th>
-      <td><p>the current MALECOT project</p></td>
+      <td><p>TODO</p></td>
     </tr>
     <tr>
-      <th>set</th>
-      <td><p>numerical index of which set to delete</p></td>
+      <th>K</th>
+      <td><p>the number of mixture components</p></td>
     </tr>
     <tr>
-      <th>check_delete_output</th>
-      <td><p>whether to perform check before deleting output corresponding to this parameter set</p></td>
+      <th>burnin</th>
+      <td><p>the number of burn-in iterations</p></td>
+    </tr>
+    <tr>
+      <th>samples</th>
+      <td><p>the number of sampling iterations</p></td>
+    </tr>
+    <tr>
+      <th>rungs</th>
+      <td><p>the number of temperature rungs</p></td>
+    </tr>
+    <tr>
+      <th>auto_converge</th>
+      <td><p>whether burn-in should be diagnosed automatically</p></td>
+    </tr>
+    <tr>
+      <th>coupling_on</th>
+      <td><p>whether to implement Metropolis-coupling over temperature rungs</p></td>
+    </tr>
+    <tr>
+      <th>scaffold_on</th>
+      <td><p>whether to use scaffolds to improve mixing</p></td>
+    </tr>
+    <tr>
+      <th>split_merge_on</th>
+      <td><p>whether to implement a split-merge proposal</p></td>
+    </tr>
+    <tr>
+      <th>solve_label_switching_on</th>
+      <td><p>whether to implement Stevens' solution to the label-switching problem</p></td>
+    </tr>
+    <tr>
+      <th>precision</th>
+      <td><p>the level of precision that allele frequencies are represented at</p></td>
+    </tr>
+    <tr>
+      <th>GTI_pow</th>
+      <td><p>the power used in the generalised thermodynamic integration method for estimating K</p></td>
+    </tr>
+    <tr>
+      <th>silent</th>
+      <td><p>supresses output messages</p></td>
+    </tr>
+    <tr>
+      <th>output_format</th>
+      <td><p>choose from a range of output formats</p></td>
+    </tr>
+    <tr>
+      <th>cluster</th>
+      <td><p>pass in a cluster environment</p></td>
     </tr>
     </table>
     

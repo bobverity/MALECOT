@@ -96,7 +96,11 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
   
   // Q-matrices
   log_qmatrix_running = vector<vector<double>>(n, vector<double>(K));
-  qmatrix_final = vector<vector<double>>(n, vector<double>(K));
+  if (K==1) {
+    qmatrix_final = vector<vector<double>>(n, vector<double>(K, samples));
+  } else {
+    qmatrix_final = vector<vector<double>>(n, vector<double>(K));
+  }
   
   // objects for storing results
   burnin_loglike = vector<vector<double>>(rungs, vector<double>(burnin));

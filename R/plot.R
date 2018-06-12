@@ -496,6 +496,8 @@ plot.malecot_q_matrix <- function(x, y = NULL, ...) {
   box()
   
   # if y data used, add points above barplot
+  # NOTE - RELEGATED UNTIL MOVE TO GGPLOT
+  # TODO - replace this code
   if (!is.null(y)) {
     
     # TODO - checks on y data

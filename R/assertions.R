@@ -97,6 +97,15 @@ assert_in <- function(x, s, name = deparse(substitute(x))) {
 }
 
 #------------------------------------------------
+# length equal to given value
+assert_length <- function(x, n) {
+  if (length(x) != n) {
+    stop(sprintf("%s must be of length %s", x, n), call. = FALSE)
+  }
+  return(TRUE)
+}
+
+#------------------------------------------------
 # objects all same length
 assert_same_length <- function(...) {
   l <- mapply(length, list(...))

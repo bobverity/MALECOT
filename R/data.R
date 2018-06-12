@@ -128,7 +128,7 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   assert_in(data_format, c("biallelic", "multiallelic"))
   assert_pos_int(alleles, zero_allowed = FALSE)
   assert_gr(alleles, 1)
-  assert_in(length(alleles), 1, L)
+  assert_in(length(alleles), c(1, L))
   assert_bounded(unlist(lambda), left = 0, right = 100)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   if (!is.null(COI_manual)) {
@@ -139,9 +139,9 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   } else {
     assert_pos_int(COI_max, zero_allowed = FALSE)
     assert_bounded(COI_mean, left = 1, right = COI_max)
-    assert_in(length(COI_mean), 1, K)
+    assert_in(length(COI_mean), c(1, K))
     assert_gr(COI_dispersion, 1 - 1/COI_mean)
-    assert_in(length(COI_dispersion), 1, K)
+    assert_in(length(COI_dispersion), c(1, K))
   }
   assert_bounded(e1)
   assert_bounded(e2)
