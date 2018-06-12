@@ -48,18 +48,6 @@
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="articles/basic_tutorial.html">Basic Tutorial</a>
-    </li>
-  </ul>
-</li>
       </ul>
 <ul class="nav navbar-nav navbar-right"></ul>
 </div>
@@ -80,9 +68,21 @@
 <a href="#version-0-1-0" class="anchor"></a>Version 0.1.0</h3>
 
 <hr>
-<p>MALECOT is an R package for inferring population structure from genetic data, specifically in situations where each sample might represent multiple genotypes. For example, in malaria it is common for a single human host to be infected by multiple parasite “strains”, and so what we see when we sequence extracted parasites is a convolution of multiple parasite genotypes. MALECOT simultaneously estimates the number of parasite genotypes (i.e the complexity of infection, or COI) of each sample along with the population structure. This is important in obtaining accurate estimates of both the underlying population structure and the true COI, as failing to account for these properties can lead to biased inference.</p>
-<p>MALECOT uses Bayesian Markov chain Monte Carlo (MCMC) to estimate the full posterior distribution of all unknown parameters. Core functions are written in C++ through the Rcpp package for increased speed. It also contains methods for estimating the number of clusters (K), and can handle biallelic and more-than-biallelic data (i.e. SNPs, microsats, haplotypes). Finally, the package contains a number of diagnostic and plotting functions for checking MCMC performance, and visualising final results.</p>
-<p><em>WARNING: The current program is live, but still very much in development!</em></p>
+<p>MALECOT is an R package for inferring population structure from genetic data, specifically in situations where each sample might represent multiple genotypes. It does this using Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:</p>
+<ol>
+<li>Allele frequencies in all subpopulations</li>
+<li>Allocation of samples to subpopulations</li>
+<li>Complexity of infection (COI) of each sample</li>
+</ol>
+<p><strong>WARNING: Although MALECOT is live, it is still very much in development!</strong></p>
+<p>The current version (0.1.0) has the following limitations:</p>
+<ul>
+<li>takes biallelic data only</li>
+<li>patchy documentation</li>
+<li>limited and basic plotting functions</li>
+<li>some formats/pipelines likely to change slightly</li>
+</ul>
+<p>Most of these limitations should be ironed out within a few weeks of this release. See the associated vignette for a worked example analysis on simulated data.</p>
 </div>
 </div>
   </div>

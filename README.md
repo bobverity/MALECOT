@@ -7,8 +7,19 @@
 
 --------------------------------------------------------------------------------------------------------------------------------
 
-MALECOT is an R package for inferring population structure from genetic data, specifically in situations where each sample might represent multiple genotypes. For example, in malaria it is common for a single human host to be infected by multiple parasite "strains", and so what we see when we sequence extracted parasites is a convolution of multiple parasite genotypes. MALECOT simultaneously estimates the number of parasite genotypes (i.e the complexity of infection, or COI) of each sample along with the population structure. This is important in obtaining accurate estimates of both the underlying population structure and the true COI, as failing to account for these properties can lead to biased inference.
+MALECOT is an R package for inferring population structure from genetic data, specifically in situations where each sample might represent multiple genotypes. It does this using Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:
+1. Allele frequencies in all subpopulations
+2. Allocation of samples to subpopulations
+3. Complexity of infection (COI) of each sample
 
-MALECOT uses Bayesian Markov chain Monte Carlo (MCMC) to estimate the full posterior distribution of all unknown parameters. Core functions are written in C++ through the Rcpp package for increased speed. It also contains methods for estimating the number of clusters (K), and can handle biallelic and more-than-biallelic data (i.e. SNPs, microsats, haplotypes). Finally, the package contains a number of diagnostic and plotting functions for checking MCMC performance, and visualising final results.
 
-*WARNING: The current program is live, but still very much in development!*
+**WARNING: Although MALECOT is live, it is still very much in development!**
+
+
+The current version (0.1.0) has the following limitations:
+* takes biallelic data only
+* patchy documentation
+* limited and basic plotting functions
+* some formats/pipelines likely to change slightly
+
+Most of these limitations should be ironed out within a few weeks of this release. See the associated vignette for a worked example analysis on simulated data.
