@@ -21,5 +21,9 @@ Imports:
     coda,
     plotly
 SystemRequirements: C++11
-Suggests: testthat,
-    covr
+Suggests: 
+    testthat,
+    covr,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
