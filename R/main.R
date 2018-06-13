@@ -420,7 +420,9 @@ generate_scaffolds <- function(proj, scaffold_n = 10, K = NULL, burnin = 1e3, au
   # ---------- process results ----------
   
   # begin processing results
-  message("Processing results\n")
+  if (!silent) {
+    message("Processing results\n")
+  }
   
   # loop through K
   ret <- list()
