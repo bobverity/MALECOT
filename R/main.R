@@ -140,11 +140,11 @@ new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, C
   assert_pos_int(K_range, zero_allowed = FALSE)
   if (length(lambda)==proj$data$L) {
     lambda_length <- mapply(length, lambda)
-    assert_that(identical(proj$data$alleles, lambda_length))
+    assert_that(all.equal(proj$data$alleles, lambda_length))
   } else {
     assert_length(lambda, 1)
   }
-  assert_pos(lambda)
+  assert_pos(unlist(lambda))
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   assert_pos_int(COI_max, zero_allowed = FALSE)
   if (COI_model=="nb") {
@@ -596,7 +596,6 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     args_pb <- list(pb_burnin = pb_burnin,
                     pb_samples = pb_samples)
     
-    
     # load scaffold groupings where possible
     scaffold_group <- proj$scaffolds[[s]][[i]]$group
     if (is.null(scaffold_group)) {
@@ -639,7 +638,7 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
   }
   
   # ---------- process results ----------
-
+  
   # begin processing results
   message("Processing results\n")
   
@@ -653,7 +652,7 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     deme_names <- paste0("deme", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
     
-    # ---------- full mcmc trace ----------
+    # ---------- raw mcmc results ----------
     
     # get loglikelihood in coda::mcmc format
     loglike_burnin <- mcmc(t(rcpp_to_mat(output_raw[[i]]$burnin_loglike)))

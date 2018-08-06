@@ -3,4 +3,5 @@ pkgdown: 1.0.0
 pkgdown_sha: ~
 articles:
   basic_tutorial: basic_tutorial.html
+  test: test.html
 

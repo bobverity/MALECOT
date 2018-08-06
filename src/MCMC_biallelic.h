@@ -56,7 +56,6 @@ public:
   
   // ordering of labels
   std::vector<int> label_order;
-  std::vector<int> label_order_new;
   
   // Q-matrices
   std::vector<std::vector<double>> log_qmatrix_running;

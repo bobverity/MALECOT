@@ -74,7 +74,7 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
       }
     }
   } // end populate lookup tables
-
+  
   // thermodynamic parameters. The object beta_raised_vec stores values of beta
   // (the thermodynamic power), raised to the power GTI_pow
   beta_raised_vec = vector<double>(rungs);
@@ -92,7 +92,6 @@ MCMC_biallelic::MCMC_biallelic(Rcpp::List &args) {
   
   // initialise ordering of labels
   label_order = seq_int(0,K-1);
-  label_order_new = vector<int>(K);
   
   // Q-matrices
   log_qmatrix_running = vector<vector<double>>(n, vector<double>(K));
@@ -378,6 +377,7 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args) {
   if (!convergence_reached) {
     print("   Warning: convergence still not reached within", burnin, "iterations");
   }
+  
 }
 
 //------------------------------------------------
@@ -569,14 +569,14 @@ void MCMC_biallelic::metropolis_coupling() {
     int rung2 = rung_order[i+1];
     
     // get log-likelihoods and beta values of two chains in the comparison
-    double log_like1 = particle_vec[rung1].loglike;
-    double log_like2 = particle_vec[rung2].loglike;
+    double loglike1 = particle_vec[rung1].loglike;
+    double loglike2 = particle_vec[rung2].loglike;
     
     double beta_raised1 = particle_vec[rung1].beta_raised;
     double beta_raised2 = particle_vec[rung2].beta_raised;
     
     // calculate acceptance ratio (still in log space)
-    double acceptance = (log_like2*beta_raised1 + log_like1*beta_raised2) - (log_like1*beta_raised1 + log_like2*beta_raised2);
+    double acceptance = (loglike2*beta_raised1 + loglike1*beta_raised2) - (loglike1*beta_raised1 + loglike2*beta_raised2);
 
     // accept or reject move
     double rand1 = runif1();
