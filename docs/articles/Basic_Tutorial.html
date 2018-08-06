@@ -75,7 +75,7 @@
       <h1>Basic Tutorial</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-08-06</h4>
+            <h4 class="date">06/08/2018</h4>
       
       
       <div class="hidden name"><code>basic_tutorial.Rmd</code></div>
@@ -84,70 +84,15 @@
 
     
     
-<p>This vignette demonstrates the use of the MALECOT package on a simple biallelic simulated data set, including installing the package, simulating some data, running the model and performing simple checks on the MCMC output.</p>
-<div id="installation" class="section level2">
+<div id="r-markdown" class="section level2">
 <h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<p>MALECOT relies on the Rcpp package, which requires the following OS-specific steps:</p>
-<ul>
-<li>Windows
-<ul>
-<li>Download and install the appropriate version of <a href="https://cran.rstudio.com/bin/windows/Rtools/">Rtools</a> for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools</li>
-</ul>
-</li>
-<li>Mac OS X
-<ul>
-<li>Download and install <a href="http://itunes.apple.com/us/app/xcode/id497799835?mt=12">XCode</a>
-</li>
-<li>Within XCode go to Preferences : Downloads and install the Command Line Tools</li>
-</ul>
-</li>
-<li>Linux (Debian/Ubuntu)
-<ul>
-<li>
-<p>Install the core software development utilities required for R package development as well as LaTeX by executing</p>
-<pre><code>```
-sudo apt-get install r-base-dev texlive-full
-```</code></pre>
-</li>
-</ul>
-</li>
-</ul>
-<p>Next, in R, ensure that you have the devtools package installed by running</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">"devtools"</span>, <span class="dt">repos=</span><span class="st">'http://cran.us.r-project.org'</span>)</code></pre></div>
-<p>Then we can simply install the <em>MALECOT</em> package directly from GitHub by running</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools::<span class="kw">install_github</span>(<span class="st">"bobverity/MALECOT"</span>)</code></pre></div>
-<p>Finally, we need to load the package</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(MALECOT)</code></pre></div>
-</div>
-<div id="simulating-some-data" class="section level2">
-<h2 class="hasAnchor">
-<a href="#simulating-some-data" class="anchor"></a>Simulating some data</h2>
-<p>MALECOT contains basic functions for simulating genetic data. The underlying model used in simulation is identical to that used in the inference step, meaning these simulations can be used to test the power and accuracy of the model in different settings.</p>
-<p>We start by simulating a biallelic data set of 100 samples at 24 loci, drawn from 3 distinct subpopulations.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p>If we look inside this object using <code>names(sim1)</code> we will see that, in addition to the raw “data” element, the function returns the <em>true</em> value of the grouping, complexity of infection (m), and allele frequencies (p). These can be used to ground truth our inference, and check that the model is behaving as we expect.</p>
-</div>
-<div id="basic-analysis" class="section level2">
-<h2 class="hasAnchor">
-<a href="#basic-analysis" class="anchor"></a>Basic analysis</h2>
-<p>The analysis pipeline is built around MALECOT “projects”, similar to the projects used in programs like STRUCTURE. This project will store all data, parameters, and output for a given analysis in one convenient location.</p>
-<p>We start by creating a new project, and loading in the simulated data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
-my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data.html">bind_data</a></span>(my_proj, <span class="dt">data =</span> sim1$data)</code></pre></div>
-<pre><code>## biallelic format detected</code></pre>
-<p>Notice that the <code><a href="../reference/bind_data.html">bind_data()</a></code> function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.</p>
-<p>Next, we create a new parameter set. There are multiple model parameters that can be defined at this stage - we will use default settings but exploring a range of K (the number of subpopulations) from 1 to 5.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(my_proj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>)</code></pre></div>
-<p>We can now run the main MCMC under these parameter settings. For the sake of this vignette we will use the option <code>silent = TRUE</code>, although in general it is useful to leave this option on to get a running progress update of the MCMC.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(my_proj, <span class="dt">burnin =</span> <span class="fl">1e3</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">1</span>, <span class="dt">silent =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Processing results</code></pre>
-<p>All output is stored within the <code>my_proj</code> object, and we can now produce plots of the posterior population assignment (i.e. “structure” plots), and the posterior complexity of infection of all samples.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">for (k in <span class="dv">1</span>:<span class="dv">5</span>) {
-  <span class="kw"><a href="../reference/plot_q_matrix.html">plot_q_matrix</a></span>(my_proj, <span class="dt">K =</span> k, <span class="dt">main =</span> <span class="kw">paste</span>(<span class="st">"K ="</span>, k))
-  <span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(my_proj, <span class="dt">K =</span> k)
-}</code></pre></div>
-<p><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-1.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-2.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-3.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-4.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-5.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-6.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-7.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-8.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-9.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-10.png" width="700"></p>
+<a href="#r-markdown" class="anchor"></a>R Markdown</h2>
+<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(<span class="dv">1</span>:<span class="dv">10</span>)</code></pre></div>
+<p><img src="basic_tutorial_files/figure-html/cars-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(<span class="kw">rnorm</span>(<span class="dv">100</span>))</code></pre></div>
+<p><img src="basic_tutorial_files/figure-html/cars-2.png" width="700"></p>
 </div>
   </div>
 
@@ -156,9 +101,7 @@ my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bin
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#installation">Installation</a></li>
-      <li><a href="#simulating-some-data">Simulating some data</a></li>
-      <li><a href="#basic-analysis">Basic analysis</a></li>
+<li><a href="#r-markdown">R Markdown</a></li>
       </ul>
 </div>
       </div>
