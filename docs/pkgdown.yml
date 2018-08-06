@@ -2,6 +2,6 @@ pandoc: 1.17.2
 pkgdown: 1.0.0
 pkgdown_sha: ~
 articles:
-  basic_tutorial: basic_tutorial.html
+  Basic Tutorial: Basic Tutorial.html
   test: test.html
 
