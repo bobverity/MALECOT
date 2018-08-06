@@ -22,4 +22,4 @@ The current version (0.1.0) has the following limitations:
 * limited and basic plotting functions
 * some formats/pipelines likely to change slightly
 
-Most of these limitations should be ironed out within a few weeks of this release. See the associated vignette for a worked example analysis on simulated data.
+Most of these limitations should be ironed out within a few weeks of this release. See the (associated vignette)[https://bobverity.github.io/MALECOT/articles/basic_tutorial.html] for a worked example analysis on simulated data.

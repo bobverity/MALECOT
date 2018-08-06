@@ -84,7 +84,3 @@ for (k in 1:5) {
 }
 ```
 
-Test plot:
-```{r}
-plot(5)
-```
