@@ -83,3 +83,8 @@ for (k in 1:5) {
   plot_m_quantiles(my_proj, K = k)
 }
 ```
+
+Test plot:
+```{r}
+plot(5)
+```
