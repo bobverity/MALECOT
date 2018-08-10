@@ -3,6 +3,10 @@ title: "Basic Tutorial"
 author: "Bob Verity"
 date: "06/08/2018"
 output: html_document
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{Basic Tutorial}
+  %\usepackage[UTF-8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
