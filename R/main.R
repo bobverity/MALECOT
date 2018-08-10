@@ -4,7 +4,6 @@
 # NAMESPACE file.
 
 #' @useDynLib MALECOT
-#' @import assertthat
 #' @import parallel
 #' @import coda
 #' @importFrom plotly plot_ly
@@ -56,8 +55,8 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
   # perform checks on data
   # TODO - more checks on data format to ensure correct
   if (data_format=="multiallelic") {
-    assert_that(ncol(data)==3)
-    assert_that(identical(names(data), c("sample", "locus", "haplotype")))
+    assert_ncol(data, 3)
+    assert_eq(sort(names(data)), sort(c("sample", "locus", "haplotype")))
     if (any( data$haplotype<=0 & data$haplotype!=missing_data )) {
       stop("for the multi-allelic format, haplotypes must be coded as positive integers")
     }
@@ -140,7 +139,7 @@ new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, C
   assert_pos_int(K_range, zero_allowed = FALSE)
   if (length(lambda)==proj$data$L) {
     lambda_length <- mapply(length, lambda)
-    assert_that(all.equal(proj$data$alleles, lambda_length))
+    assert_eq(proj$data$alleles, lambda_length)
   } else {
     assert_length(lambda, 1)
   }

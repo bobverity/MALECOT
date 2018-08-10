@@ -161,10 +161,28 @@ assert_single_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substit
 }
 
 #------------------------------------------------
-# x is matrix
+# x is a matrix
 #' @noRd
 assert_matrix <- function(x, message = "%s must be a matrix", name = deparse(substitute(x))) {
   if (!is.matrix(x)) {
+    stop(sprintf(message, name), call. = FALSE)
+  }
+  return(TRUE)
+}
+
+#------------------------------------------------
+# x is a list
+assert_list <- function(x, message = "%s must be a list", name = deparse(substitute(x))) {
+  if (!is.list(x)) {
+    stop(sprintf(message, name), call. = FALSE)
+  }
+  return(TRUE)
+}
+
+#------------------------------------------------
+# x is a data frame
+assert_dataframe <- function(x, message = "%s must be a data frame", name = deparse(substitute(x))) {
+  if (!is.data.frame(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
   return(TRUE)
@@ -395,4 +413,12 @@ assert_symmetric_matrix <- function(x, message = "%s must be a symmetric matrix"
   return(TRUE)
 }
 
-
+#------------------------------------------------
+# x contains no duplicates
+#' @noRd
+assert_noduplicates <- function(x, message = "%s must contain no duplicates", name = deparse(substitute(x))) {
+  if (any(duplicated(x))) {
+    stop(sprintf(message, name), call. = FALSE)
+  }
+  return(TRUE)
+}

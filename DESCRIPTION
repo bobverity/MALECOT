@@ -16,7 +16,6 @@ RoxygenNote: 6.0.1
 LinkingTo: Rcpp
 Imports:
     Rcpp,
-    assertthat,
     parallel,
     coda,
     plotly

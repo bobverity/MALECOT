@@ -7,7 +7,7 @@
 
 --------------------------------------------------------------------------------------------------------------------------------
 
-MALECOT is an R package for inferring population structure from genetic data, specifically in situations where each sample might represent multiple genotypes. It does this using Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:
+MALECOT is an R package for inferring population structure from genetic data in situations where each sample might represent multiple genotypes. It does this using Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:
 1. Allele frequencies in all subpopulations
 2. Allocation of samples to subpopulations
 3. Complexity of infection (COI) of each sample
@@ -22,4 +22,4 @@ The current version (0.1.0) has the following limitations:
 * limited and basic plotting functions
 * some formats/pipelines likely to change slightly
 
-Most of these limitations should be ironed out within a few weeks of this release. See the (associated vignette)[https://bobverity.github.io/MALECOT/articles/basic_tutorial.html] for a worked example analysis on simulated data.
+Most of these limitations should be ironed out within a few weeks of this release. See the [associated vignette](https://bobverity.github.io/MALECOT/articles/basic_tutorial.html) for a worked example analysis on simulated data.

@@ -38,7 +38,7 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
   assert_bounded(unlist(lambda), left = 0, right = 100)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   if (!is.null(COI_manual)) {
-    assert_that(length(COI_manual) == n)
+    assert_length(COI_manual, n)
     assert_gr(COI_manual, 1)
     COI_mean <- NA
     COI_dispersion <- NA

@@ -12,7 +12,6 @@ assert_malecot_project <- function(x, message = "%s must be of class 'malecot_pr
 
 #------------------------------------------------
 # replace NULL value with default
-# (not exported)
 #' @noRd
 define_default <- function(x, default_value) {
   if (is.null(x)) {
@@ -23,7 +22,6 @@ define_default <- function(x, default_value) {
 
 # -----------------------------------
 # ask user a yes/no question. Return TRUE/FALSE
-# (not exported)
 #' @noRd
 user_yes_no <- function(x="continue? (Y/N): ") {
   userChoice <- NA
@@ -35,7 +33,6 @@ user_yes_no <- function(x="continue? (Y/N): ") {
 
 # -----------------------------------
 # draw from Dirichlet distribution
-# (not exported)
 #' @noRd
 rdirichlet <- function (alpha_vec) {
   Y <- rgamma(length(alpha_vec), shape = alpha_vec, scale = 1)
@@ -45,7 +42,6 @@ rdirichlet <- function (alpha_vec) {
 
 # -----------------------------------
 # takes matrix as input, converts to list format for use within Rcpp code
-# (not exported)
 #' @noRd
 mat_to_rcpp <- function(x) {
   return(split(x, f=1:nrow(x)))
@@ -53,7 +49,6 @@ mat_to_rcpp <- function(x) {
 
 # -----------------------------------
 # takes list format returned from Rcpp and converts to matrix
-# (not exported)
 #' @noRd
 rcpp_to_mat <- function(x) {
   ret <- matrix(unlist(x), nrow=length(x), byrow=TRUE)
@@ -63,7 +58,6 @@ rcpp_to_mat <- function(x) {
 #------------------------------------------------
 # calls C++ implementation of the Hungarian algorithm for binding best matching
 # in a linear sum assigment problem. This is function is used in testing.
-# (not exported)
 #' @noRd
 call_hungarian <- function(x) {
   args <- list(cost_mat = mat_to_rcpp(x))
@@ -72,7 +66,6 @@ call_hungarian <- function(x) {
 
 #------------------------------------------------
 # return 95% quantile
-# (not exported)
 #' @noRd
 quantile_95 <- function(x) {
   quantile(x, probs=c(0.025, 0.5, 0.975))
@@ -80,7 +73,6 @@ quantile_95 <- function(x) {
 
 #------------------------------------------------
 # return p-value of Geweke's diagnostic convergence statistic, estimated from package coda
-# (not exported)
 #' @noRd
 geweke_pvalue <- function(x) {
   ret <- 2*pnorm(abs(geweke.diag(x)$z), lower.tail=FALSE)
@@ -89,7 +81,6 @@ geweke_pvalue <- function(x) {
 
 #------------------------------------------------
 # check that geweke p-value non-significant on values x[1:n]
-# (not exported)
 #' @noRd
 test_convergence <- function(x, n) {
   if (n==1) {
@@ -105,7 +96,6 @@ test_convergence <- function(x, n) {
 
 #------------------------------------------------
 # update progress bar
-# (not exported)
 #' @noRd
 update_progress <- function(args, type, i, max_i) {
   

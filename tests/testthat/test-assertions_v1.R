@@ -177,6 +177,28 @@ test_that("assert_matrix working correctly", {
 })
 
 #------------------------------------------------
+test_that("assert_list working correctly", {
+  expect_true(assert_list(list(1:5)))
+  expect_true(assert_list(data.frame(x = 1:5)))
+  
+  expect_error(assert_list(NULL))
+  expect_error(assert_list(5))
+  expect_error(assert_list(1:5))
+  expect_error(assert_list(matrix(NA, 3, 3)))
+})
+
+#------------------------------------------------
+test_that("assert_dataframe working correctly", {
+  expect_true(assert_dataframe(data.frame(x = 1:5)))
+  
+  expect_error(assert_dataframe(NULL))
+  expect_error(assert_dataframe(5))
+  expect_error(assert_dataframe(1:5))
+  expect_error(assert_dataframe(list(1:5)))
+  expect_error(assert_dataframe(matrix(NA, 3, 3)))
+})
+
+#------------------------------------------------
 test_that("assert_eq working correctly", {
   expect_true(assert_eq(5,5))
   expect_true(assert_eq(1:5,1:5))
@@ -373,4 +395,15 @@ test_that("assert_symmetric_matrix working correctly", {
   expect_error(assert_symmetric_matrix(1))
   expect_error(assert_symmetric_matrix(1:5))
   expect_error(assert_symmetric_matrix("foo"))
+})
+
+#------------------------------------------------
+test_that("assert_noduplicates working correctly", {
+  expect_true(assert_noduplicates(5))
+  expect_true(assert_noduplicates(1:5))
+  expect_true(assert_noduplicates(c("foo", "bar")))
+  expect_true(assert_noduplicates(NULL))
+  
+  expect_error(assert_noduplicates(c(1,1,2)))
+  expect_error(assert_noduplicates(c("foo", "bar", "foo")))
 })

@@ -1,29 +1,39 @@
 
 #------------------------------------------------
 # default MALECOT colours
-# (not exported)
 #' @noRd
 default_colours <- function(K) {
   
   # generate palette and colours
   raw_cols <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
   my_palette <- colorRampPalette(raw_cols)
-  bar_col <- my_palette(max(K,6))
   
-  # if fewer than 6 colours then choose manually
-  if (K==5) {
-    bar_col = bar_col[c(1,2,3,5,6)]
-  } else if (K==4) {
-    bar_col = bar_col[c(1,2,3,5)]
-  } else if (K==3) {
-    bar_col = bar_col[c(1,3,5)]
-  } else if (K==2) {
-    bar_col = bar_col[c(1,5)]
-  } else if (K==1) {
-    bar_col = bar_col[1]
+  # simple case if small K
+  if (K<=2) {
+    return(my_palette(K))
   }
   
-  return(bar_col)
+  # some logic to choose a palette size and sequence of colours that is
+  # consistent across different values of K
+  ncol <- 3
+  while(ncol<K) {
+    ncol <- ncol+(ncol-1)
+  }
+  dist_mat <- matrix(1:ncol, ncol, ncol)
+  dist_mat <- abs(t(dist_mat)-dist_mat)
+  x <- rep(FALSE, ncol)
+  
+  col_index <- 1
+  for (i in 2:K) {
+    x[col_index] <- TRUE
+    s <- apply(dist_mat[which(x),,drop=FALSE], 2, min)
+    next_index <- which.max(s)
+    col_index <- c(col_index, next_index)
+  }
+  col_index
+  ret <- my_palette(ncol)[col_index]
+  
+  return(ret)
 }
 
 #------------------------------------------------
@@ -85,7 +95,6 @@ plot_pca <- function(data, type = "3D", missing_data = -1, target_group = NULL) 
 
 #------------------------------------------------
 # whisker plot of quantiles
-# (not exported)
 #' @noRd
 plot_quantiles <- function(q_min, q_mid, q_max, q_x = 1:length(q_min), width = 0.2, connect_points = FALSE, ...) {
   
