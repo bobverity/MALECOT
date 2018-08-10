@@ -1,5 +1,16 @@
 
 #------------------------------------------------
+# assert x is class malecot_project
+#' @noRd
+assert_malecot_project <- function(x, message = "%s must be of class 'malecot_project'",
+                                   name = deparse(substitute(x))) {
+  if (!inherits(x, "malecot_project")) {
+    stop(sprintf(message, name), call. = FALSE)
+  }
+  return(TRUE)
+}
+
+#------------------------------------------------
 # replace NULL value with default
 # (not exported)
 #' @noRd
@@ -441,3 +452,5 @@ summary.malecot_GTI_path <- function(object, ...) {
 is.malecot_GTI_path <- function(x) {
   inherits(x, "malecot_GTI_path")
 }
+
+
