@@ -1,16 +1,5 @@
 
 #------------------------------------------------
-# assert x is class malecot_project
-#' @noRd
-assert_malecot_project <- function(x, message = "%s must be of class 'malecot_project'",
-                                   name = deparse(substitute(x))) {
-  if (!inherits(x, "malecot_project")) {
-    stop(sprintf(message, name), call. = FALSE)
-  }
-  return(TRUE)
-}
-
-#------------------------------------------------
 # replace NULL value with default
 #' @noRd
 define_default <- function(x, default_value) {
@@ -18,6 +7,16 @@ define_default <- function(x, default_value) {
     x <- default_value
   }
   return(x)
+}
+
+#------------------------------------------------
+# simple zero-padding function. Not robust to e.g. negative numbers
+#' @noRd
+zero_pad_simple <- function(x, n = 3) {
+  ret <- mapply(function(x) {
+                  paste0(paste0(rep(0,n-nchar(x)), collapse = ""), x, collapse = "")
+                }, x)
+  return(ret)
 }
 
 # -----------------------------------

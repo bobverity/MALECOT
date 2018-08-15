@@ -5,41 +5,56 @@
 \title{Simulate genetic data}
 \usage{
 sim_data(n = 100, L = 24, K = 3, data_format = "biallelic",
-  alleles = 2, lambda = 1, COI_model = "poisson", COI_manual = NULL,
-  COI_max = 20, COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0,
-  prop_missing = 0)
+  alleles = 2, lambda = 1, COI_model = "poisson", COI_max = 20,
+  COI_manual = rep(-1, n), COI_mean = 3, COI_dispersion = 1, e1 = 0,
+  e2 = 0, prop_missing = 0)
 }
 \arguments{
-\item{n}{TODO}
+\item{n}{the number of samples}
 
-\item{L}{TODO}
+\item{L}{the number of loci per sample}
 
-\item{K}{TODO}
+\item{K}{the number of subpopulations}
 
-\item{data_format}{TODO}
+\item{data_format}{whether to produce data in "biallelic" or "multiallelic"
+format. Note that if biallelic format is chosen then \code{alleles} is
+always set to 2}
 
-\item{alleles}{TODO}
+\item{alleles}{the number of alleles at each locus. Can be a vector of length
+\code{L} specifying the number of alleles at each locus, or a single scalar
+value specifying the number of alleles at all loci}
 
-\item{lambda}{TODO}
+\item{lambda}{the shape parameter(s) of the prior on allele frequencies. This
+prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic
+case. \code{lambda} can be a list of length \code{L} containing vectors of
+length equal to the number of alleles at that locus, or it can be a single
+scalar value. If a list then \code{lambda} specifies all shape parameters
+of the prior at each locus separately, if a scalar value then the same
+shape parameter is used over all loci and all alleles}
 
 \item{COI_model}{TODO}
 
-\item{COI_manual}{TODO}
-
 \item{COI_max}{TODO}
+
+\item{COI_manual}{option to override the MCMC and set the COI of one or more
+samples manually, in which case they are not updated. Vector of length
+\code{n} specifing the integer valued COI of each sample, with -1
+indicating that all samples should be estimated}
 
 \item{COI_mean}{TODO}
 
-\item{COI_dispersion}{TODO}
+\item{COI_dispersion}{must be > 1}
 
 \item{e1}{TODO}
 
 \item{e2}{TODO}
 
 \item{prop_missing}{TODO}
+
+\item{pop_col_on}{TODO}
 }
 \description{
-TODO
+Simulate genetic data from the same model used in the MALECOT inference step.
 }
 \details{
 TODO

@@ -4,32 +4,32 @@
 \alias{new_set}
 \title{Create new MALECOT parameter set}
 \usage{
-new_set(proj, set_description = NULL, K_range = 1:3, lambda = 1,
-  COI_model = "poisson", COI_max = 20, COI_dispersion = 1,
-  estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2, e2_max = 0.2)
+new_set(project, name = "(no name)", lambda = 1, COI_model = "poisson",
+  COI_max = 20, COI_manual = NULL, estimate_COI_mean = TRUE,
+  COI_mean = 3, COI_dispersion = 1, estimate_error = FALSE, e1 = 0,
+  e2 = 0, e1_max = 0.2, e2_max = 0.2)
 }
 \arguments{
-\item{proj}{the current MALECOT project}
+\item{project}{a MALECOT project, as produced by the function 
+\code{malecot_project()}}
 
-\item{set_description}{brief description of this parameter set}
-
-\item{K_range}{TODO}
+\item{name}{the name of the parameter set}
 
 \item{lambda}{shape parameter(s) governing the prior on allele frequencies. 
 This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-distribution for the multi-allelic case. In the simplest case,
-\code{lambda} can be a single scalar value, in which case the same shape
-paremeter will be used for all loci and all alleles (i.e. a symmetric Beta
-or Dirichlet prior). In the more general case \code{lambda} can be a list
-of length \code{L}, containing vectors of length equal to the number of
-alleles at each locus, allowing different shape parameters to be defined
-for each allele individually}
+distribution for the multi-allelic case. \code{lambda} can be a single
+scalar value, in which case the same shape paremeter is applied to all loci
+and all alleles (i.e. a symmetric Beta or Dirichlet prior), or
+\code{lambda} can be a list of length \code{L} containing vectors of length
+equal to the number of alleles at each locus, allowing different shape
+parameters to be specified for each allele individually}
 
-\item{COI_model}{TODO}
+\item{COI_model}{the type of prior on COI. Must be one of "uniform",
+"poisson", or "nb" (negative binomial)}
 
 \item{COI_max}{TODO}
 
-\item{COI_dispersion}{TODO}
+\item{COI_dispersion}{must be > 1}
 
 \item{estimate_error}{TODO}
 

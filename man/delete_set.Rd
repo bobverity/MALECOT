@@ -2,22 +2,21 @@
 % Please edit documentation in R/main.R
 \name{delete_set}
 \alias{delete_set}
-\title{Delete MALECOT parameter set}
+\title{Delete parameter set}
 \usage{
 delete_set(proj, set = NULL, check_delete_output = TRUE)
 }
 \arguments{
-\item{proj}{the current MALECOT project}
+\item{set}{which set to delete. Defaults to the current active set}
 
-\item{set}{numerical index of which set to delete}
+\item{check_delete_output}{whether to prompt the user before deleting any 
+existing output}
 
-\item{check_delete_output}{whether to perform check before deleting output corresponding to this parameter set}
+\item{project}{a MALECOT project, as produced by the function 
+\code{malecot_project()}}
 }
 \description{
-TODO
-}
-\details{
-TODO
+Delete a given parameter set from a MALECOT project.
 }
 \examples{
 # TODO

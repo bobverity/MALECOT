@@ -15,89 +15,228 @@
 NULL
 
 #------------------------------------------------
-#' @title Bind data to project
+#' @title Bind bi-allelic data to project
 #'
-#' @description TODO
+#' @description Bind data in bi-allelic format to MALECOT project. Data should
+#'   be formatted as a dataframe with samples in rows and loci in columns.
+#'   Genetic data should be coded as 1 (homozygote REF allele), 0 (homozygote
+#'   ALT allele), or 0.5 (heterozygote). Additional meta-data columns can be
+#'   specified, including a column for sample IDs and a column for sampling
+#'   population.
 #'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param data TODO
-#' @param data_format TODO
-#' @param name TODO
-#' @param missing_data TODO
-#' @param check_delete_output TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param df a dataframe containing genetic information and optional meta-data
+#' @param ID_col which column of the input data contains the sample IDs. If NULL
+#'   then IDs must be defined seperately through the \code{ID} argument
+#' @param pop_col which column of the input data contains the ostensible 
+#'   population of the samples. If NULL then populations must be defined 
+#'   seperately through the \code{pop} argument
+#' @param data_cols which columns of the input data contain genetic information.
+#'   Defaults to all remaining columns of the data once special columns have 
+#'   been accounted for
+#' @param ID sample IDs, if not using the \code{ID_col} option
+#' @param pop ostensible populations, if not using the \code{pop_col} option
+#' @param missing_data what value represents missing data (defaults to -9). Must
+#'   be a positive or negative integer, and cannot equal 0 or 1 as these are 
+#'   reserved for genetic data.
+#' @param name optional name of the data set to aid in record keeping
+#' @param check_delete_output whether to prompt the user before overwriting 
+#'   existing data
 #'
 #' @export
 #' @examples
 #' # TODO
 
-bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data = -1, check_delete_output = TRUE) {
+bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_cols = NULL, ID = NULL, pop = NULL, missing_data = -9, name = NULL, check_delete_output = TRUE) {
   
   # check inputs
-  assert_malecot_project(proj)
-  if (!is.null(data_format)) {
-    assert_in(data_format, c("biallelic", "multiallelic"))
+  assert_custom_class(project, "malecot_project")
+  assert_dataframe(df)
+  if (!is.null(ID_col)) {
+    assert_single_pos_int(ID_col, zero_allowed = FALSE)
+    assert_leq(ID_col, ncol(df))
+    ID <- as.character(df[,ID_col])
   }
-  
-  # try to work out data_format automatically if unspecified
-  if (is.null(data_format)) {
-    all_biallelic_format <- all(apply(data, 1, function(x){
-      x %in% c(0, 0.5, 1, missing_data)
-      }))
-    data_format <- ifelse(all_biallelic_format, "biallelic", "multiallelic")
-    message(sprintf("%s format detected", data_format))
+  if (!is.null(pop_col)) {
+    assert_single_pos_int(pop_col, zero_allowed = FALSE)
+    assert_leq(pop_col, ncol(df))
+    pop <- df[,pop_col]
   }
-  
-  # reformat missing data as -1
-  data[data==missing_data] <- -1
-  
-  # perform checks on data
-  # TODO - more checks on data format to ensure correct
-  if (data_format=="multiallelic") {
-    assert_ncol(data, 3)
-    assert_eq(sort(names(data)), sort(c("sample", "locus", "haplotype")))
-    if (any( data$haplotype<=0 & data$haplotype!=missing_data )) {
-      stop("for the multi-allelic format, haplotypes must be coded as positive integers")
-    }
-    n <- length(unique(data$sample))
-    L <- length(unique(data$locus))
-    alleles <- mapply(function(x){length(unique(x$haplotype))}, split(data, f=data$locus))
+  if (is.null(data_cols)) {
+    data_cols <- setdiff(1:ncol(df), c(ID_col, pop_col))
   } else {
-    n <- nrow(data)
-    L <- ncol(data)
-    alleles <- rep(2, L)
+    assert_pos_int(data_cols, zero_allowed = FALSE)
+    assert_leq(data_cols, ncol(df))
+    assert_noduplicates(data_cols)
   }
+  ID <- define_default(ID, paste0("sample", zero_pad_simple(1:n, nchar(n))))
+  assert_string(ID)
+  assert_length(ID,n)
+  pop <- define_default(pop, rep(1,n))
+  assert_pos_int(pop)
+  assert_length(pop,n)
+  assert_single_int(missing_data)
+  assert_not_in(missing_data, c(0, 1))
+  if (!is.null(name)) {
+    assert_single_string(name)
+  }
+  assert_single_logical(check_delete_output)
   
-  # check whether there is data loaded already
-  if (length(proj$data)!=0) {
-    # return existing project if user not happy to continue
-    if (check_delete_output) {
-      user_continue <- user_yes_no("All existing output for this project will be lost. Continue? (Y/N): ")
-      if (!user_continue) {
-        message("returning without modification\n")
-        return(proj)
-      }
+  # check before overwriting existing output
+  if (project$active_set>0 && check_delete_output) {
+    
+    # ask before overwriting. On abort, return original project
+    if (!user_yes_no("All existing output and parameter sets for this project will be lost. Continue? (Y/N): ")) {
+      return(project)
     }
     
-    # drop all existing output
-    message("overwriting data and deleting old output\n")
-    null_list <- replicate(length(proj$parameter_sets), NULL)
-    proj$scaffolds <- null_list
-    proj$output <- null_list
+    # replace old project with fresh empty version
+    project <- malecot_project()
   }
   
-  # update project with new data
-  proj$data <- list(raw = as.matrix(data),
-                    name = name,
-                    n = n,
-                    L = L,
-                    alleles = alleles,
-                    missing_data = missing_data,
-                    data_format = data_format)
+  # extract genetic data
+  dat <- as.matrix(df[, data_cols, drop = FALSE])
+  n <- nrow(dat)
+  L <- ncol(dat)
+  locus_names <- colnames(dat)
+  apply(dat, 1, function(x) {
+    assert_in(x, c(0, 0.5, 1, missing_data), name_x = "genetic data")
+  })
   
-  # return invisibly
-  invisible(proj)
+  # process genetic data
+  w <- which(dat == missing_data)
+  dat[dat == 1] <- 1
+  dat[dat == 0.5] <- 2
+  dat[dat == 0] <- 3
+  dat[w] <- 0
+  
+  # create dat_processed list
+  dat_processed <- list(data = dat,
+                        n = nrow(dat),
+                        L = ncol(dat),
+                        ID = ID,
+                        pop = pop,
+                        alleles = rep(2,L),
+                        locus_names = locus_names,
+                        data_format = "biallelic",
+                        name = name)
+  
+  # add data to project
+  project$data <- df
+  project$data_processed <- dat_processed
+  
+  return(project)
+}
+
+#------------------------------------------------
+#' @title Bind multi-allelic format data to project
+#'
+#' @description Bind data in multi-allelic format to MALECOT project. Data 
+#'   should be formatted as a dataframe with three columns: "sample_ID", "locus"
+#'   and "haplotype". Each row of this dataframe specifies a haplotype that was
+#'   observed at that locus in that individual (i.e. long format). Haplotypes
+#'   should be coded as positive integers.
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param df a dataframe containing genetic information and optional meta-data
+#' @param pop ostensible populations, if not using the \code{pop_col} option
+#' @param missing_data what value represents missing data (defaults to -9). Must
+#'   be a positive or negative integer, and cannot equal 0 or 1 as these are 
+#'   reserved for genetic data.
+#' @param name optional name of the data set to aid in record keeping
+#' @param check_delete_output whether to prompt the user before overwriting 
+#'   existing data
+#'
+#' @export
+#' @examples
+#' # TODO
+
+bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, name = NULL, check_delete_output = TRUE) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  assert_dataframe(df)
+  pop <- define_default(pop, rep(1,n))
+  assert_pos_int(pop)
+  assert_length(pop,n)
+  assert_single_int(missing_data)
+  if (!is.null(name)) {
+    assert_single_string(name)
+  }
+  assert_single_logical(check_delete_output)
+  
+  # check before overwriting existing output
+  if (project$active_set>0 && check_delete_output) {
+    
+    # ask before overwriting. On abort, return original project
+    if (!user_yes_no("All existing output and parameter sets for this project will be lost. Continue? (Y/N): ")) {
+      return(project)
+    }
+    
+    # replace old project with fresh empty version
+    project <- malecot_project()
+  }
+  
+  # check data format
+  assert_dataframe(df)
+  assert_ncol(df, 3)
+  assert_eq(names(df), c("sample_ID", "locus", "haplotype"))
+  
+  # check sample_ID column
+  assert_string(df$sample_ID)
+  ID <- unique(df$sample)
+  n <- length(ID)
+  
+  # check locus column
+  locus_names <- unique(subset(df, sample_ID == sample_ID[1])$locus)
+  L <- length(locus_names)
+  good_loci <- mapply(function(x) {
+                        return(isTRUE(all.equal(unique(x), locus_names)))
+                      }, split(df$locus, f = df$sample_ID))
+  if (!all(good_loci)) {
+    stop(sprintf("all samples must contain loci in the range 1:%s", L))
+  }
+  
+  # check haplotype column
+  if (any(df$haplotype <= 0 && df$haplotype != missing_data)) {
+    stop("for the multi-allelic format haplotypes must be coded as positive integers (or as missing data)")
+  }
+  
+  # process genetic data. Re-factor loci as increasing integers, and haplotypes
+  # as increasing integers with 0 indicating missing data
+  df_processed <- df
+  df_processed$locus <- match(df_processed$locus, locus_names)
+  df_processed$haplotype[df_processed$haplotype == missing_data] <- NA
+  alleles <- mapply(function(x) {
+                      length(unique(x[!is.na(x)]))
+                    }, split(df_processed$haplotype, f = df_processed$locus))
+  if (all(alleles == 2)) {
+    message("Note: data contains two alleles at every locus. Consider reformatting in bi-allelic format to speed up MCMC")
+  }
+  new_haplotype_order <- mapply(function(x) {
+                                  order(unique(x[!is.na(x)]))
+                                }, split(df_processed$haplotype, f = df_processed$locus), SIMPLIFY = FALSE)
+  new_haplotype <- mapply(function(x,y) {
+                            new_haplotype_order[[x]][y]
+                          }, df_processed$locus, df_processed$haplotype)
+  df_processed$haplotype <- new_haplotype
+  df_processed$haplotype[is.na(df_processed$haplotype)] <- 0
+  
+  # add data to project
+  project$data <- df
+  project$data_processed <- list(data = df_processed,
+                                 n = n,
+                                 L = L,
+                                 ID = ID,
+                                 pop = pop,
+                                 alleles = alleles,
+                                 locus_names = locus_names,
+                                 data_format = "multiallelic",
+                                 name = name)
+  
+  return(project)
 }
 
 #------------------------------------------------
@@ -107,21 +246,21 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
 #'
 #' @details TODO
 #'
-#' @param proj the current MALECOT project
-#' @param set_description brief description of this parameter set
-#' @param K_range TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param name the name of the parameter set
 #' @param lambda shape parameter(s) governing the prior on allele frequencies. 
 #'   This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-#'   distribution for the multi-allelic case. In the simplest case,
-#'   \code{lambda} can be a single scalar value, in which case the same shape
-#'   paremeter will be used for all loci and all alleles (i.e. a symmetric Beta
-#'   or Dirichlet prior). In the more general case \code{lambda} can be a list
-#'   of length \code{L}, containing vectors of length equal to the number of
-#'   alleles at each locus, allowing different shape parameters to be defined
-#'   for each allele individually
-#' @param COI_model TODO
+#'   distribution for the multi-allelic case. \code{lambda} can be a single
+#'   scalar value, in which case the same shape paremeter is applied to all loci
+#'   and all alleles (i.e. a symmetric Beta or Dirichlet prior), or
+#'   \code{lambda} can be a list of length \code{L} containing vectors of length
+#'   equal to the number of alleles at each locus, allowing different shape
+#'   parameters to be specified for each allele individually
+#' @param COI_model the type of prior on COI. Must be one of "uniform",
+#'   "poisson", or "nb" (negative binomial)
 #' @param COI_max TODO
-#' @param COI_dispersion TODO
+#' @param COI_dispersion must be > 1
 #' @param estimate_error TODO
 #' @param e1 TODO
 #' @param e2 TODO
@@ -132,23 +271,40 @@ bind_data <- function(proj, data, data_format = NULL, name = NULL, missing_data 
 #' @examples
 #' # TODO
 
-new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_dispersion = 1, estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2, e2_max = 0.2) {
+new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_manual = NULL, estimate_COI_mean = TRUE, COI_mean = 3, COI_dispersion = 1, estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2, e2_max = 0.2) {
+  
   
   # check inputs
-  assert_malecot_project(proj)
-  assert_pos_int(K_range, zero_allowed = FALSE)
-  if (length(lambda)==proj$data$L) {
-    lambda_length <- mapply(length, lambda)
-    assert_eq(proj$data$alleles, lambda_length)
-  } else {
-    assert_length(lambda, 1)
-  }
-  assert_pos(unlist(lambda))
+  assert_custom_class(project, "malecot_project")
+  n <- project$data_processed$n
+  L <- project$data_processed$L
+  assert_single_string(name)
+  assert_in(length(lambda), c(1,L))
+  assert_pos(unlist(lambda), zero_allowed = FALSE)
+  assert_single_string(COI_model)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
-  assert_pos_int(COI_max, zero_allowed = FALSE)
-  if (COI_model=="nb") {
-    assert_gr(COI_dispersion, 1)
+  assert_single_pos_int(COI_max, zero_allowed = FALSE)
+  COI_manual <- define_default(COI_manual, rep(-1,n))
+  assert_vector(COI_manual)
+  assert_length(COI_manual, n)
+  assert_int(COI_manual)
+  assert_bounded(COI_manual[COI_manual != -1], left = 1, right = COI_max, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_logical(estimate_COI_mean)
+  if (estimate_COI_mean) {
+    if (COI_model != "uniform") {
+      assert_single_pos(COI_mean)
+      assert_bounded(COI_mean, left = 1, right = COI_max, inclusive_left = TRUE, inclusive_right = TRUE)
+      if (COI_model == "nb") {
+        assert_single_pos(COI_dispersion)
+        assert_gr(COI_dispersion, 1)
+      }
+    }
   }
+  assert_single_logical(estimate_error)
+  assert_single_numeric(e1)
+  assert_bounded(e1, left = 0.0, right = 1.0, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_numeric(e2)
+  assert_bounded(e2, left = 0.0, right = 1.0, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_bounded(e1_max)
   assert_bounded(e2_max)
   if (estimate_error) {
@@ -156,105 +312,134 @@ new_set <- function(proj, set_description = NULL, K_range = 1:3, lambda = 1.0, C
     assert_bounded(e2, right = e2_max)
   }
   
+  # check that lambda specified correctly
+  if (length(lambda) == L) {
+    lambda_length <- mapply(length, lambda)
+    assert_eq(project$data_processed$alleles, lambda_length, message = sprintf("lambda does not match number of alleles at every locus. Length of lambda: %s. Number of alleles: %s.", nice_format(lambda_length), nice_format(project$data_processed$alleles)))
+  } else {
+    assert_length(lambda, 1)
+  }
+  
   # expand lambda to list
-  if (length(lambda)==1) {
-    lambda <- mapply(rep, lambda, times = proj$data$alleles, SIMPLIFY = FALSE)
+  if (length(lambda) == 1) {
+    lambda <- mapply(rep, lambda, times = project$data$alleles, SIMPLIFY = FALSE)
   }
   
   # count current parameter sets and add one
-  s <- length(proj$parameter_sets) + 1
+  s <- length(project$parameter_sets) + 1
   
   # make new set active
-  proj$active_set <- s
+  project$active_set <- s
   
   # create new parameter set
-  proj$parameter_sets[[s]] <- list(set_description = set_description,
-                                   K_range = K_range,
-                                   lambda = lambda,
-                                   COI_model = COI_model,
-                                   COI_max = COI_max,
-                                   COI_dispersion = COI_dispersion,
-                                   e1 = e1,
-                                   e2 = e2,
-                                   estimate_error = estimate_error,
-                                   e1_max = e1_max,
-                                   e2_max = e2_max)
+  project$parameter_sets[[s]] <- list(name = name,
+                                      lambda = lambda,
+                                      COI_model = COI_model,
+                                      COI_max = COI_max,
+                                      COI_manual = COI_manual,
+                                      estimate_COI_mean = estimate_COI_mean,
+                                      COI_mean = COI_mean,
+                                      COI_dispersion = COI_dispersion,
+                                      estimate_error = estimate_error,
+                                      e1 = e1,
+                                      e2 = e2,
+                                      e1_max = e1_max,
+                                      e2_max = e2_max)
   
-  # add matching scaffolds and output objects
-  deme_names <- paste0("K", K_range)
-  proj$scaffolds[[s]] <- replicate(length(K_range), NULL)
-  names(proj$scaffolds[[s]]) <- deme_names
-  proj$output[[s]] <- replicate(length(K_range), NULL)
-  names(proj$output[[s]]) <- deme_names
+  names(project$parameter_sets)[s] <- paste0("set", s)
   
-  # rename sets
-  set_names <- paste0("set", 1:s)
-  names(proj$parameter_sets) <- set_names
-  names(proj$scaffolds) <- set_names
-  names(proj$output) <- set_names
+  # create new output corresponding to this set
+  GTI_logevidence <- data.frame(K = numeric(),
+                                mean = numeric(),
+                                SE = numeric())
+  class(GTI_logevidence) <- "malecot_GTI_logevidence"
+  
+  GTI_posterior <- data.frame(K = numeric(),
+                              Q2.5 = numeric(),
+                              Q50 = numeric(),
+                              Q97.5 = numeric())
+  class(GTI_posterior) <- "malecot_GTI_posterior"
+  
+  project$output$single_set[[s]] <- list(single_K = list(),
+                                         all_K = list(GTI_logevidence = GTI_logevidence,
+                                                      GTI_posterior = GTI_posterior))
+  
+  names(project$output$single_set) <- paste0("set", 1:length(project$output$single_set))
+  
+  # expand summary output over all parameter sets
+  GTI_logevidence_model <- rbind(project$output$all_sets$GTI_logevidence_model, data.frame(set = s, name = name, mean = NA, SE = NA, stringsAsFactors = FALSE))
+  class(GTI_logevidence_model) <- "malecot_GTI_logevidence_model"
+  project$output$all_sets$GTI_logevidence_model <- GTI_logevidence_model
+  
+  GTI_posterior_model <- rbind(project$output$all_sets$GTI_posterior_model, data.frame(set = s, name = name, Q2.5 = NA, Q50 = NA, Q97.5 = NA, stringsAsFactors = FALSE))
+  class(GTI_posterior_model) <- "malecot_GTI_posterior_model"
+  project$output$all_sets$GTI_posterior_model <- GTI_posterior_model
   
   # return invisibly
-  invisible(proj)
+  invisible(project)
 }
 
 #------------------------------------------------
-#' @title Delete MALECOT parameter set
+#' @title Delete parameter set
+#'   
+#' @description Delete a given parameter set from a MALECOT project.
 #'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param proj the current MALECOT project
-#' @param set numerical index of which set to delete
-#' @param check_delete_output whether to perform check before deleting output corresponding to this parameter set
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param set which set to delete. Defaults to the current active set
+#' @param check_delete_output whether to prompt the user before deleting any 
+#'   existing output
 #'
 #' @export
 #' @examples
 #' # TODO
 
-delete_set <- function(proj, set = NULL, check_delete_output = TRUE) {
-  
-  # target set is active set by default
-  s <- define_default(set, proj$active_set)
+delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
   
   # check inputs
-  assert_malecot_project(proj)
-  assert_pos_int(s, zero_allowed = TRUE)
-  assert_bounded(s, left = 1, right = length(proj$parameter_sets), inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_custom_class(project, "malecot_project")
+  assert_single_logical(check_delete_output)
   
-  # look for scaffolds or output associated with this set
-  if (!is.null(proj$output[[s]]) || !is.null(proj$scaffolds[[s]])) {
+  # set index to active_set by default
+  set <- define_default(set, project$active_set)
+  
+  # further checks
+  assert_single_pos_int(set, zero_allowed = FALSE)
+  assert_leq(set, length(project$parameter_sets))
+  
+  # check before overwriting existing output
+  if (project$active_set>0 & check_delete_output) {
     
-    # return existing project if user not happy to continue
-    if (check_delete_output) {
-      user_continue <- user_yes_no("All existing scaffolds and output associated with this parameter set will be lost. Continue? (Y/N): ")
-      if (!user_continue) {
-        message("returning without modification\n")
-        return(proj)
-      }
+    # ask before overwriting. On abort, return original project
+    if (!user_yes_no(sprintf("Any existing output for set %s will be deleted. Continue? (Y/N): ", set))) {
+      return(project)
     }
-    message("deleting old scaffolds and output\n")
   }
   
-  # drop target from parameter sets and output
-  proj$parameter_sets[[s]] <- NULL
-  proj$scaffolds[[s]] <- NULL
-  proj$output[[s]] <- NULL
+  # drop chosen parameter set
+  project$parameter_sets[[set]] <- NULL
   
-  # move active_set down 1
-  proj$active_set <- proj$active_set - 1
+  # drop chosen output
+  project$output$single_set[[set]] <- NULL
   
-  # rename parameter sets and output
-  n_s <- length(proj$parameter_sets)
-  if (n_s>0) {
-    set_names <- paste0("set", 1:n_s)
-    names(proj$parameter_sets) <- set_names
-    names(proj$scaffolds) <- set_names
-    names(proj$output) <- set_names
+  GTI_logevidence_model <- as.data.frame(unclass(project$output$all_sets$GTI_logevidence_model))[-set,]
+  class(GTI_logevidence_model) <- "malecot_GTI_logevidence_model"
+  project$output$all_sets$GTI_logevidence_model <- GTI_logevidence_model
+  
+  GTI_posterior_model <- as.data.frame(unclass(project$output$all_sets$GTI_posterior_model))[-set,]
+  class(GTI_posterior_model) <- "malecot_GTI_posterior_model"
+  project$output$all_sets$GTI_posterior_model <- GTI_posterior_model
+  
+  # make new final set active
+  project$active_set <- length(project$parameter_sets)
+  
+  # recalculate evidence over sets if needed
+  if (project$active_set > 0) {
+    project <- recalculate_evidence(project)
   }
   
   # return invisibly
-  invisible(proj)
+  invisible(project)
 }
 
 #------------------------------------------------
@@ -283,7 +468,7 @@ generate_scaffolds <- function(proj, scaffold_n = 10, K = NULL, burnin = 1e3, au
   # ---------- check inputs ----------
   
   # check input arguments
-  assert_malecot_project(proj)
+  assert_custom_class(proj, "malecot_project")
   assert_pos_int(scaffold_n, zero_allowed = FALSE)
   assert_pos_int(burnin)
   assert_greq(burnin, 10)
@@ -490,9 +675,10 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
   # ---------- check inputs ----------
   
   # check input arguments
-  assert_malecot_project(proj)
+  assert_custom_class(proj, "malecot_project")
+  assert_pos_int(K)
   assert_pos_int(burnin)
-  assert_greq(burnin, 10)
+  assert_greq(burnin, 0)
   assert_pos_int(samples, zero_allowed = FALSE)
   assert_pos_int(rungs, zero_allowed = FALSE)
   assert_bounded(GTI_pow, left = 2, right = 10)
