@@ -10,14 +10,17 @@ Description: Carries out joint estimation of complexity of infection (COI) and
     of genotypes in an individual is equal to the COI, which is also unknown. All
     unknown parameters are inferred using MCMC.
 License: MIT + file LICENSE
+BugReports: https://github.com/bobverity/malecot/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 LinkingTo: Rcpp
 Imports:
-    Rcpp,
+    Rcpp (>= 0.12.14),
     parallel,
     coda,
+    ggplot2,
+    gridExtra,
     plotly
 SystemRequirements: C++11
 Suggests: 

@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Basic Tutorial • MALECOT</title>
+<title>Basic tutorial • MALECOT</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Basic Tutorial">
+<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Basic tutorial">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -52,7 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+    </li>
+    <li>
+      <a href="../articles/installation.html">Installing MALECOT</a>
     </li>
     <li>
       <a href="../articles/test.html">test</a>
@@ -72,10 +75,10 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Basic Tutorial</h1>
+      <h1>Basic tutorial</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">06/08/2018</h4>
+            <h4 class="date">2018-08-22</h4>
       
       
       <div class="hidden name"><code>basic_tutorial.Rmd</code></div>
@@ -85,41 +88,6 @@
     
     
 <p>This vignette demonstrates the use of the MALECOT package on a simple biallelic simulated data set, including installing the package, simulating some data, running the model and performing simple checks on the MCMC output.</p>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<p>MALECOT relies on the Rcpp package, which requires the following OS-specific steps:</p>
-<ul>
-<li>Windows
-<ul>
-<li>Download and install the appropriate version of <a href="https://cran.rstudio.com/bin/windows/Rtools/">Rtools</a> for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools</li>
-</ul>
-</li>
-<li>Mac OS X
-<ul>
-<li>Download and install <a href="http://itunes.apple.com/us/app/xcode/id497799835?mt=12">XCode</a>
-</li>
-<li>Within XCode go to Preferences : Downloads and install the Command Line Tools</li>
-</ul>
-</li>
-<li>Linux (Debian/Ubuntu)
-<ul>
-<li>
-<p>Install the core software development utilities required for R package development as well as LaTeX by executing</p>
-<pre><code>```
-sudo apt-get install r-base-dev texlive-full
-```</code></pre>
-</li>
-</ul>
-</li>
-</ul>
-<p>Next, in R, ensure that you have the devtools package installed by running</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">"devtools"</span>, <span class="dt">repos=</span><span class="st">'http://cran.us.r-project.org'</span>)</code></pre></div>
-<p>Then we can simply install the <em>MALECOT</em> package directly from GitHub by running</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools::<span class="kw">install_github</span>(<span class="st">"bobverity/MALECOT"</span>)</code></pre></div>
-<p>Finally, we need to load the package</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(MALECOT)</code></pre></div>
-</div>
 <div id="simulating-some-data" class="section level2">
 <h2 class="hasAnchor">
 <a href="#simulating-some-data" class="anchor"></a>Simulating some data</h2>
@@ -147,7 +115,7 @@ my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bin
   <span class="kw"><a href="../reference/plot_q_matrix.html">plot_q_matrix</a></span>(my_proj, <span class="dt">K =</span> k, <span class="dt">main =</span> <span class="kw">paste</span>(<span class="st">"K ="</span>, k))
   <span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(my_proj, <span class="dt">K =</span> k)
 }</code></pre></div>
-<p><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-1.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-2.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-3.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-4.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-5.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-6.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-7.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-8.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-9.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-8-10.png" width="700"></p>
+<p><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-1.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-2.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-3.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-4.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-5.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-6.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-7.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-8.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-9.png" width="700"><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-10.png" width="700"></p>
 </div>
   </div>
 
@@ -156,8 +124,7 @@ my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bin
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#installation">Installation</a></li>
-      <li><a href="#simulating-some-data">Simulating some data</a></li>
+<li><a href="#simulating-some-data">Simulating some data</a></li>
       <li><a href="#basic-analysis">Basic analysis</a></li>
       </ul>
 </div>

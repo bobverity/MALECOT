@@ -2,40 +2,19 @@
 #pragma once
 
 #include <Rcpp.h>
+#include "Data.h"
+#include "Lookup.h"
 
 //------------------------------------------------
 // class defining particle for biallelic case
-class particle_biallelic {
+class Particle_biallelic : public Data_biallelic, public Lookup {
 
 public:
-  
   // PUBLIC OBJECTS
   
-  // pointers to observed data and basic data properties
-  std::vector<std::vector<int>> *data_ptr;
-  int n;
-  int L;
-  
-  // pointers to lookup tables
-  std::vector<std::vector<double>> *lookup_homo_ptr;
-  std::vector<std::vector<double>> *lookup_het_ptr;
-  
-  // model and MCMC parameters
-  int K;
-  std::vector<std::vector<double>> lambda;
-  double precision;
-  int precision_size;
-  bool estimate_error;
-  int COI_model;
-  int COI_max;
-  double COI_dispersion;
+  // beta_raised stores values of beta (the thermodynamic power), raised to the 
+  // power GTI_pow
   double beta_raised;
-  int scaffold_group_n;
-  std::vector<std::vector<int>> scaffold_group;
-  double e1;
-  double e2;
-  double e1_max;
-  double e2_max;
   
   // proposal standard deviations
   double e1_propSD;
@@ -43,14 +22,13 @@ public:
   std::vector< std::vector<double> > p_propSD;
   
   // COI objects
-  std::vector<double> COI_mean;
+  std::vector<double> COI_mean_vec;
   std::vector<double> COI_mean_shape;
   std::vector<double> COI_mean_rate;
   std::vector<double> COI_mean_propSD;
   
   // grouping
   std::vector<int> group;
-  std::vector<int> group_increasing;
   
   // likelihood
   std::vector<std::vector<double>> loglike_old;
@@ -84,35 +62,19 @@ public:
   std::vector<int> blocked_left;
   std::vector<int> blocked_right;
   
-  // scaffold objects
-  std::vector<std::vector<int>> het_m_table;
-  std::vector<std::vector<int>> het_m_prop_table;
-  std::vector<int> n_homo0;
-  std::vector<int> n_homo1;
-  std::vector<int> n_homo0_prop;
-  std::vector<int> n_homo1_prop;
-  /*
-  // objects for split-merge
-  std::vector<int> splitmerge_targets;
-  std::vector<double> splitmerge_mu;
-  std::vector<int> splitmerge_group;
-  std::vector<int> splitmerge_counts;
-  std::vector<double> splitmerge_x_sum;
-  */
-  
   // store acceptance rates
   std::vector<std::vector<int>> p_accept;
   int e1_accept;
   int e2_accept;
   
   // function pointers
-  double (particle_biallelic::*logprob_genotype_ptr) (int, double, int, double, double);
+  double (Particle_biallelic::*logprob_genotype_ptr) (int, double, int, double, double);
   
   // PUBLIC FUNCTIONS
   
   // constructors
-  particle_biallelic();
-  particle_biallelic(std::vector<std::vector<int>> &data, Rcpp::List &args, std::vector<std::vector<double>> &lookup_homo, std::vector<std::vector<double>> &lookup_het, double beta_raised_);
+  Particle_biallelic() {};
+  Particle_biallelic(double beta_raised);
   
   // other functions
   void reset();
@@ -122,16 +84,11 @@ public:
   void update_group();
   void update_COI_mean(bool robbins_monro_on, int iteration);
   void calculate_loglike();
+  void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   
   double logprob_genotype(int S, double p, int m, double e1, double e2);
   double logprob_genotype_exact(int S, double p, int m, double e1, double e2);
   double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
   double logprob_genotype_lookup_varE(int S, double p, int m, double e1, double e2);
-  
-  void get_group_increasing();
-  bool scaf_prop_current();
-  void scaf_propose(int &scaf_trials, int &scaf_accept);
-  void splitmerge_propose(int &splitmerge_accept);
-  void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   
 };

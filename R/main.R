@@ -6,6 +6,8 @@
 #' @useDynLib MALECOT
 #' @import parallel
 #' @import coda
+#' @import ggplot2
+#' @import gridExtra
 #' @importFrom plotly plot_ly
 #' @importFrom Rcpp sourceCpp
 #' @importFrom grDevices colorRampPalette
@@ -443,326 +445,113 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 }
 
 #------------------------------------------------
-#' @title Generate scaffolds
+#' @title Run main MCMC
 #'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param scaffold_n TODO
-#' @param K the number of mixture components
-#' @param burnin the number of burn-in iterations
-#' @param auto_converge whether burn-in should be diagnosed automatically
-#' @param split_merge_on whether to implement a split-merge proposal
-#' @param precision the level of precision that allele frequencies are represented at
-#' @param silent supresses output messages
-#' @param cluster pass in a cluster environment
-#'
-#' @export
-#' @examples
-#' # TODO
-
-generate_scaffolds <- function(proj, scaffold_n = 10, K = NULL, burnin = 1e3, auto_converge = TRUE, split_merge_on = TRUE, precision = 0.01, silent = FALSE, cluster = NULL) {
-  
-  # ---------- check inputs ----------
-  
-  # check input arguments
-  assert_custom_class(proj, "malecot_project")
-  assert_pos_int(scaffold_n, zero_allowed = FALSE)
-  assert_pos_int(burnin)
-  assert_greq(burnin, 10)
-  
-  # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
-    stop("no active parameter set")
-  }
-  
-  # check that precision is either zero or leads to simple sequence
-  if (precision!=0) {
-    if(!((1/precision)%%1)==0) {
-      stop("1/precision must be an integer")
-    }
-  }
-  
-  # default value and checks on K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range)
-  assert_in(K, proj$parameter_sets[[s]]$K_range)
-  
-  
-  # ---------- process data ----------
-  
-  # if bi-allelic
-  data <- proj$data$raw
-  L <- proj$data$L
-  data_format <- proj$data$data_format
-  missing_data <- proj$data$missing_data
-  if (data_format == "biallelic") {
-    
-    # convert data to simple integer format for use in Rcpp function
-    data[data == 0.5] <- 2
-    data[data == 0] <- 3
-    data[data == missing_data] <- 0
-    
-    # number of haplotypes at each locus
-    Jl <- rep(2,L)
-  }
-  
-  # if multi-allelic
-  if (data_format == "multiallelic") {
-    
-    # convert data to simple integer format for use in Rcpp function
-    # TODO - check can convert data from text to numeric
-    Jl <- rep(0,L)	# number of haplotypes at each locus
-    for (l in 1:L) {
-      u <- sort(unique(data[,3][data[,2]==l]))
-      u <- u[u != missing_data]
-      data[,3][data[,2]==l] <- match(data[,3][data[,2]==l], u)
-      Jl[l] <- length(u)
-    }
-    data[,3][is.na(data[,3])] <- 0
-  }
-  
-  
-  # ---------- create argument lists ----------
-  
-  # define data list
-  args_data <- list(data = mat_to_rcpp(data),
-                    n = proj$data$n,
-                    L = proj$data$L,
-                    Jl = Jl)
-  
-  # get parameters from active set
-  args_model <- proj$parameter_sets[[s]]
-  
-  # add to model parameters list
-  args_model <- c(args_model, list(burnin = burnin,
-                                   samples = 1,
-                                   rungs = 1,
-                                   auto_converge = auto_converge,
-                                   coupling_on = FALSE,
-                                   scaffold_on = FALSE,
-                                   scaffold_n = scaffold_n,
-                                   split_merge_on = split_merge_on,
-                                   solve_label_switching_on = FALSE,
-                                   precision = precision,
-                                   GTI_pow = 1,
-                                   silent = silent,
-                                   output_format = 1,
-                                   cluster = cluster))
-  
-  # get COI_model in numeric form
-  args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
-  
-  # R functions to pass to Rcpp
-  args_functions <- list(test_convergence = test_convergence,
-                         update_progress = update_progress)
-  
-  # define final argument list over all K
-  parallel_args <- list()
-  for (i in 1:length(K)) {
-    
-    # create progress bars
-    pb_scaf <- txtProgressBar(min = 0, max = scaffold_n, initial = NA, style = 3)
-    args_pb <- list(pb_scaf = pb_scaf)
-    
-    # list of arguments unique to this K
-    args_this_K <- list(K = K[i],
-                        scaffold_group = list(),
-                        scaffold_group_n = 0)
-    
-    # create argument list
-    parallel_args[[i]] <- c(args_this_K, args_data, args_model, args_functions, args_pb)
-  }
-  
-  
-  # ---------- generate scaffolds ----------
-  
-  # split into parallel and serial implementations
-  if (!is.null(cluster)) {  # run in parallel
-    if (!inherits(cluster, "cluster")) {
-      stop("expected a cluster object")
-    }
-    clusterEvalQ(cluster, library(MALECOT))
-    if (data_format == "biallelic") {
-      output_raw <- clusterApplyLB(cl = cluster, parallel_args, generate_scaffolds_biallelic_cpp)
-    }
-    if (data_format == "multiallelic") {
-      output_raw <- clusterApplyLB(cl = cluster, parallel_args, generate_scaffolds_multiallelic_cpp)
-    }
-  } else {  # run in serial
-    if (data_format == "biallelic") {
-      output_raw <- lapply(parallel_args, generate_scaffolds_biallelic_cpp)
-    }
-    if (data_format == "multiallelic") {
-      output_raw <- lapply(parallel_args, generate_scaffolds_multiallelic_cpp)
-    }
-  }
-  
-  
-  # ---------- process results ----------
-  
-  # begin processing results
-  if (!silent) {
-    message("Processing results\n")
-  }
-  
-  # loop through K
-  ret <- list()
-  for (i in 1:length(K)) {
-    
-    # get scaffold groups and loglikelihoods
-    scaffold_group_new = rcpp_to_mat(output_raw[[i]]$scaffold_group)
-    scaffold_loglike_new = output_raw[[i]]$scaffold_loglike
-    
-    # initialise or append to scaffold storage
-    if (is.null(proj$scaffolds[[s]][[i]])) {
-      scaffold_group <- scaffold_group_new
-      scaffold_loglike <- scaffold_loglike_new
-    } else {
-      scaffold_group <- rbind(proj$scaffolds[[s]][[i]]$group, scaffold_group_new)
-      scaffold_loglike <- c(proj$scaffolds[[s]][[i]]$loglike, scaffold_loglike_new)
-    }
-    
-    # remove duplicates
-    dup <- duplicated(scaffold_group)
-    scaffold_loglike <- scaffold_loglike[!dup]
-    scaffold_group <- scaffold_group[!dup,,drop = FALSE]
-    
-    # re-order to be decreasing in likelihood
-    scaffold_group <- scaffold_group[order(scaffold_loglike),,drop = FALSE]
-    scaffold_loglike <- scaffold_loglike[order(scaffold_loglike)]
-    
-    # add to project
-    proj$scaffolds[[s]][[i]]$group <- scaffold_group
-    proj$scaffolds[[s]][[i]]$loglike <- scaffold_loglike
-  }
-  
-  # return invisibly
-  invisible(proj)
-}
-
-#------------------------------------------------
-#' @title Run MALECOT MCMC
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param K the number of mixture components
+#' @description Run the main MALECOT MCMC. Model parameters are taken from the 
+#'   current active parameter set, and MCMC parameters are passed in as 
+#'   arguments. All output is stored within the project.
+#'   
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K the values of K that the MCMC will explore
+#' @param precision the level of precision at which allele frequencies are 
+#'   represented in the bi-allelic case. This allows the use of look-up tables
+#'   for the likelihood, which significantly speeds up the MCMC. Set to 0 to use
+#'   exact values (up to C++ "double" precision) rather than using look-up 
+#'   tables
 #' @param burnin the number of burn-in iterations
 #' @param samples the number of sampling iterations
 #' @param rungs the number of temperature rungs
-#' @param auto_converge whether burn-in should be diagnosed automatically
-#' @param coupling_on whether to implement Metropolis-coupling over temperature rungs
-#' @param scaffold_on whether to use scaffolds to improve mixing
-#' @param split_merge_on whether to implement a split-merge proposal
-#' @param solve_label_switching_on whether to implement Stevens' solution to the label-switching problem
-#' @param precision the level of precision that allele frequencies are represented at
-#' @param GTI_pow the power used in the generalised thermodynamic integration method for estimating K
-#' @param silent supresses output messages
-#' @param output_format choose from a range of output formats
-#' @param cluster pass in a cluster environment
+#' @param GTI_pow the power used in the generalised thermodynamic integration 
+#'   method. Must be greater than 1.1
+#' @param auto_converge whether convergence should be assessed automatically 
+#'   every \code{converge_test} iterations, leading to termination of the 
+#'   burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are 
+#'   used
+#' @param converge_test test for convergence every \code{convergence_test} 
+#'   iterations if \code{auto_converge} is being used
+#' @param solve_label_switching_on whether to implement the Stevens' solution to
+#'   the label-switching problem. If turned off then Q-matrix output will no 
+#'   longer be correct, although evidence estimates will be unaffected.
+#' @param coupling_on whether to implement Metropolis-coupling over temperature 
+#'   rungs
+#' @param cluster option to pass in a cluster environment (see package 
+#'   "parallel")
+#' @param pb_markdown whether to run progress bars in markdown mode, in which 
+#'   case they are updated once at the end to avoid large amounts of output.
+#' @param silent whether to suppress all console output
 #'
 #' @export
 #' @examples
 #' # TODO
 
-run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE, split_merge_on = TRUE, solve_label_switching_on = TRUE, precision = 0.01, GTI_pow = 2, silent = FALSE, output_format = 1, cluster = NULL) {
+run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 10, GTI_pow = 2, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
+  
+  # start timer
+  t0 <- Sys.time()
   
   # ---------- check inputs ----------
   
-  # check input arguments
-  assert_custom_class(proj, "malecot_project")
-  assert_pos_int(K)
-  assert_pos_int(burnin)
-  assert_greq(burnin, 0)
-  assert_pos_int(samples, zero_allowed = FALSE)
-  assert_pos_int(rungs, zero_allowed = FALSE)
-  assert_bounded(GTI_pow, left = 2, right = 10)
-  assert_in(output_format, 1:2)
+  assert_custom_class(project, "malecot_project")
+  assert_pos_int(K, zero_allowed = FALSE)
+  assert_single_pos(precision, zero_allowed = TRUE)
+  assert_single_pos_int(burnin, zero_allowed = FALSE)
+  assert_single_pos_int(samples, zero_allowed = FALSE)
+  assert_single_pos_int(rungs, zero_allowed = FALSE)
+  assert_single_pos(GTI_pow)
+  assert_gr(GTI_pow, 1.1)
+  assert_single_logical(auto_converge)
+  assert_single_pos_int(converge_test, zero_allowed = FALSE)
+  assert_single_logical(solve_label_switching_on)
+  assert_single_logical(coupling_on)
+  if (!is.null(cluster)) {
+    assert_custom_class(project, "cluster")
+  }
+  assert_single_logical(pb_markdown)
+  assert_single_logical(silent)
   
-  # get active set and check non-zero
-  s <- proj$active_set
+  # get active set
+  s <- project$active_set
   if (s==0) {
     stop("no active parameter set")
   }
   
   # check that precision is either zero or leads to simple sequence
-  if (precision!=0) {
-    if(!((1/precision)%%1)==0) {
+  if (precision != 0) {
+    if(!((1/precision)%%1) == 0) {
       stop("1/precision must be an integer")
     }
   }
   
-  # default value and checks on K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range)
-  assert_in(K, proj$parameter_sets[[s]]$K_range)
-  K_which <- match(K, proj$parameter_sets[[s]]$K_range)
-  
-  # ---------- process data ----------
-  
-  # if bi-allelic
-  data <- proj$data$raw
-  n <- proj$data$n
-  L <- proj$data$L
-  data_format <- proj$data$data_format
-  missing_data <- proj$data$missing_data
-  if (data_format == "biallelic") {
-  
-    # convert data to simple integer format for use in Rcpp function
-    data[data == 0.5] <- 2
-    data[data == 0] <- 3
-    data[data == missing_data] <- 0
-    
-    # number of haplotypes at each locus
-    Jl <- rep(2,L)
-  }
-  
-  # if multi-allelic
-  if (data_format == "multiallelic") {
-    
-    # convert data to simple integer format for use in Rcpp function
-    # TODO - check can convert data from text to numeric
-    Jl <- rep(0,L)	# number of haplotypes at each locus
-    for (l in 1:L) {
-      u <- sort(unique(data[,3][data[,2]==l]))
-      u <- u[u != missing_data]
-      data[,3][data[,2]==l] <- match(data[,3][data[,2]==l], u)
-      Jl[l] <- length(u)
-    }
-    data[,3][is.na(data[,3])] <- 0
-  }
-  
+  # get useful quantities
+  n <- project$data_processed$n
+  L <- project$data_processed$L
+  data_format <- project$data_processed$data_format
+  dat <- project$data_processed$data
   
   # ---------- create argument lists ----------
   
-  # define data list
-  args_data <- list(data = mat_to_rcpp(data),
-                    n = proj$data$n,
-                    L = proj$data$L,
-                    Jl = Jl)
+  # data list
+  args_data <- list(data = mat_to_rcpp(dat),
+                    n = n,
+                    L = L,
+                    alleles = project$data_processed$alleles)
   
-  # get parameters from active set
-  args_model <- proj$parameter_sets[[s]]
+  # input arguments list
+  args_inputs <- list(precision = precision,
+                      burnin = burnin,
+                      samples = samples,
+                      rungs = rungs,
+                      GTI_pow = GTI_pow,
+                      auto_converge = auto_converge,
+                      converge_test = converge_test,
+                      solve_label_switching_on = solve_label_switching_on,
+                      coupling_on = coupling_on,
+                      pb_markdown = pb_markdown,
+                      silent = silent)
   
-  # add to model parameters list
-  args_model <- c(args_model, list(burnin = burnin,
-                                   samples = samples,
-                                   rungs = rungs,
-                                   auto_converge = auto_converge,
-                                   coupling_on = coupling_on,
-                                   scaffold_on = scaffold_on,
-                                   scaffold_n = 0,
-                                   split_merge_on = split_merge_on,
-                                   solve_label_switching_on = solve_label_switching_on,
-                                   precision = precision,
-                                   GTI_pow = GTI_pow,
-                                   silent = silent,
-                                   output_format = output_format,
-                                   cluster = cluster))
+  # combine model parameters list with input arguments
+  args_model <- c(project$parameter_sets[[s]], args_inputs)
   
   # get COI_model in numeric form
   args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
@@ -778,42 +567,31 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     # create progress bars
     pb_burnin <- txtProgressBar(min = 0, max = burnin, initial = NA, style = 3)
     pb_samples <- txtProgressBar(min = 0, max = samples, initial = NA, style = 3)
-    args_pb <- list(pb_burnin = pb_burnin,
-                    pb_samples = pb_samples)
+    args_progress <- list(pb_burnin = pb_burnin,
+                          pb_samples = pb_samples)
     
-    # load scaffold groupings where possible
-    scaffold_group <- proj$scaffolds[[s]][[i]]$group
-    if (is.null(scaffold_group)) {
-      scaffold_group <- list()
-    } else {
-      scaffold_group <- mat_to_rcpp(scaffold_group)
-    }
-    
-    # list of arguments unique to this K
-    args_this_K <- list(K = K[i],
-                        scaffold_group = scaffold_group,
-                        scaffold_group_n = length(scaffold_group))
+    # incporporate arguments unique to this K
+    args_model$K <- K[i]
     
     # create argument list
-    parallel_args[[i]] <- c(args_this_K, args_data, args_model, args_functions, args_pb)
+    parallel_args[[i]] <- list(args_data = args_data,
+                               args_model = args_model,
+                               args_functions = args_functions,
+                               args_progress = args_progress)
   }
-  
   
   # ---------- run MCMC ----------
   
   # split into parallel and serial implementations
-  if (!is.null(cluster)) {  # run in parallel
-    if (!inherits(cluster, "cluster")) {
-      stop("expected a cluster object")
-    }
-    clusterEvalQ(cluster, library(MALECOT))
+  if (!is.null(cluster)) { # run in parallel
+    clusterEvalQ(cluster, library(malecot))
     if (data_format == "biallelic") {
       output_raw <- clusterApplyLB(cl = cluster, parallel_args, run_mcmc_biallelic_cpp)
     }
     if (data_format == "multiallelic") {
       output_raw <- clusterApplyLB(cl = cluster, parallel_args, run_mcmc_multiallelic_cpp)
     }
-  } else {  # run in serial
+  } else { # run in serial
     if (data_format == "biallelic") {
       output_raw <- lapply(parallel_args, run_mcmc_biallelic_cpp)
     }
@@ -825,14 +603,16 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
   # ---------- process results ----------
   
   # begin processing results
-  message("Processing results\n")
+  if (!silent) {
+    cat("Processing results\n")
+  }
   
   # loop through K
   ret <- list()
   for (i in 1:length(K)) {
     
     # create name lists
-    ind_names <- paste0("ind", 1:n)
+    sample_names <- paste0("sample", 1:n)
     locus_names <- paste0("locus", 1:L)
     deme_names <- paste0("deme", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
@@ -840,12 +620,12 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     # ---------- raw mcmc results ----------
     
     # get loglikelihood in coda::mcmc format
-    loglike_burnin <- mcmc(t(rcpp_to_mat(output_raw[[i]]$burnin_loglike)))
-    loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$sampling_loglike)))
+    loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
+    loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
     
     # get full m trace in coda::mcmc format
     full_m <- mcmc(rcpp_to_mat(output_raw[[i]]$m_store))
-    colnames(full_m) <- ind_names
+    colnames(full_m) <- sample_names
     
     # get full p trace in coda::mcmc format
     full_p <- list()
@@ -898,59 +678,72 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     }
     names(p_quantiles) <- deme_names
     
-    # get quantiles over e1 and e2
-    e_quantiles <- NULL
-    if (args_model$estimate_error) {
-      e_quantiles <- rbind(quantile_95(full_e1), quantile_95(full_e2))
-      rownames(e_quantiles) <- c("e1", "e2")
+    # get quantiles over COI_mean
+    if (is.null(full_COI_mean)) {
+      fake_COI_mean <- matrix((COI_max + 1)/2, ncol = K[i])
+      colnames(fake_COI_mean) <- deme_names
+      COI_mean_quantiles <- t(apply(fake_COI_mean, 2, quantile_95))
+    } else {
+      COI_mean_quantiles <- t(apply(full_COI_mean, 2, quantile_95))
     }
     
+    # get quantiles over e1 and e2
+    if (args_model$estimate_error) {
+      e_quantiles <- rbind(quantile_95(full_e1), quantile_95(full_e2))
+    } else {
+      e_quantiles <- rbind(quantile_95(args_model$e1), quantile_95(args_model$e2))
+    }
+    rownames(e_quantiles) <- c("e1", "e2")
+    class(e_quantiles) <- "malecot_e_quantiles"
+    
     # process Q-matrix
-    q_matrix <- rcpp_to_mat(output_raw[[i]]$q_matrix)
-    colnames(q_matrix) <- deme_names
-    rownames(q_matrix) <- ind_names
-    class(q_matrix) <- "malecot_q_matrix"
+    qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)
+    colnames(qmatrix) <- deme_names
+    rownames(qmatrix) <- sample_names
+    class(qmatrix) <- "malecot_qmatrix"
     
     # ---------- GTI path and model evidence ----------
     
-    # only possible if more than 1 temperature rung
-    ESS <- GTI_path <- GTI_logevidence <- NULL
+    # get ESS
+    ESS <- effectiveSize(loglike_sampling)
+    ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
+    ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
+    names(ESS) <- rung_names
+    
+    # weight likelihood according to GTI_pow
+    loglike_weighted <- loglike_sampling
+    for (j in 1:rungs) {
+      beta_j <- j/rungs
+      loglike_weighted[,j] <- GTI_pow*beta_j^(GTI_pow-1) * loglike_sampling[,j]
+    }
+    
+    # calculate GTI path mean and SE
+    GTI_path_mean <- colMeans(loglike_weighted)
+    GTI_path_var <- apply(loglike_weighted, 2, var)
+    GTI_path_SE <- sqrt(GTI_path_var/ESS)
+    GTI_path <- data.frame(mean = GTI_path_mean, SE = GTI_path_SE)
+    rownames(GTI_path) <- rung_names
+    class(GTI_path) <- "malecot_GTI_path"
+    
+    # calculate GTI estimate of log-evidence
+    GTI_vec <- 0.5*loglike_weighted[,1]/rungs
     if (rungs>1) {
-      
-      # get ESS
-      ESS <- effectiveSize(loglike_sampling)
-      names(ESS) <- rung_names
-      
-      # weight likelihood according to GTI_pow
-      loglike_weighted <- loglike_sampling
-      for (j in 1:rungs) {
-        beta_j <- j/rungs
-        loglike_weighted[,j] <- GTI_pow*beta_j^(GTI_pow-1) * loglike_sampling[,j]
-      }
-      
-      # calculate GTI path mean and SE
-      GTI_path_mean <- colMeans(loglike_weighted)
-      GTI_path_var <- apply(loglike_weighted, 2, var)
-      GTI_path_SE <- sqrt(GTI_path_var/ESS)
-      GTI_path <- data.frame(mean = GTI_path_mean, SE = GTI_path_SE)
-      rownames(GTI_path) <- rung_names
-      class(GTI_path) <- "malecot_GTI_path"
-      
-      # calculate GTI estimate of log-evidence
-      GTI_vec <- 0.5*loglike_weighted[,1]/rungs
       for (j in 2:rungs) {
         GTI_vec <- GTI_vec + 0.5*(loglike_weighted[,j]+loglike_weighted[,j-1])/rungs
       }
-      GTI_logevidence_mean <- mean(GTI_vec)
-      
-      # calculate standard error of GTI estimate
-      GTI_ESS <- as.numeric(effectiveSize(GTI_vec))
-      GTI_logevidence_SE <- sqrt(var(GTI_vec)/GTI_ESS)
-      
-      # produce final GTI_logevidence object
-      GTI_logevidence <- data.frame(estimate = GTI_logevidence_mean,
-                                    SE = GTI_logevidence_SE)
     }
+    GTI_logevidence_mean <- mean(GTI_vec)
+    
+    # calculate standard error of GTI estimate
+    GTI_ESS <- as.numeric(effectiveSize(GTI_vec))
+    if (GTI_ESS==0) {
+      GTI_ESS <- samples # if no variation then assume perfect mixing
+    }
+    GTI_logevidence_SE <- sqrt(var(GTI_vec)/GTI_ESS)
+    
+    # produce final GTI_logevidence object
+    GTI_logevidence <- data.frame(estimate = GTI_logevidence_mean,
+                                  SE = GTI_logevidence_SE)
     
     # ---------- acceptance rates ----------
     
@@ -965,83 +758,311 @@ run_mcmc <- function(proj, K = NULL, burnin = 1e3, samples = 1e3, rungs = 1, aut
     
     # ---------- save arguments ----------
     
-    output_args <- list(burnin = burnin,
+    output_args <- list(precision = precision,
+                        burnin = burnin,
                         samples = samples,
                         rungs = rungs,
-                        auto_converge = auto_converge,
-                        coupling_on = coupling_on,
-                        scaffold_on = scaffold_on,
-                        split_merge_on = split_merge_on,
-                        solve_label_switching_on = solve_label_switching_on,
-                        precision = precision,
                         GTI_pow = GTI_pow,
-                        silent = silent,
-                        output_format = output_format,
-                        cluster = cluster)
+                        auto_converge = auto_converge,
+                        converge_test = converge_test,
+                        solve_label_switching_on = solve_label_switching_on,
+                        pb_markdown = pb_markdown,
+                        silent = silent)
     
     # ---------- save results ----------
     
     # add to project
-    proj$output[[s]][[K_which[i]]]$summary <- list(loglike_quantiles = loglike_quantiles,
-                                          m_quantiles = m_quantiles,
-                                          p_quantiles = p_quantiles,
-                                          e_quantiles = e_quantiles,
-                                          q_matrix = q_matrix,
-                                          ESS = ESS,
-                                          GTI_path = GTI_path,
-                                          GTI_logevidence = GTI_logevidence)
+    project$output$single_set[[s]]$single_K[[K[i]]] <- list()
     
-    proj$output[[s]][[K_which[i]]]$raw <- list(loglike_burnin = loglike_burnin,
-                                      loglike_sampling = loglike_sampling,
-                                      full_m = full_m,
-                                      full_p = full_p,
-                                      full_e1 = full_e1,
-                                      full_e2 = full_e2,
-                                      full_COI_mean = full_COI_mean,
-                                      p_accept = p_accept,
-                                      e1_accept = e1_accept,
-                                      e2_accept = e2_accept,
-                                      coupling_accept = coupling_accept,
-                                      scaf_trials = scaf_trials,
-                                      scaf_accept = scaf_accept,
-                                      split_merge_accept = split_merge_accept)
+    project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(qmatrix = qmatrix,
+                                                                    loglike_quantiles = loglike_quantiles,
+                                                                    m_quantiles = m_quantiles,
+                                                                    p_quantiles = p_quantiles,
+                                                                    e_quantiles = e_quantiles,
+                                                                    COI_mean_quantiles = COI_mean_quantiles,
+                                                                    ESS = ESS,
+                                                                    GTI_path = GTI_path,
+                                                                    GTI_logevidence = GTI_logevidence)
     
-    proj$output[[s]][[K_which[i]]]$function_call <- list(args = output_args,
-                                                call = match.call())
-  }
+    project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
+                                                                loglike_sampling = loglike_sampling,
+                                                                m = full_m,
+                                                                p = full_p,
+                                                                e1 = full_e1,
+                                                                e2 = full_e2,
+                                                                COI_mean = full_COI_mean,
+                                                                p_accept = p_accept,
+                                                                e1_accept = e1_accept,
+                                                                e2_accept = e2_accept,
+                                                                coupling_accept = coupling_accept)
+    
+    project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,
+                                                                          call = match.call())
+    
+  } # end loop over K
   
-  # ---------- recalculate evidence ----------
+  # name output over K
+  K_all <- length(project$output$single_set[[s]]$single_K)
+  names(project$output$single_set[[s]]$single_K) <- paste0("K", 1:K_all)
   
-  # get logevidence over all K
-  GTI_logevidence <- mapply(function(x){
-    GTI_logevidence <- x$summary$GTI_logevidence
-    if (is.null(GTI_logevidence)) {
-      return(rep(FALSE,3))
-    } else {
-      return(c(TRUE, GTI_logevidence))
-    }
-  }, proj$output[[s]])
+  # ---------- tidy up and end ----------
   
-  # if there are logevidence estimates
-  if (any(unlist(GTI_logevidence[1,]))) {
-    
-    # produce raw evidence draws by simulation
-    w <- which(unlist(GTI_logevidence[1,]))
-    GTI_evidence_raw <- GTI_evidence_sim_cpp(list(mean = unlist(GTI_logevidence[2,w]),
-                                                  SE = unlist(GTI_logevidence[3,w]),
-                                                  reps = 1e6))
-    
-    # get quantiles and load back into output
-    for (i in 1:length(w)) {
-      GTI_evidence <- quantile_95(GTI_evidence_raw$ret[[i]])
-      proj$output[[s]][[w[i]]]$summary$GTI_evidence <- GTI_evidence
-    }
+  # reorder qmatrices
+  project <- align_qmatrix(project)
+  
+  # recalculate evidence over K
+  project <- recalculate_evidence(project)
+  
+  # end timer
+  tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+  if (tdiff<60) {
+    message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
+  } else {
+    message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
   }
   
   # return invisibly
-  invisible(proj)
+  invisible(project)
 }
 
+#------------------------------------------------
+# extract GTI_logevidence from all K within a given parameter set
+#' @noRd
+get_GTI_logevidence_K <- function(proj, s) {
+  
+  # extract objects of interest
+  x <- proj$output$single_set[[s]]$single_K
+  if (length(x)==0) {
+    return(proj)
+  }
+  
+  # get log-evidence over all K
+  GTI_logevidence_raw <- mapply(function(y) {
+    GTI_logevidence <- y$summary$GTI_logevidence
+    if (is.null(GTI_logevidence)) {
+      return(rep(NA,2))
+    } else {
+      return(unlist(GTI_logevidence))
+    }
+  }, x)
+  GTI_logevidence <- as.data.frame(t(GTI_logevidence_raw))
+  names(GTI_logevidence) <- c("mean", "SE")
+  rownames(GTI_logevidence) <- NULL
+  GTI_logevidence <- cbind(K = 1:nrow(GTI_logevidence), GTI_logevidence)
+  class(GTI_logevidence) <- "malecot_GTI_logevidence"
+  
+  # save result in project
+  proj$output$single_set[[s]]$all_K$GTI_logevidence <- GTI_logevidence
+  
+  # return modified project
+  return(proj)
+}
+
+#------------------------------------------------
+# compute posterior over several log-evidence estimates
+#' @noRd
+get_GTI_posterior <- function(x) {
+  
+  # return NULL if all NA
+  if (length(x$mean)==0 || all(is.na(x$mean))) {
+    return(NULL)
+  }
+  
+  # produce posterior estimates by simulation
+  w <- which(!is.na(x$mean))
+  GTI_posterior_raw <- GTI_posterior_K_sim_cpp(list(mean = x$mean[w],
+                                                    SE = x$SE[w],
+                                                    reps = 1e6))$ret
+  # get posterior quantiles in dataframe
+  GTI_posterior_quantiles <- t(mapply(quantile_95, GTI_posterior_raw))
+  GTI_posterior <- data.frame(Q2.5 = rep(NA, nrow(GTI_posterior_quantiles)), Q50 = NA, Q97.5 = NA)
+  GTI_posterior[w,] <- GTI_posterior_quantiles
+  
+  return(GTI_posterior)
+}
+
+#------------------------------------------------
+# call get_GTI_posterior over values of K
+#' @noRd
+get_GTI_posterior_K <- function(proj, s) {
+  
+  # calculate posterior K
+  GTI_posterior <- get_GTI_posterior(proj$output$single_set[[s]]$all_K$GTI_logevidence)
+  if (is.null(GTI_posterior)) {
+    return(proj)
+  }
+  GTI_posterior <- cbind(K = 1:nrow(GTI_posterior), GTI_posterior)
+  class(GTI_posterior) <- "malecot_GTI_posterior"
+  proj$output$single_set[[s]]$all_K$GTI_posterior <- GTI_posterior
+  
+  # return modified project
+  return(proj)
+}
+
+#------------------------------------------------
+# call get_GTI_posterior over models
+#' @noRd
+get_GTI_posterior_model <- function(proj) {
+  
+  # calculate posterior model
+  GTI_posterior_model_raw <- get_GTI_posterior(proj$output$all_sets$GTI_logevidence_model)
+  if (is.null(GTI_posterior_model_raw)) {
+    return(proj)
+  }
+  proj$output$all_sets$GTI_posterior_model$Q2.5 <- GTI_posterior_model_raw$Q2.5
+  proj$output$all_sets$GTI_posterior_model$Q50 <- GTI_posterior_model_raw$Q50
+  proj$output$all_sets$GTI_posterior_model$Q97.5 <- GTI_posterior_model_raw$Q97.5
+  
+  # return modified project
+  return(proj)
+}
+
+#------------------------------------------------
+# integrate multiple log-evidence estimates by simulation
+#' @noRd
+integrate_GTI_logevidence <- function(x) {
+  
+  # return NULL if all NA
+  if (length(x$mean)==0 || all(is.na(x$mean))) {
+    return(NULL)
+  }
+  
+  # produce integrated estimates by simulation
+  w <- which(!is.na(x$mean))
+  if (length(w)==1) {
+    ret <- list(mean = x$mean[w], SE = x$SE[w])
+  } else {
+    ret <- GTI_integrated_K_sim_cpp(list(mean = x$mean[w], SE = x$SE[w], reps = 1e6))
+  }
+  
+  return(ret)
+}
+
+#------------------------------------------------
+# log-evidence estimates over K
+#' @noRd
+integrate_GTI_logevidence_K <- function(proj, s) {
+  
+  # integrate over K
+  integrated_raw <- integrate_GTI_logevidence(proj$output$single_set[[s]]$all_K$GTI_logevidence)
+  if (is.null(integrated_raw)) {
+    return(proj)
+  }
+  proj$output$all_sets$GTI_logevidence_model$mean[s] <- integrated_raw$mean
+  proj$output$all_sets$GTI_logevidence_model$SE[s] <- integrated_raw$SE
+  
+  # return modified project
+  return(proj)
+}
+
+#------------------------------------------------
+# align qmatrices over all K
+#' @noRd
+align_qmatrix <- function(proj) {
+  
+  # get active set
+  s <- proj$active_set
+  
+  # extract objects of interest
+  x <- proj$output$single_set[[s]]$single_K
+  
+  # find values with output
+  null_output <- mapply(function(y) {is.null(y$summary$qmatrix)}, x)
+  w <- which(!null_output)
+  
+  # set template to first qmatrix
+  template_qmatrix <- x[[w[1]]]$summary$qmatrix
+  n <- nrow(template_qmatrix)
+  c <- ncol(template_qmatrix)
+  
+  # loop through output
+  best_perm <- NULL
+  for (i in w) {
+    
+    # expand template
+    qmatrix <- unclass(x[[i]]$summary$qmatrix)
+    template_qmatrix <- cbind(template_qmatrix, matrix(0, n, i-c))
+    
+    # calculate cost matrix
+    cost_mat <- matrix(0,i,i)
+    for (k1 in 1:i) {
+      for (k2 in 1:i) {
+        cost_mat[k1,k2] <- sum(qmatrix[,k1] * (log(qmatrix[,k1]+1e-100) - log(template_qmatrix[,k2]+1e-100)))
+      }
+    }
+    
+    # get lowest cost permutation
+    best_perm <- call_hungarian(cost_mat)$best_matching + 1
+    best_perm_order <- order(best_perm)
+    
+    # reorder elements
+    deme_names <- paste0("deme", 1:ncol(qmatrix))
+    qmatrix <- qmatrix[, best_perm_order, drop = FALSE]
+    colnames(qmatrix) <- deme_names
+    
+    p_raw <- x[[i]]$raw$p[best_perm_order]
+    names(p_raw) <- deme_names
+    proj$output$single_set[[s]]$single_K[[i]]$raw$p <- p_raw
+    
+    p_quantiles <- x[[i]]$summary$p_quantiles[best_perm_order]
+    names(p_quantiles) <- deme_names
+    proj$output$single_set[[s]]$single_K[[i]]$summary$p_quantiles <- p_quantiles
+    
+    COI_mean_raw <- x[[i]]$raw$COI_mean
+    if (!is.null(COI_mean_raw)) {
+      COI_mean_raw <- COI_mean_raw[, best_perm_order, drop = FALSE]
+      colnames(COI_mean_raw) <- deme_names
+      proj$output$single_set[[s]]$single_K[[i]]$raw$COI_mean <- COI_mean_raw
+    }
+    
+    # qmatrix becomes template for next level up
+    template_qmatrix <- qmatrix
+    
+    # store result
+    class(qmatrix) <- "malecot_qmatrix"
+    proj$output$single_set[[s]]$single_K[[i]]$summary$qmatrix <- qmatrix
+  }
+  
+  # return modified project
+  return(proj)
+}
+
+#------------------------------------------------
+#' @title Recalculate evidence and posterior estimates
+#'
+#' @description When a new value of K is added in to the analysis it affects all downstream evidence estimates that depend on this K - for example the overall model evidence integrated over K. This function therefore looks through all values of K in the active set and recalculates all downstream elements as needed.
+#'
+#' @param project a MALCOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' 
+#' @export
+
+recalculate_evidence <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  
+  # get active set
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # get log-evidence over all K and load into project
+  project <- get_GTI_logevidence_K(project, s)
+  
+  # produce posterior estimates of K by simulation and load into project
+  project <- get_GTI_posterior_K(project, s)
+  
+  # get log-evidence over all parameter sets
+  project <- integrate_GTI_logevidence_K(project, s)
+  
+  # get posterior over all parameter sets
+  project <- get_GTI_posterior_model(project)
+  
+  # return modified project
+  return(project)
+}
 
 #------------------------------------------------
 #' @title Match groupings using Hungarian algorithm
@@ -1081,27 +1102,27 @@ fix_labels <- function(proj, target_group) {
   for (i in 1:length(proj$output[[s]])) {
     
     # extract Qmatrix
-    q_matrix <- unclass(proj$output[[s]][[i]]$summary$q_matrix)
-    K <- ncol(q_matrix)
+    qmatrix <- unclass(proj$output[[s]][[i]]$summary$qmatrix)
+    K <- ncol(qmatrix)
     
     # check same number of rows
-    if (nrow(q_matrix)!=nrow(target_mat)) {
-      stop("target_group must have same number of elements as q_matrix output")
+    if (nrow(qmatrix)!=nrow(target_mat)) {
+      stop("target_group must have same number of elements as qmatrix output")
     }
     
-    # expand q_matrix and/or target_mat to get same number of cols
+    # expand qmatrix and/or target_mat to get same number of cols
     if (K<ncol(target_mat)) {
-      q_matrix <- cbind( q_matrix, matrix(0, nrow(q_matrix), ncol(target_mat)-K) )
+      qmatrix <- cbind( qmatrix, matrix(0, nrow(qmatrix), ncol(target_mat)-K) )
     }
     if (K>ncol(target_mat)) {
-      target_mat <- cbind( target_mat, matrix(0, nrow(q_matrix), K-ncol(target_mat)) )
+      target_mat <- cbind( target_mat, matrix(0, nrow(qmatrix), K-ncol(target_mat)) )
     }
     
     # calculate cost matrix
-    cost_mat <- matrix(0, ncol(q_matrix), ncol(q_matrix))
+    cost_mat <- matrix(0, ncol(qmatrix), ncol(qmatrix))
     for (k1 in 1:ncol(cost_mat)) {
       for (k2 in 1:ncol(cost_mat)) {
-        cost_mat[k1,k2] <- sum(q_matrix[,k1]*(1-target_mat[,k2]))
+        cost_mat[k1,k2] <- sum(qmatrix[,k1]*(1-target_mat[,k2]))
       }
     }
     
@@ -1112,11 +1133,11 @@ fix_labels <- function(proj, target_group) {
     # limit best_perm_order to K
     best_perm_order <- best_perm_order[best_perm_order<=K]
     
-    # re-order q_matrix
-    q_matrix <- q_matrix[,best_perm_order, drop=FALSE]
-    colnames(q_matrix) <- paste0("deme",1:ncol(q_matrix))
-    class(q_matrix) <- "malecot_q_matrix"
-    proj$output[[s]][[i]]$summary$q_matrix <- q_matrix
+    # re-order qmatrix
+    qmatrix <- qmatrix[,best_perm_order, drop=FALSE]
+    colnames(qmatrix) <- paste0("deme",1:ncol(qmatrix))
+    class(qmatrix) <- "malecot_qmatrix"
+    proj$output[[s]][[i]]$summary$qmatrix <- qmatrix
     
     # re-order allele frequencies
     p_quantiles <- proj$output[[s]][[i]]$summary$p_quantiles

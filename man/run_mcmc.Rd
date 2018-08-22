@@ -2,18 +2,25 @@
 % Please edit documentation in R/main.R
 \name{run_mcmc}
 \alias{run_mcmc}
-\title{Run MALECOT MCMC}
+\title{Run main MCMC}
 \usage{
-run_mcmc(proj, K = NULL, burnin = 1000, samples = 1000, rungs = 1,
-  auto_converge = TRUE, coupling_on = TRUE, scaffold_on = TRUE,
-  split_merge_on = TRUE, solve_label_switching_on = TRUE,
-  precision = 0.01, GTI_pow = 2, silent = FALSE, output_format = 1,
-  cluster = NULL)
+run_mcmc(project, K = NULL, precision = 0.01, burnin = 1000,
+  samples = 1000, rungs = 10, GTI_pow = 2, auto_converge = TRUE,
+  converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE,
+  coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE,
+  silent = !is.null(cluster))
 }
 \arguments{
-\item{proj}{TODO}
+\item{project}{a MALECOT project, as produced by the function 
+\code{malecot_project()}}
 
-\item{K}{the number of mixture components}
+\item{K}{the values of K that the MCMC will explore}
+
+\item{precision}{the level of precision at which allele frequencies are 
+represented in the bi-allelic case. This allows the use of look-up tables
+for the likelihood, which significantly speeds up the MCMC. Set to 0 to use
+exact values (up to C++ "double" precision) rather than using look-up 
+tables}
 
 \item{burnin}{the number of burn-in iterations}
 
@@ -21,31 +28,36 @@ run_mcmc(proj, K = NULL, burnin = 1000, samples = 1000, rungs = 1,
 
 \item{rungs}{the number of temperature rungs}
 
-\item{auto_converge}{whether burn-in should be diagnosed automatically}
+\item{GTI_pow}{the power used in the generalised thermodynamic integration 
+method. Must be greater than 1.1}
 
-\item{coupling_on}{whether to implement Metropolis-coupling over temperature rungs}
+\item{auto_converge}{whether convergence should be assessed automatically 
+every \code{converge_test} iterations, leading to termination of the 
+burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are 
+used}
 
-\item{scaffold_on}{whether to use scaffolds to improve mixing}
+\item{converge_test}{test for convergence every \code{convergence_test} 
+iterations if \code{auto_converge} is being used}
 
-\item{split_merge_on}{whether to implement a split-merge proposal}
+\item{solve_label_switching_on}{whether to implement the Stevens' solution to
+the label-switching problem. If turned off then Q-matrix output will no 
+longer be correct, although evidence estimates will be unaffected.}
 
-\item{solve_label_switching_on}{whether to implement Stevens' solution to the label-switching problem}
+\item{coupling_on}{whether to implement Metropolis-coupling over temperature 
+rungs}
 
-\item{precision}{the level of precision that allele frequencies are represented at}
+\item{cluster}{option to pass in a cluster environment (see package 
+"parallel")}
 
-\item{GTI_pow}{the power used in the generalised thermodynamic integration method for estimating K}
+\item{pb_markdown}{whether to run progress bars in markdown mode, in which 
+case they are updated once at the end to avoid large amounts of output.}
 
-\item{silent}{supresses output messages}
-
-\item{output_format}{choose from a range of output formats}
-
-\item{cluster}{pass in a cluster environment}
+\item{silent}{whether to suppress all console output}
 }
 \description{
-TODO
-}
-\details{
-TODO
+Run the main MALECOT MCMC. Model parameters are taken from the 
+  current active parameter set, and MCMC parameters are passed in as 
+  arguments. All output is stored within the project.
 }
 \examples{
 # TODO

@@ -4,25 +4,17 @@
 \alias{plot_GTI_path}
 \title{Plot GTI path of current active set}
 \usage{
-plot_GTI_path(proj, K = NULL, axis_type = 2, connect_points = TRUE, ...)
+plot_GTI_path(project, K = NULL, axis_type = 1)
 }
 \arguments{
-\item{proj}{TODO}
+\item{project}{a MALECOT project, as produced by the function 
+\code{malecot_project()}}
 
-\item{K}{TODO}
+\item{K}{which value of K to produce the plot for}
 
-\item{axis_type}{TODO}
-
-\item{connect_points}{TODO}
-
-\item{...}{TODO}
+\item{axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
+beta}
 }
 \description{
 Plot GTI path of current active set
-}
-\details{
-TODO
-}
-\examples{
-# TODO
 }

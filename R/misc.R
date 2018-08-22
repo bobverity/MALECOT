@@ -1,5 +1,24 @@
 
 #------------------------------------------------
+#' @title Import file
+#'
+#' @description Import file from the inst/extdata folder of this package
+#' 
+#' @param name name of file
+#'
+#' @export
+
+malecot_file <- function(name) {
+  
+  # load file from inst/extdata folder
+  name_full <- system.file("extdata/", name, package = 'malecot', mustWork = TRUE)
+  ret <- readRDS(name_full)
+  
+  # return
+  return(ret)
+}
+
+#------------------------------------------------
 # replace NULL value with default
 #' @noRd
 define_default <- function(x, default_value) {
@@ -55,7 +74,7 @@ rcpp_to_mat <- function(x) {
 }
 
 #------------------------------------------------
-# calls C++ implementation of the Hungarian algorithm for binding best matching
+# calls C++ implementation of the Hungarian algorithm for finding best matching
 # in a linear sum assigment problem. This is function is used in testing.
 #' @noRd
 call_hungarian <- function(x) {
@@ -67,7 +86,21 @@ call_hungarian <- function(x) {
 # return 95% quantile
 #' @noRd
 quantile_95 <- function(x) {
-  quantile(x, probs=c(0.025, 0.5, 0.975))
+  ret <- quantile(x, probs=c(0.025, 0.5, 0.975))
+  names(ret) <- c("Q2.5", "Q50", "Q97.5")
+  return(ret)
+}
+
+#------------------------------------------------
+# sum logged values without underflow, i.e. do log(sum(exp(x)))
+#' @noRd
+log_sum <- function(x) {
+  if (all(is.na(x))) {
+    return(rep(NA, length(x)))
+  }
+  x_max <- max(x, na.rm = TRUE)
+  ret <- x_max + log(sum(exp(x-x_max)))
+  return(ret)
 }
 
 #------------------------------------------------
@@ -88,52 +121,53 @@ test_convergence <- function(x, n) {
   g <- geweke_pvalue(mcmc(x[1:n]))
   ret <- (g>0.01)
   if (is.na(ret)) {
-    ret <- FALSE;
+    ret <- TRUE;
   }
   return(ret)
 }
 
 #------------------------------------------------
 # update progress bar
+# (not exported)
 #' @noRd
-update_progress <- function(args, type, i, max_i) {
-  
-  # split by type
-  if (type==1) { # scaffold progress bar
-    setTxtProgressBar(args$pb_scaf, i)
-    if (i==max_i) {
-      close(args$pb_scaf)
-    }
-  } else if (type==2) { # burn-in iterations progress bar
-    setTxtProgressBar(args$pb_burnin, i)
-    if (i==max_i) {
-      close(args$pb_burnin)
-    }
-  } else if (type==3) { # sampling iterations progress bar
-    setTxtProgressBar(args$pb_samples, i)
-    if (i==max_i) {
-      close(args$pb_samples)
-    }
+update_progress <- function(pb_list, name, i, max_i) {
+  setTxtProgressBar(pb_list[[name]], i)
+  if (i==max_i) {
+    close(pb_list[[name]])
   }
 }
 
+
 ##########################################################################################################
-# misc classes
+# MISC CLASSES
 
 #------------------------------------------------
-#' @title Overload print function for malecot_loglike_quantiles
-#'
-#' @description Overload print function for malecot_loglike_quantiles
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
+# Overload print function for malecot_qmatrix
+#' @noRd
+print.malecot_qmatrix <- function(x, ...) {
+  
+  # print raw list
+  print(unclass(x))
+  
+  # return invisibly
+  invisible(x)
+}
 
+#------------------------------------------------
+# Overload summary function for malecot_qmatrix
+#' @noRd
+summary.malecot_qmatrix <- function(object, ...) {
+  
+  # print raw summary
+  summary(unclass(object))
+  
+  # return invisibly
+  invisible(object)
+}
+
+#------------------------------------------------
+# Overload print function for malecot_loglike_quantiles
+#' @noRd
 print.malecot_loglike_quantiles <- function(x, ...) {
   
   # print raw list
@@ -143,21 +177,9 @@ print.malecot_loglike_quantiles <- function(x, ...) {
   invisible(x)
 }
 
-
 #------------------------------------------------
-#' @title Overload summary function for malecot_loglike_quantiles
-#'
-#' @description Overload summary function for malecot_loglike_quantiles
-#'
-#' @details TODO
-#'
-#' @param object TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload summary function for malecot_loglike_quantiles
+#' @noRd
 summary.malecot_loglike_quantiles <- function(object, ...) {
   
   # print raw summary
@@ -168,36 +190,8 @@ summary.malecot_loglike_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-#' @title Determine if object is of class malecot_loglike_quantiles
-#'
-#' @description Determine if object is of class malecot_loglike_quantiles
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-is.malecot_loglike_quantiles <- function(x) {
-  inherits(x, "malecot_loglike_quantiles")
-}
-
-#------------------------------------------------
-#' @title Overload print function for malecot_m_quantiles
-#'
-#' @description Overload print function for malecot_m_quantiles
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload print function for malecot_m_quantiles
+#' @noRd
 print.malecot_m_quantiles <- function(x, ...) {
   
   # print raw list
@@ -207,21 +201,9 @@ print.malecot_m_quantiles <- function(x, ...) {
   invisible(x)
 }
 
- 
 #------------------------------------------------
-#' @title Overload summary function for malecot_m_quantiles
-#'
-#' @description Overload summary function for malecot_m_quantiles
-#'
-#' @details TODO
-#'
-#' @param object TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload summary function for malecot_m_quantiles
+#' @noRd
 summary.malecot_m_quantiles <- function(object, ...) {
   
   # print raw summary
@@ -232,36 +214,8 @@ summary.malecot_m_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-#' @title Determine if object is of class malecot_m_quantiles
-#'
-#' @description Determine if object is of class malecot_m_quantiles
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-is.malecot_m_quantiles <- function(x) {
-  inherits(x, "malecot_m_quantiles")
-}
-
-#------------------------------------------------
-#' @title Overload print function for malecot_p_quantiles
-#'
-#' @description Overload print function for malecot_p_quantiles
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload print function for malecot_p_quantiles
+#' @noRd
 print.malecot_p_quantiles <- function(x, ...) {
   
   # print raw list
@@ -271,21 +225,9 @@ print.malecot_p_quantiles <- function(x, ...) {
   invisible(x)
 }
 
-
 #------------------------------------------------
-#' @title Overload summary function for malecot_p_quantiles
-#'
-#' @description Overload summary function for malecot_p_quantiles
-#'
-#' @details TODO
-#'
-#' @param object TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload summary function for malecot_p_quantiles
+#' @noRd
 summary.malecot_p_quantiles <- function(object, ...) {
   
   # print raw summary
@@ -296,37 +238,9 @@ summary.malecot_p_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-#' @title Determine if object is of class malecot_p_quantiles
-#'
-#' @description Determine if object is of class malecot_p_quantiles
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-is.malecot_p_quantiles <- function(x) {
-  inherits(x, "malecot_p_quantiles")
-}
-
-#------------------------------------------------
-#' @title Overload print function for malecot_q_matrix
-#'
-#' @description Overload print function for malecot_q_matrix
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-print.malecot_q_matrix <- function(x, ...) {
+# Overload print function for malecot_e_quantiles
+#' @noRd
+print.malecot_e_quantiles <- function(x, ...) {
   
   # print raw list
   print(unclass(x))
@@ -335,22 +249,10 @@ print.malecot_q_matrix <- function(x, ...) {
   invisible(x)
 }
 
-
 #------------------------------------------------
-#' @title Overload summary function for malecot_q_matrix
-#'
-#' @description Overload summary function for malecot_q_matrix
-#'
-#' @details TODO
-#'
-#' @param object TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-summary.malecot_q_matrix <- function(object, ...) {
+# Overload summary function for malecot_e_quantiles
+#' @noRd
+summary.malecot_e_quantiles <- function(object, ...) {
   
   # print raw summary
   summary(unclass(object))
@@ -360,36 +262,8 @@ summary.malecot_q_matrix <- function(object, ...) {
 }
 
 #------------------------------------------------
-#' @title Determine if object is of class malecot_q_matrix
-#'
-#' @description Determine if object is of class malecot_q_matrix
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-is.malecot_q_matrix <- function(x) {
-  inherits(x, "malecot_q_matrix")
-}
-
-#------------------------------------------------
-#' @title Overload print function for malecot_GTI_path
-#'
-#' @description Overload print function for malecot_GTI_path
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload print function for malecot_GTI_path
+#' @noRd
 print.malecot_GTI_path <- function(x, ...) {
   
   # print raw list
@@ -400,21 +274,9 @@ print.malecot_GTI_path <- function(x, ...) {
   invisible(x)
 }
 
-
 #------------------------------------------------
-#' @title Overload summary function for malecot_GTI_path
-#'
-#' @description Overload summary function for malecot_GTI_path
-#'
-#' @details TODO
-#'
-#' @param object TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Overload summary function for malecot_GTI_path
+#' @noRd
 summary.malecot_GTI_path <- function(object, ...) {
   
   # print raw summary
@@ -426,20 +288,33 @@ summary.malecot_GTI_path <- function(object, ...) {
 }
 
 #------------------------------------------------
-#' @title Determine if object is of class malecot_GTI_path
-#'
-#' @description Determine if object is of class malecot_GTI_path
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-is.malecot_GTI_path <- function(x) {
-  inherits(x, "malecot_GTI_path")
+# Overload print function for class malecot_GTI_logevidence
+#' @noRd
+print.malecot_GTI_logevidence <- function(x, ...) {
+  print(as.data.frame(unclass(x)))
+  invisible(x)
 }
 
+#------------------------------------------------
+# Overload print function for class malecot_GTI_posterior
+#' @noRd
+print.malecot_GTI_posterior <- function(x, ...) {
+  print(as.data.frame(unclass(x)))
+  invisible(x)
+}
 
+#------------------------------------------------
+# Overload print function for class malecot_GTI_logevidence_model
+#' @noRd
+print.malecot_GTI_logevidence_model <- function(x, ...) {
+  print(as.data.frame(unclass(x)))
+  invisible(x)
+}
+
+#------------------------------------------------
+# Overload print function for class malecot_GTI_posterior_model
+#' @noRd
+print.malecot_GTI_posterior_model <- function(x, ...) {
+  print(as.data.frame(unclass(x)))
+  invisible(x)
+}

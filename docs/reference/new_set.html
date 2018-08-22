@@ -81,7 +81,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+    </li>
+    <li>
+      <a href="../articles/installation.html">Installing MALECOT</a>
     </li>
     <li>
       <a href="../articles/test.html">test</a>
@@ -115,40 +118,38 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>proj</span>, <span class='kw'>set_description</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>K_range</span> <span class='kw'>=</span> <span class='fl'>1</span>:<span class='fl'>3</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>, <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>, <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>estimate_error</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>e1</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>e2</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>e1_max</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>e2_max</span> <span class='kw'>=</span> <span class='fl'>0.2</span>)</pre>
+    <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>project</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>,
+  <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>, <span class='kw'>COI_manual</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>estimate_COI_mean</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>COI_mean</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>estimate_error</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>e1</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>e2</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>e1_max</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>e2_max</span> <span class='kw'>=</span> <span class='fl'>0.2</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>proj</th>
-      <td><p>the current MALECOT project</p></td>
+      <th>project</th>
+      <td><p>a MALECOT project, as produced by the function 
+<code><a href='malecot_project.html'>malecot_project()</a></code></p></td>
     </tr>
     <tr>
-      <th>set_description</th>
-      <td><p>brief description of this parameter set</p></td>
-    </tr>
-    <tr>
-      <th>K_range</th>
-      <td><p>TODO</p></td>
+      <th>name</th>
+      <td><p>the name of the parameter set</p></td>
     </tr>
     <tr>
       <th>lambda</th>
       <td><p>shape parameter(s) governing the prior on allele frequencies. 
 This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-distribution for the multi-allelic case. In the simplest case,
-<code>lambda</code> can be a single scalar value, in which case the same shape
-paremeter will be used for all loci and all alleles (i.e. a symmetric Beta
-or Dirichlet prior). In the more general case <code>lambda</code> can be a list
-of length <code>L</code>, containing vectors of length equal to the number of
-alleles at each locus, allowing different shape parameters to be defined
-for each allele individually</p></td>
+distribution for the multi-allelic case. <code>lambda</code> can be a single
+scalar value, in which case the same shape paremeter is applied to all loci
+and all alleles (i.e. a symmetric Beta or Dirichlet prior), or
+<code>lambda</code> can be a list of length <code>L</code> containing vectors of length
+equal to the number of alleles at each locus, allowing different shape
+parameters to be specified for each allele individually</p></td>
     </tr>
     <tr>
       <th>COI_model</th>
-      <td><p>TODO</p></td>
+      <td><p>the type of prior on COI. Must be one of "uniform",
+"poisson", or "nb" (negative binomial)</p></td>
     </tr>
     <tr>
       <th>COI_max</th>
@@ -156,7 +157,7 @@ for each allele individually</p></td>
     </tr>
     <tr>
       <th>COI_dispersion</th>
-      <td><p>TODO</p></td>
+      <td><p>must be &gt; 1</p></td>
     </tr>
     <tr>
       <th>estimate_error</th>

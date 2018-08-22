@@ -4,26 +4,22 @@
 \alias{plot_loglike_quantiles}
 \title{Plot loglike quantiles of current active set}
 \usage{
-plot_loglike_quantiles(proj, K = NULL, axis_type = 3,
-  connect_points = FALSE, ...)
+plot_loglike_quantiles(project, K = NULL, axis_type = 1,
+  connect_points = FALSE, connect_whiskers = FALSE)
 }
 \arguments{
-\item{proj}{TODO}
+\item{project}{a MALECOT project, as produced by the function 
+\code{malecot_project()}}
 
-\item{K}{TODO}
+\item{K}{which value of K to produce the plot for}
 
-\item{axis_type}{TODO}
+\item{axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
+beta, 3 = values of beta raised to the GTI power}
 
-\item{connect_points}{TODO}
+\item{connect_points}{whether to connect points in the middle of quantiles}
 
-\item{...}{TODO}
+\item{connect_whiskers}{whether to connect points at the ends of the whiskers}
 }
 \description{
 Plot loglike quantiles of current active set
-}
-\details{
-TODO
-}
-\examples{
-# TODO
 }

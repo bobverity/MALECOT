@@ -1,5 +1,5 @@
 
-#include "Hungarian.h"
+#include "hungarian.h"
 #include "misc.h"
 
 using namespace std;
@@ -10,11 +10,11 @@ using namespace std;
 //
 // ## Motivation
 // Imagine a set of n nodes on the left representing workers, and n nodes on the
-// right representing tasks to be done. Edges between nodes on the left and
-// nodes on the right indicate that a task can be done by a worker, and the
-// weight of the edge represents the cost incurred in doing this task. We want
-// to find the assignment such that every worker is assigned one task, and that
-// minimises the overall cost.
+// right representing tasks to be done. Edges between nodes on the left and 
+// nodes on the right indicate that a task can be done by a worker, and the 
+// weight of the edge represents the cost incurred in doing this task. We want 
+// to find the assignment such that every worker is assigned one task, and such
+// that the overall cost is minimized.
 //
 //
 // ## Simple case
@@ -144,7 +144,7 @@ using namespace std;
 // identity matching (i.e. a cost matrix with diagonal zeros) is searched for 
 // manually first, as in some applications this matching will be extremely 
 // common and so a manual search is computationally efficient. The most complex 
-// part of the implementation is the functions augment_left() and 
+// part of the implementation are the functions augment_left() and 
 // augment_right(). These functions call each other recursively, stepping 
 // forward through the augmenting path. If the path fails to terminate on an 
 // unmatched edge with zero weight, then the function returns a value -1 in the 

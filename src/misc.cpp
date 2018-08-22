@@ -1,6 +1,6 @@
 
 #include "misc.h"
-#include "Hungarian.h"
+#include "hungarian.h"
 
 using namespace std;
 

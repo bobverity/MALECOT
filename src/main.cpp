@@ -1,124 +1,169 @@
 
 #include <chrono>
 #include "main.h"
+#include "Parameters.h"
+#include "Data.h"
+#include "Lookup.h"
 #include "misc.h"
 #include "probability.h"
 #include "MCMC_biallelic.h"
-#include "Hungarian.h"
+#include "hungarian.h"
 
 using namespace std;
-
-//------------------------------------------------
-// generate scaffolds under biallelic model
-// [[Rcpp::export]]
-Rcpp::List generate_scaffolds_biallelic_cpp(Rcpp::List args) {
-  
-  // extract arguments
-  int K = rcpp_to_int(args["K"]);
-  bool silent = rcpp_to_bool(args["silent"]);
-  
-  // start program
-  if (!silent) {
-    print("Generating scaffolds for K =", K);
-  }
-  
-  // start timer
-  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-  
-  // create MCMC object
-  MCMC_biallelic m(args);
-  
-  // generate scaffold groupings
-  m.scaffold_mcmc(args);
-  
-  // end timer
-  chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
-  chrono::duration<double> time_span = chrono::duration_cast< chrono::duration<double> >(t2-t1);
-  if (!silent) {
-    print("   completed in", time_span.count(), "seconds");
-  }
-  
-  // create return object
-  Rcpp::List ret;
-  ret.push_back(Rcpp::wrap( m.scaffold_group ));
-  ret.push_back(Rcpp::wrap( m.scaffold_loglike ));
-  
-  Rcpp::StringVector ret_names;
-  ret_names.push_back("scaffold_group");
-  ret_names.push_back("scaffold_loglike");
-  
-  ret.names() = ret_names;
-  return ret;
-}
 
 //------------------------------------------------
 // run biallelic MCMC
 // [[Rcpp::export]]
 Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   
-  // extract arguments
-  int K = rcpp_to_int(args["K"]);
-  bool silent = rcpp_to_bool(args["silent"]);
+  // split argument lists
+  Rcpp::List args_data = args["args_data"];
+  Rcpp::List args_model = args["args_model"];
+  Rcpp::List args_functions = args["args_functions"];
+  Rcpp::List args_progress = args["args_progress"];
   
-  // start program
-  if (!silent) {
-    print("Running MCMC for K =", K);
-  }
+  // read in parameters into separate class
+  Parameters parameters(args_model);
+  
+  // read in data into separate class
+  Data_biallelic data(args_data);
+  
+  // define look-up tables
+  Lookup lookup;
+  lookup.init();
   
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // create MCMC object
-  MCMC_biallelic m(args);
+  MCMC_biallelic mcmc_biallelic;
   
   // run MCMC
-  m.burnin_mcmc(args);
-  m.sampling_mcmc(args);
+  mcmc_biallelic.burnin_mcmc(args_functions, args_progress);
+  mcmc_biallelic.sampling_mcmc(args_functions, args_progress);
   
   // end timer
   chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
   chrono::duration<double> time_span = chrono::duration_cast< chrono::duration<double> >(t2-t1);
-  if (!silent) {
-    print("   completed in", time_span.count(), "seconds");
+  if (!parameters.silent) {
+    print("   completed in", time_span.count(), "seconds\n");
   }
   
   // create return object
   Rcpp::List ret;
-  ret.push_back(Rcpp::wrap( m.burnin_loglike ));
-  ret.push_back(Rcpp::wrap( m.sampling_loglike ));
-  ret.push_back(Rcpp::wrap( m.m_store ));
-  ret.push_back(Rcpp::wrap( m.p_store ));
-  ret.push_back(Rcpp::wrap( m.e1_store ));
-  ret.push_back(Rcpp::wrap( m.e2_store ));
-  ret.push_back(Rcpp::wrap( m.COI_mean_store ));
-  ret.push_back(Rcpp::wrap( m.qmatrix_final ));
-  ret.push_back(Rcpp::wrap( m.p_accept ));
-  ret.push_back(Rcpp::wrap( m.e1_accept ));
-  ret.push_back(Rcpp::wrap( m.e2_accept ));
-  ret.push_back(Rcpp::wrap( m.coupling_accept ));
-  ret.push_back(Rcpp::wrap( m.scaf_trials ));
-  ret.push_back(Rcpp::wrap( m.scaf_accept ));
-  ret.push_back(Rcpp::wrap( m.split_merge_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.loglike_burnin ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.loglike_sampling ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.m_store ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.p_store ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.e1_store ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.e2_store ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.COI_mean_store ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.qmatrix_final ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.p_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.e1_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.e2_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.coupling_accept ));
   
   Rcpp::StringVector ret_names;
-  ret_names.push_back("burnin_loglike");
-  ret_names.push_back("sampling_loglike");
+  ret_names.push_back("loglike_burnin");
+  ret_names.push_back("loglike_sampling");
   ret_names.push_back("m_store");
   ret_names.push_back("p_store");
   ret_names.push_back("e1_store");
   ret_names.push_back("e2_store");
   ret_names.push_back("COI_mean_store");
-  ret_names.push_back("q_matrix");
+  ret_names.push_back("qmatrix");
   ret_names.push_back("p_accept");
   ret_names.push_back("e1_accept");
   ret_names.push_back("e2_accept");
   ret_names.push_back("coupling_accept");
-  ret_names.push_back("scaf_trials");
-  ret_names.push_back("scaf_accept");
-  ret_names.push_back("split_merge_accept");
   
   ret.names() = ret_names;
   return ret;
+}
+
+//------------------------------------------------
+// estimate quantiles of posterior probability of K by simulation
+// [[Rcpp::export]]
+Rcpp::List GTI_posterior_K_sim_cpp(Rcpp::List args) {
+  
+  // extract arguments
+  vector<double> m = rcpp_to_vector_double(args["mean"]);
+  vector<double> s = rcpp_to_vector_double(args["SE"]);
+  int reps = rcpp_to_int(args["reps"]);
+  int K = m.size();
+  
+  // obtain normalised draws
+  vector<double> y(K);
+  double y_max = 0;
+  vector<double> y_trans(K);
+  double y_trans_sum = 0;
+  double y_trans_inv_sum = 0;
+  vector<vector<double>> ret(K, vector<double>(reps));
+  for (int i=0; i<reps; i++) {
+    for (int k=0; k<K; k++) {
+      y[k] = rnorm1(m[k], s[k]);
+      if (k==0 || y[k]>y_max) {
+        y_max = y[k];
+      }
+    }
+    y_trans_sum = 0;
+    for (int k=0; k<K; k++) {
+      y_trans[k] = exp(y[k]-y_max);
+      y_trans_sum += y_trans[k];
+    }
+    y_trans_inv_sum = 1/y_trans_sum;
+    for (int k=0; k<K; k++) {
+      ret[k][i] = y_trans[k]*y_trans_inv_sum;
+    }
+  }
+  
+  // return as Rcpp object
+  return Rcpp::List::create(Rcpp::Named("ret")=ret);
+}
+
+//------------------------------------------------
+// integrate log-evidence over K by simulation
+// [[Rcpp::export]]
+Rcpp::List GTI_integrated_K_sim_cpp(Rcpp::List args) {
+  
+  // extract arguments
+  vector<double> m = rcpp_to_vector_double(args["mean"]);
+  vector<double> s = rcpp_to_vector_double(args["SE"]);
+  int reps = rcpp_to_int(args["reps"]);
+  int K = m.size();
+  
+  // obtain integrated draws
+  vector<double> y(K);
+  double y_max = 0;
+  double y_trans_sum = 0;
+  double x = 0;
+  double x_sum = 0;
+  double x_sum_squared = 0;
+  for (int i=0; i<reps; i++) {
+    for (int k=0; k<K; k++) {
+      y[k] = rnorm1(m[k], s[k]);
+      if (k==0 || y[k]>y_max) {
+        y_max = y[k];
+      }
+    }
+    y_trans_sum = 0;
+    for (int k=0; k<K; k++) {
+      y_trans_sum += exp(y[k]-y_max);
+    }
+    x = y_max + log(y_trans_sum) - log(K);
+    x_sum += x;
+    x_sum_squared += x*x;
+  }
+  double x_mean = x_sum/double(reps);
+  double x_var = x_sum_squared/double(reps) - x_mean*x_mean;
+  if (x_var<0) {
+    x_var = 0;
+  }
+  
+  // return as Rcpp object
+  return Rcpp::List::create(Rcpp::Named("mean")=x_mean,
+                            Rcpp::Named("SE")=x_var);
 }
 
 //------------------------------------------------

@@ -4,10 +4,10 @@
 \alias{plot_m_quantiles}
 \title{Plot m quantiles of current active set}
 \usage{
-plot_m_quantiles(proj, K = NULL, ...)
+plot_m_quantiles(project, K = NULL, ...)
 }
 \arguments{
-\item{proj}{TODO}
+\item{project}{TODO}
 
 \item{K}{TODO}
 

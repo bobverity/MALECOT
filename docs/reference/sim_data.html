@@ -30,7 +30,7 @@
 
 <meta property="og:title" content="Simulate genetic data — sim_data" />
 
-<meta property="og:description" content="TODO" />
+<meta property="og:description" content="Simulate genetic data from the same model used in the MALECOT inference step." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -81,7 +81,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+    </li>
+    <li>
+      <a href="../articles/installation.html">Installing MALECOT</a>
     </li>
     <li>
       <a href="../articles/test.html">test</a>
@@ -111,48 +114,54 @@
 
     <div class="ref-description">
     
-    <p>TODO</p>
+    <p>Simulate genetic data from the same model used in the MALECOT inference step.</p>
     
     </div>
 
     <pre class="usage"><span class='fu'>sim_data</span>(<span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>L</span> <span class='kw'>=</span> <span class='fl'>24</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>data_format</span> <span class='kw'>=</span> <span class='st'>"biallelic"</span>,
-  <span class='kw'>alleles</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>, <span class='kw'>COI_manual</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>, <span class='kw'>COI_mean</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>e1</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>e2</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>prop_missing</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
+  <span class='kw'>alleles</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>, <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>,
+  <span class='kw'>COI_manual</span> <span class='kw'>=</span> <span class='fu'>rep</span>(-<span class='fl'>1</span>, <span class='no'>n</span>), <span class='kw'>COI_mean</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>e1</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>e2</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>prop_missing</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>n</th>
-      <td><p>TODO</p></td>
+      <td><p>the number of samples</p></td>
     </tr>
     <tr>
       <th>L</th>
-      <td><p>TODO</p></td>
+      <td><p>the number of loci per sample</p></td>
     </tr>
     <tr>
       <th>K</th>
-      <td><p>TODO</p></td>
+      <td><p>the number of subpopulations</p></td>
     </tr>
     <tr>
       <th>data_format</th>
-      <td><p>TODO</p></td>
+      <td><p>whether to produce data in "biallelic" or "multiallelic"
+format. Note that if biallelic format is chosen then <code>alleles</code> is
+always set to 2</p></td>
     </tr>
     <tr>
       <th>alleles</th>
-      <td><p>TODO</p></td>
+      <td><p>the number of alleles at each locus. Can be a vector of length
+<code>L</code> specifying the number of alleles at each locus, or a single scalar
+value specifying the number of alleles at all loci</p></td>
     </tr>
     <tr>
       <th>lambda</th>
-      <td><p>TODO</p></td>
+      <td><p>the shape parameter(s) of the prior on allele frequencies. This
+prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic
+case. <code>lambda</code> can be a list of length <code>L</code> containing vectors of
+length equal to the number of alleles at that locus, or it can be a single
+scalar value. If a list then <code>lambda</code> specifies all shape parameters
+of the prior at each locus separately, if a scalar value then the same
+shape parameter is used over all loci and all alleles</p></td>
     </tr>
     <tr>
       <th>COI_model</th>
-      <td><p>TODO</p></td>
-    </tr>
-    <tr>
-      <th>COI_manual</th>
       <td><p>TODO</p></td>
     </tr>
     <tr>
@@ -160,12 +169,19 @@
       <td><p>TODO</p></td>
     </tr>
     <tr>
+      <th>COI_manual</th>
+      <td><p>option to override the MCMC and set the COI of one or more
+samples manually, in which case they are not updated. Vector of length
+<code>n</code> specifing the integer valued COI of each sample, with -1
+indicating that all samples should be estimated</p></td>
+    </tr>
+    <tr>
       <th>COI_mean</th>
       <td><p>TODO</p></td>
     </tr>
     <tr>
       <th>COI_dispersion</th>
-      <td><p>TODO</p></td>
+      <td><p>must be &gt; 1</p></td>
     </tr>
     <tr>
       <th>e1</th>
@@ -177,6 +193,10 @@
     </tr>
     <tr>
       <th>prop_missing</th>
+      <td><p>TODO</p></td>
+    </tr>
+    <tr>
+      <th>pop_col_on</th>
       <td><p>TODO</p></td>
     </tr>
     </table>

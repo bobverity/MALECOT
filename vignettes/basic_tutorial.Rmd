@@ -1,49 +1,20 @@
 ---
-title: "Basic Tutorial"
+title: "Basic tutorial"
 author: "Bob Verity"
-date: "06/08/2018"
-output: html_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteEngine{knitr::knitr}
-  %\VignetteIndexEntry{Basic Tutorial}
-  %\usepackage[UTF-8]{inputenc}
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 This vignette demonstrates the use of the MALECOT package on a simple biallelic simulated data set, including installing the package, simulating some data, running the model and performing simple checks on the MCMC output.
 
-## Installation
-
-MALECOT relies on the Rcpp package, which requires the following OS-specific steps:
-
-* Windows
-    - Download and install the appropriate version of [Rtools](https://cran.rstudio.com/bin/windows/Rtools/) for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools
-* Mac OS X
-    - Download and install [XCode](http://itunes.apple.com/us/app/xcode/id497799835?mt=12)
-    - Within XCode go to Preferences : Downloads and install the Command Line Tools
-* Linux (Debian/Ubuntu)
-    - Install the core software development utilities required for R package development as well as LaTeX by executing
-    
-            ```
-            sudo apt-get install r-base-dev texlive-full
-            ```
-
-Next, in R, ensure that you have the devtools package installed by running
-```{r, eval = FALSE}
-install.packages("devtools", repos='http://cran.us.r-project.org')
-```
-Then we can simply install the *MALECOT* package directly from GitHub by running
-```{r, eval = FALSE}
-devtools::install_github("bobverity/MALECOT")
-```
-Finally, we need to load the package
-```{r}
+```{r, echo=FALSE}
+set.seed(1)
 library(MALECOT)
 ```
-
 
 ## Simulating some data
 

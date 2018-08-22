@@ -94,227 +94,254 @@ plot_pca <- function(data, type = "3D", missing_data = -1, target_group = NULL) 
 }
 
 #------------------------------------------------
-# whisker plot of quantiles
+# ggplot theme with minimal objects
 #' @noRd
-plot_quantiles <- function(q_min, q_mid, q_max, q_x = 1:length(q_min), width = 0.2, connect_points = FALSE, ...) {
+theme_empty <- function() {
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        plot.background=element_blank())
+}
+
+#------------------------------------------------
+# Default plot for class malecot_qmatrix
+#' @noRd
+plot.malecot_qmatrix <- function(x, y, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  # get data into ggplot format
+  m <- unclass(x)
+  n <- nrow(m)
+  K <- ncol(m)
+  df <- data.frame(ind = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), val = as.vector(t(m)))
+  
+  # produce basic plot
+  plot1 <- ggplot(df) + theme_empty()
+  plot1 <- plot1 + geom_bar(aes_(x = ~ind, y = ~val, fill = ~k), width = 1, stat = "identity")
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+  plot1 <- plot1 + xlab("sample") + ylab("probability")
+  
+  # add legends
+  plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
+  plot1 <- plot1 + scale_colour_manual(values = "white")
+  plot1 <- plot1 + guides(colour = FALSE)
+  
+  # add border
+  plot1 <- plot1 + theme(panel.border = element_rect(colour = "black", size = 2, fill = NA))
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot Q-matrix of current active set
+#'
+#' @description Plot Q-matrix of current active set
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
+#' @param divide_ind_on whether to add dividing lines between bars
+#'
+#' @export
+
+plot_qmatrix <- function(project, K = NULL, divide_ind_on = FALSE) {
   
   # check inputs
-  n <- length(q_min)
-  stopifnot(length(q_mid)==n && length(q_max)==n)
-  stopifnot(all(q_min<=q_mid, na.rm=TRUE) && all(q_mid<=q_max, na.rm=TRUE))
-  
-  # get basic data properties
-  min_val <- min(q_min, na.rm=TRUE)
-  max_val <- max(q_max, na.rm=TRUE)
-  
-  # stick properties
-  stick_left <- 1:n - 0.5
-  stick_right <- 1:n + 0.5
-  
-  # set defaults on undefined arguments
-  if (! "xlim" %in% arg_names) {
-    args$xlim <- range(q_x)
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_pos_int(K)
   }
-  if (! "ylim" %in% arg_names) {
-    y_mid <- 0.5*(max_val + min_val)
-    y_diff <- 0.5*(max_val - min_val)
-    args$ylim <- c(y_mid - 1.2*y_diff, y_mid + 1.2*y_diff)
-  }
-  if (! "lwd" %in% arg_names) {
-    args$lwd <- 1
-  }
-  if (! "col" %in% arg_names) {
-    args$col <- 1
-  }
-  if (! "yaxs" %in% arg_names) {
-    args$yaxs <- "i"
-  }
-  
-  # fixed arguments, or arguments that have special meaning
-  args$type <- "n"
-  axes <- TRUE
-  if ("axes" %in% arg_names) {
-    axes <- args$axes
-  }
-  args$axes <- FALSE
-  
-  # plot with finalised list of parameters
-  do.call(plot, c(list(x=0), args))    # create empty plot
-  segments(x0=q_x-width, y0=q_mid, x1=q_x+width, y1=q_mid, lwd=args$lwd, col=args$col)  # add horizontal lines
-  segments(x0=q_x, y0=q_min, x1=q_x, y1=q_max, lwd=args$lwd, col=args$col)  # add vertical lines
-  if (axes) {
-    axis(1)
-    axis(2)
-    box()
-  }
-  if (connect_points) {
-    lines(q_x, q_mid, lwd=args$lwd[1], col=args$col[1])
-  }
-  
-}
-
-#------------------------------------------------
-#' @title Default plot for class malecot_loglike_quantiles
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot.malecot_loglike_quantiles <- function(x, y, ...) {
-  
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
-  
-  # unclass x
-  x <- unclass(x)
-  n <- nrow(x)
-  
-  # get basic data properties
-  q_min <- as.vector(x[,1])
-  q_mid <- as.vector(x[,2])
-  q_max <- as.vector(x[,3])
-  
-  # set defaults on undefined arguments
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "rung"
-  }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- "log-likelihood"
-  }
-  
-  # fixed arguments, or arguments that have special meaning
-  if ("q_x" %in% arg_names) {
-    q_min <- c(NA, q_min)
-    q_mid <- c(NA, q_mid)
-    q_max <- c(NA, q_max)
-  }
-  
-  # plot with finalised list of parameters
-  do.call(plot_quantiles, c(list(q_min=q_min, q_mid=q_mid, q_max=q_max), args))
-}
-
-#------------------------------------------------
-#' @title Plot loglike quantiles of current active set
-#'
-#' @description Plot loglike quantiles of current active set
-#'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param K TODO
-#' @param axis_type TODO
-#' @param connect_points TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot_loglike_quantiles <- function(proj, K = NULL, axis_type = 3, connect_points = FALSE, ...) {
-  
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  assert_single_logical(divide_ind_on)
   
   # get active set and check non-zero
-  s <- proj$active_set
+  s <- project$active_set
   if (s==0) {
     stop("no active parameter set")
   }
   
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range[1])
-  K_string <- paste0("K", K)
-  
-  # check output exists for this K
-  if (is.null(proj$output[[s]][[K_string]])) {
-    stop(sprintf("no output for K = %s of active set", K))
+  # set default K to all values with output
+  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no output for active parameter set")
   }
+  K <- define_default(K, which(!null_output))
   
-  # x axis options
-  if (axis_type %in% c(2,3)) {
-    rungs <- proj$output[[s]][[K_string]]$function_call$args$rungs
-    if (! "width" %in% arg_names) {
-      args$width <- 0.02
-    }
-    if (! "xlim" %in% arg_names) {
-      args$xlim <- c(0,1)
-    }
-    if (axis_type==2) {
-      args$q_x <- (0:rungs)/rungs
-      if (! "xlab" %in% arg_names) {
-        args$xlab <- parse(text="beta")
-      }
-    }
-    if (axis_type==3) {
-      GTI_pow <- proj$output[[s]][[K_string]]$function_call$args$GTI_pow
-      args$q_x <- ((0:rungs)/rungs)^GTI_pow
-      if (! "xlab" %in% arg_names) {
-        args$xlab <- parse(text="beta^gamma")
-      }
+  # check output exists for chosen K
+  qmatrix_list <- list()
+  for (i in 1:length(K)) {
+    qmatrix_list[[i]] <- project$output$single_set[[s]]$single_K[[K[i]]]$summary$qmatrix
+    if (is.null(qmatrix_list[[i]])) {
+      stop(sprintf("no qmatrix output for K = %s of active set", K[i]))
     }
   }
+  n <- nrow(qmatrix_list[[1]])
   
-  # produce quantile plot with finalised list of parameters
-  do.call(plot, c(list(proj$output[[s]][[K_string]]$summary$loglike_quantiles), args))
+  # get data into ggplot format
+  df <- NULL
+  for (i in 1:length(K)) {
+    m <- unclass(qmatrix_list[[i]])
+    df <- rbind(df, data.frame(K = as.numeric(K[i]), ind = rep(1:n,each=K[i]), k = as.factor(rep(1:K[i],times=n)), val = as.vector(t(m))))
+  }
+  
+  # produce basic plot
+  plot1 <- ggplot(df) + theme_empty()
+  plot1 <- plot1 + geom_bar(aes_(x = ~ind, y = ~val, fill = ~k), width = 1, stat = "identity")
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+  
+  # arrange in rows
+  if (length(K)==1) {
+    plot1 <- plot1 + facet_wrap(~K, ncol = 1)
+    plot1 <- plot1 + theme(strip.background = element_blank(), strip.text = element_blank())
+    plot1 <- plot1 + xlab("sample") + ylab("probability")
+  } else {
+    plot1 <- plot1 + facet_wrap(~K, ncol = 1, strip.position = "left")
+    plot1 <- plot1 + theme(strip.background = element_blank())
+    plot1 <- plot1 + xlab("sample") + ylab("K")
+  }
+  
+  # add legends
+  plot1 <- plot1 + scale_fill_manual(values = default_colours(max(K)), name = "group")
+  plot1 <- plot1 + scale_colour_manual(values = "white")
+  plot1 <- plot1 + guides(colour = FALSE)
+  
+  # add border
+  plot1 <- plot1 + theme(panel.border = element_rect(colour = "black", size = 2, fill = NA))
+  
+  # optionally add dividing lines
+  if (divide_ind_on) {
+    plot1 <- plot1 + geom_segment(aes_(x = ~x, y = ~y, xend = ~x, yend = ~y+1, col = "white"), size = 0.3, data = data.frame(x = 1:n-0.5, y = rep(0,n)))
+  }
+  
+  return(plot1)
 }
 
 #------------------------------------------------
-#' @title Default plot for class malecot_m_quantiles
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
+# Default plot for class malecot_loglike_quantiles
+#' @noRd
+plot.malecot_loglike_quantiles <- function(x, y, ...) {
+  
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
+  x_vec <- y
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
+  plot1 <- plot1 + xlab("rung") + ylab("log-likelihood")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot loglike quantiles of current active set
+#'   
+#' @description Plot loglike quantiles of current active set
+#'   
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
+#' @param axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
+#'   beta, 3 = values of beta raised to the GTI power
+#' @param connect_points whether to connect points in the middle of quantiles
+#' @param connect_whiskers whether to connect points at the ends of the whiskers
 #'
 #' @export
-#' @examples
-#' # TODO
 
+plot_loglike_quantiles <- function(project, K = NULL, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
+  assert_in(axis_type, 1:3)
+  assert_single_logical(connect_points)
+  assert_single_logical(connect_whiskers)
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$loglike_quantiles)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no loglike_quantiles output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  loglike_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$loglike_quantiles
+  if (is.null(loglike_quantiles)) {
+    stop(sprintf("no loglike_quantiles output for K = %s of active set", K))
+  }
+  
+  # produce plot with different axis options
+  rungs <- nrow(loglike_quantiles)
+  if (axis_type==1) {
+    x_vec <- 1:rungs
+    plot1 <- plot(loglike_quantiles, as.factor(x_vec))
+    
+  } else if (axis_type==2) {
+    x_vec <- (1:rungs)/rungs
+    plot1 <- plot(loglike_quantiles, x_vec)
+    plot1 <- plot1 + xlab(parse(text = "beta"))
+    plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
+    
+  } else {
+    GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
+    x_vec <- ((1:rungs)/rungs)^GTI_pow
+    plot1 <- plot(loglike_quantiles, x_vec)
+    plot1 <- plot1 + xlab(parse(text = "beta^gamma"))
+    plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
+  }
+  
+  # optionally add central line
+  if (connect_points) {
+    df <- as.data.frame(unclass(loglike_quantiles))
+    plot1 <- plot1 + geom_line(aes(x = x_vec, y = df$Q50))
+  }
+  
+  # optionally connect whiskers
+  if (connect_whiskers) {
+    df <- as.data.frame(unclass(loglike_quantiles))
+    plot1 <- plot1 + geom_line(aes(x = x_vec, y = df$Q2.5), linetype = "dotted") + geom_line(aes(x = x_vec, y = df$Q97.5), linetype = "dotted")
+  }
+  
+  # return plot object
+  return(plot1)
+}
+
+
+#------------------------------------------------
+# Default plot for class malecot_m_quantiles
+#' @noRd
 plot.malecot_m_quantiles <- function(x, y, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
   
-  # unclass x
-  x <- unclass(x)
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = ~1:n, y = ~Q2.5, xend = ~1:n, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = ~1:n, y = ~Q50))
+  plot1 <- plot1 + xlab("sample") + ylab("COI")
   
-  # get basic data properties
-  q_min <- as.vector(x[,1])
-  q_mid <- as.vector(x[,2])
-  q_max <- as.vector(x[,3])
-  max_val <- max(x)
-  
-  # set defaults on undefined arguments
-  if (! "ylim" %in% arg_names) {
-    args$ylim <- c(0, 1.2*max_val)
-  }
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "sample"
-  }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- "COI"
-  }
-  
-  # plot with finalised list of parameters
-  do.call(plot_quantiles, c(list(q_min=q_min, q_mid=q_mid, q_max=q_max), args))
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
@@ -324,7 +351,7 @@ plot.malecot_m_quantiles <- function(x, y, ...) {
 #'
 #' @details TODO
 #'
-#' @param proj TODO
+#' @param project TODO
 #' @param K TODO
 #' @param ... TODO
 #'
@@ -332,69 +359,92 @@ plot.malecot_m_quantiles <- function(x, y, ...) {
 #' @examples
 #' # TODO
 
-plot_m_quantiles <- function(proj, K = NULL, ...) {
+plot_m_quantiles <- function(project, K = NULL, ...) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
   
   # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
+  s <- project$active_set
+  if (s == 0) {
     stop("no active parameter set")
   }
   
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range[1])
-  K_string <- paste0("K", K)
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$m_quantiles)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no m_quantiles output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
   
-  # check output exists for this K
-  if (is.null(proj$output[[s]][K_string])) {
-    stop(sprintf("no output for K = %s of active set", K))
+  # check output exists for chosen K
+  m_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$m_quantiles
+  if (is.null(m_quantiles)) {
+    stop(sprintf("no m_quantiles output for K = %s of active set", K))
   }
   
   # produce quantile plot
-  plot(proj$output[[s]][[K_string]]$summary$m_quantiles, ...)
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$m_quantiles)
+  
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
-#' @title Default plot for class malecot_p_quantiles
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Default plot for class malecot_p_quantiles
+#' @noRd
 plot.malecot_p_quantiles <- function(x, y, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  # get maximum number of alleles over all loci
+  max_alleles <- max(mapply(nrow, x)) + 1
   
-  # unclass x
-  x <- unclass(x)
-  
-  # get basic data properties
-  q_min <- mapply(function(x){x[1]}, x)
-  q_mid <- mapply(function(x){x[2]}, x)
-  q_max <- mapply(function(x){x[3]}, x)
-  
-  # set defaults on undefined arguments
-  if (! "ylim" %in% arg_names) {
-    args$ylim <- c(0,1)
-  }
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "locus"
-  }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- "allele frequency"
+  # split plotting method for bi-allelic vs. multi-allelic estimates
+  if (max_alleles == 2) {
+    plot1 <- plot_p_biallelic(x)
+  } else {
+    plot1 <- plot_p_multiallelic(x)
   }
   
-  # plot with finalised list of parameters
-  do.call(plot_quantiles, c(list(q_min=q_min, q_mid=q_mid, q_max=q_max), args))
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+# plot bi-allelic allele frequency estimates
+#' @noRd
+plot_p_biallelic <- function(p) {
+  
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
+  
+  df <- as.data.frame(t(mapply(function(x){x}, p)))
+  names(df) <- c("Q2.5", "Q50", "Q97.5")
+  n <- nrow(df)
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = ~1:n, y = ~Q2.5, xend = ~1:n, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = ~1:n, y = ~Q50))
+  plot1 <- plot1 + xlab("locus") + ylab("allele frequency")
+  plot1 <- plot1 + ylim(0,1)
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+# plot multi-allelic allele frequency estimates
+#' @noRd
+plot_p_multiallelic <- function(z) {
+  print("TODO")
+  return(NULL)
 }
 
 #------------------------------------------------
@@ -404,7 +454,7 @@ plot.malecot_p_quantiles <- function(x, y, ...) {
 #'
 #' @details TODO
 #'
-#' @param proj TODO
+#' @param project TODO
 #' @param K TODO
 #' @param deme TODO
 #' @param ... TODO
@@ -413,129 +463,82 @@ plot.malecot_p_quantiles <- function(x, y, ...) {
 #' @examples
 #' # TODO
 
-plot_p_quantiles <- function(proj, K = NULL, deme = 1, ...) {
+plot_p_quantiles <- function(project, K = NULL, deme = 1, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
-  
-  # set defaults on undefined arguments
-  if (! "main" %in% arg_names) {
-    args$main <- paste("deme", deme)
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
   }
+  assert_single_pos_int(deme)
   
   # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
+  s <- project$active_set
+  if (s == 0) {
     stop("no active parameter set")
   }
   
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range[1])
-  K_string <- paste0("K", K)
-  
-  # check output exists for this K
-  if (is.null(proj$output[[s]][K_string])) {
-    stop(sprintf("no output for K = %s of active set", K))
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$p_quantiles)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no p_quantiles output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
   }
   
-  # produce quantile plot with finalised list of parameters
-  do.call(plot, c(list(proj$output[[s]][[K_string]]$summary$p_quantiles[[deme]]), args))
+  # check output exists for chosen K
+  p_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$p_quantiles
+  if (is.null(p_quantiles)) {
+    stop(sprintf("no p_quantiles output for K = %s of active set", K))
+  }
+  
+  # check that selected deme is within limits
+  assert_leq(deme, length(p_quantiles))
+  
+  # produce quantile plot
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$p_quantiles[[deme]])
+  
+  # add deme title
+  plot1 <- plot1 + ggtitle(sprintf("deme%s", deme))
+  
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
-#' @title Default plot for class malecot_q_matrix
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot.malecot_q_matrix <- function(x, y = NULL, ...) {
+# Default plot for class malecot_e_quantiles
+#' @noRd
+plot.malecot_e_quantiles <- function(x, y, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
-  
-  # unclass x
-  x <- t(unclass(x))
-  
-  # get basic data properties
-  n <- ncol(x)
-  K <- nrow(x)
-  
-  # set defaults on undefined arguments
-  if (! "ylim" %in% arg_names) {
-    args$ylim <- c(0, 1)
-  }
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "sample"
-  }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- ""
-  }
-  if (! "xaxs" %in% arg_names) {
-    args$xaxs <- "i"
-  }
-  if (! "yaxs" %in% arg_names) {
-    args$yaxs <- "i"
-  }
-  if (! "space" %in% arg_names) {
-    args$space <- 0
-  }
-  if (! "names" %in% arg_names) {
-    args$names <- rep(NA,n)
-  }
-  if (! "col" %in% arg_names) {
-    args$col <- default_colours(K)
-  }
-  if (! "border" %in% arg_names) {
-    args$border <- NA
+  # check for NULL
+  if (is.null(x)) {
+    message("no e_quantiles to plot")
   }
   
-  # plot with finalised list of parameters
-  do.call(barplot, c(list(height=x), args))
-  box()
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  xvals <- c("e1", "e2")
   
-  # if y data used, add points above barplot
-  # NOTE - RELEGATED UNTIL MOVE TO GGPLOT
-  # TODO - replace this code
-  if (!is.null(y)) {
-    
-    # TODO - checks on y data
-    
-    # variation of above arguments
-    args2 <- args
-    args2$axes <- FALSE
-    args2$ylim <- c(-50,-1)
-    args2$col <- args$col[y]
-    
-    # allow plot outside plotting region
-    par_store <- par(xpd = NA, new = TRUE)
-    on.exit(par(par_store))
-    
-    # add secondary barplot
-    do.call(barplot, c(list(height=rep(1,length(y))), args2))
-  }
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = xvals, y = ~Q2.5, xend = xvals, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = xvals, y = ~Q50))
+  plot1 <- plot1 + xlab("") + ylab("posterior error")
   
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
-#' @title Plot Q-matrix of current active set
+#' @title Plot e quantiles of current active set
 #'
-#' @description Plot Q-matrix of current active set
+#' @description Plot e quantiles of current active set
 #'
 #' @details TODO
 #'
-#' @param proj TODO
-#' @param y TODO
+#' @param project TODO
 #' @param K TODO
 #' @param ... TODO
 #'
@@ -543,74 +546,88 @@ plot.malecot_q_matrix <- function(x, y = NULL, ...) {
 #' @examples
 #' # TODO
 
-plot_q_matrix <- function(proj, y = NULL, K = NULL, ...) {
+plot_e_quantiles <- function(project, K = NULL, ...) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
   
   # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
+  s <- project$active_set
+  if (s == 0) {
     stop("no active parameter set")
   }
   
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range[1])
-  K_string <- paste0("K", K)
-  
-  # check output exists for this K
-  if (is.null(proj$output[[s]][K_string])) {
-    stop(sprintf("no output for K = %s of active set", K))
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$e_quantiles)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no e_quantiles output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
   }
   
-  # produce Q-matrix plot
-  plot(proj$output[[s]][[K_string]]$summary$q_matrix, y, ...)
+  # check output exists for chosen K
+  e_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$e_quantiles
+  if (is.null(e_quantiles)) {
+    stop(sprintf("no e_quantiles output for K = %s of active set", K))
+  }
+  
+  # produce quantile plot
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$e_quantiles)
+  
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
-#' @title Default plot for class malecot_GTI_path
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
+# Default plot for class maverick_GTI_path
+#' @noRd
 plot.malecot_GTI_path <- function(x, y, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  # check inputs
+  assert_in(y, 1:2)
   
-  # unclass x
-  n <- nrow(x)
-  x <- unclass(x)
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
+  df <- rbind(data.frame(mean = 0, SE = 0), df)
   
-  # get basic data properties
-  q_mid <- x$mean
-  q_min <- x$mean - 1.96*x$SE
-  q_max <- x$mean + 1.96*x$SE
+  # get quantiles
+  df$q_min <- df$mean - 1.96*df$SE
+  df$q_mid <- df$mean
+  df$q_max <- df$mean + 1.96*df$SE
   
-  # set defaults on undefined arguments
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "rung"
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  if (y==1) {
+    q_x <- 1:(n+1)
+    width <- 0.1
+    plot1 <- plot1 + geom_line(aes_(x = ~as.factor(0:n), y = ~q_mid, group = 1))
+    plot1 <- plot1 + xlab("rung")
+  } else {
+    q_x <- seq(0,1,l=n+1)
+    width <- 0.01
+    plot1 <- plot1 + geom_line(aes_(x = ~q_x, y = ~q_mid))
+    plot1 <- plot1 + xlab(parse(text = "beta"))
   }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- "GTI path"
-  }
   
-  # fixed arguments, or arguments that have special meaning
-  if ("q_x" %in% arg_names) {
-    q_min <- c(0, q_min)
-    q_mid <- c(0, q_mid)
-    q_max <- c(0, q_max)
-  }
+  # continue building plot
+  plot1 <- plot1 + geom_area(aes_(x = ~q_x, y = ~q_mid, fill = "col1", colour = "col1", alpha = 0.5))
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x, y = ~q_min, xend = ~q_x, yend = ~q_max))
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x-width, y = ~q_min, xend = ~q_x+width, yend = ~q_min))
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x-width, y = ~q_max, xend = ~q_x+width, yend = ~q_max))
   
-  # plot with finalised list of parameters
-  do.call(plot_quantiles, c(list(q_min=q_min, q_mid=q_mid, q_max=q_max), args))
+  plot1 <- plot1 + scale_fill_manual(values = "#4575B4")
+  plot1 <- plot1 + scale_colour_manual(values = "black")
+  plot1 <- plot1 + guides(fill = FALSE, colour = FALSE, alpha = FALSE)
+  plot1 <- plot1 + ylab("weighted log-likelihood")
+  
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
@@ -618,195 +635,531 @@ plot.malecot_GTI_path <- function(x, y, ...) {
 #'
 #' @description Plot GTI path of current active set
 #'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param K TODO
-#' @param axis_type TODO
-#' @param connect_points TODO
-#' @param ... TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
+#' @param axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
+#'   beta
 #'
 #' @export
-#' @examples
-#' # TODO
 
-plot_GTI_path <- function(proj, K = NULL, axis_type = 2, connect_points = TRUE, ...) {
+plot_GTI_path <- function(project, K = NULL, axis_type = 1) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
+  assert_in(axis_type, 1:2)
   
   # get active set and check non-zero
-  s <- proj$active_set
+  s <- project$active_set
   if (s==0) {
     stop("no active parameter set")
   }
   
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range[1])
-  K_string <- paste0("K", K)
-  
-  # check output exists for this K
-  if (is.null(proj$output[[s]][[K_string]])) {
-    stop(sprintf("no output for K = %s of active set", K))
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$GTI_path)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
   }
   
-  # x axis options
-  if (axis_type %in% c(2,3)) {
-    rungs <- proj$output[[s]][[K_string]]$function_call$args$rungs
-    if (! "width" %in% arg_names) {
-      args$width <- 0.02
-    }
-    if (! "xlim" %in% arg_names) {
-      args$xlim <- c(0,1)
-    }
-    if (axis_type==2) {
-      args$q_x <- (0:rungs)/rungs
-      if (! "xlab" %in% arg_names) {
-        args$xlab <- parse(text="beta")
-      }
-    }
-    if (axis_type==3) {
-      GTI_pow <- proj$output[[s]][[K_string]]$function_call$args$GTI_pow
-      args$q_x <- ((0:rungs)/rungs)^GTI_pow
-      if (! "xlab" %in% arg_names) {
-        args$xlab <- parse(text="beta^gamma")
-      }
-    }
+  # check output exists for chosen K
+  GTI_path <- project$output$single_set[[s]]$single_K[[K]]$summary$GTI_path
+  if (is.null(GTI_path)) {
+    stop(sprintf("no GTI_path output for K = %s of active set", K))
   }
   
-  # default args
-  args$connect_points <- connect_points
+  # produce plot with different axis options
+  plot1 <- plot(GTI_path, axis_type)
   
-  # produce quantile plot with finalised list of parameters
-  do.call(plot, c(list(proj$output[[s]][[K_string]]$summary$GTI_path), args))
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------
-#' @title Plot model log-evidence estimates over K
-#'
-#' @description Plot model log-evidence estimates over K
-#'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param K TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot_logevidence <- function(proj, K = NULL, ...) {
+# Default plot for class malecot_GTI_logevidence
+#' @noRd
+plot.malecot_GTI_logevidence <- function(x, y, ...) {
   
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
   
-  # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
-    stop("no active parameter set")
-  }
-  
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range)
-  
-  # get logevidence over all K
-  GTI_logevidence <- mapply(function(x){
-    GTI_logevidence <- x$summary$GTI_logevidence
-    if (is.null(GTI_logevidence)) {
-      return(rep(NA,2))
-    } else {
-      return(GTI_logevidence)
-    }
-  }, proj$output[[s]])
-  
-  # set defaults
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "K"
-  }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- "log-evidence"
-  }
-  
-  # get confidence intervals
-  q_mid <- unlist(GTI_logevidence[1,])
-  q_min <- q_mid - 1.96*unlist(GTI_logevidence[2,])
-  q_max <- q_mid + 1.96*unlist(GTI_logevidence[2,])
-  
-  # plot with finalised list of parameters
-  do.call(plot_quantiles, c(list(q_min=q_min, q_mid=q_mid, q_max=q_max, q_x=K), args))
-}
-
-#------------------------------------------------
-#' @title Plot model evidence estimates over K
-#'
-#' @description Plot model evidence estimates over K
-#'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param K TODO
-#' @param ... TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot_evidence <- function(proj, K = NULL, ...) {
-  
-  # get input arguments
-  args <- list(...)
-  arg_names <- names(args)
-  
-  # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
-    stop("no active parameter set")
-  }
-  
-  # set default value of K
-  K <- define_default(K, proj$parameter_sets[[s]]$K_range)
-  nK <- length(K)
-  
-  # get evidence over all K
-  GTI_evidence <- mapply(function(x){
-    GTI_evidence <- x$summary$GTI_evidence
-    if (is.null(GTI_evidence)) {
-      return(rep(NA,3))
-    } else {
-      return(GTI_evidence)
-    }
-  }, proj$output[[s]])
-  
-  # set defaults
-  if (! "xlab" %in% arg_names) {
-    args$xlab <- "K"
-  }
-  if (! "ylab" %in% arg_names) {
-    args$ylab <- "evidence"
-  }
-  if (! "ylim" %in% arg_names) {
-    args$ylim <- c(0,1)
-  }
-  if (! "names.arg" %in% arg_names) {
-    args$names.arg <- K
-  }
-  if (! "lwd" %in% arg_names) {
-    args$lwd <- 1
-  }
-  if (! "col" %in% arg_names) {
-    args$col <- "#4575B4"
-  }
-  args$space <- 0
-  
-  # get confidence intervals
-  q_min <- unlist(GTI_evidence[1,])
-  q_mid <- unlist(GTI_evidence[2,])
-  q_max <- unlist(GTI_evidence[3,])
+  # get quantiles
+  df$q_min <- df$mean - 1.96*df$SE
+  df$q_mid <- df$mean
+  df$q_max <- df$mean + 1.96*df$SE
+  q_x <- 1:n
   
   # produce plot
-  do.call(barplot, c(list(height = q_mid), args))
-  segments(x0=1:nK-0.5, y0=q_min, x1=1:nK-0.5, y1=q_max, lwd=args$lwd)  # add vertical lines
+  plot1 <- ggplot(df) + theme_bw()
+  width <- 0.1
+  plot1 <- plot1 + geom_point(aes_(x = ~as.factor(K), y = ~q_mid), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x, y = ~q_min, xend = ~q_x, yend = ~q_max), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x-width, y = ~q_min, xend = ~q_x+width, yend = ~q_min), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x-width, y = ~q_max, xend = ~q_x+width, yend = ~q_max), na.rm = TRUE)
+  plot1 <- plot1 + xlab("K") + ylab("log-evidence")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot log-evidence estimates over K
+#'
+#' @description Plot log-evidence estimates over K
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#'
+#' @export
+
+plot_logevidence_K <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # check output exists for chosen K
+  GTI_logevidence <- project$output$single_set[[s]]$all_K$GTI_logevidence
+  if (is.null(GTI_logevidence)) {
+    stop("no GTI_logevidence output for active set")
+  }
+  
+  # produce plot
+  plot1 <- plot(GTI_logevidence)
+  
+  # return plot object
+  return(plot1)
+}
+
+
+#------------------------------------------------
+# Default plot for class malecot_GTI_posterior
+#' @noRd
+plot.malecot_GTI_posterior <- function(x, y, ...) {
+  
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
+  width <- 0.1
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_bar(aes_(x = ~K, y = ~Q50, fill = "blue"), stat = "identity", na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~K, y = ~Q2.5, xend = ~K, yend = ~Q97.5), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~K-width, y = ~Q2.5, xend = ~K+width, yend = ~Q2.5), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~K-width, y = ~Q97.5, xend = ~K+width, yend = ~Q97.5), na.rm = TRUE)
+  
+  # add legends
+  plot1 <- plot1 + scale_fill_manual(values = "#4575B4")
+  plot1 <- plot1 + guides(fill = FALSE)
+  
+  # modify scales etc.
+  plot1 <- plot1 + coord_cartesian(ylim = c(-0.05,1.05))
+  plot1 <- plot1 + scale_y_continuous(expand = c(0,0))
+  plot1 <- plot1 + xlab("K") + ylab("probability")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot posterior K
+#'
+#' @description Plot posterior K
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#'
+#' @export
+
+plot_posterior_K <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # check output exists for chosen K
+  GTI_posterior <- project$output$single_set[[s]]$all_K$GTI_posterior
+  if (is.null(GTI_posterior)) {
+    stop("no GTI_posterior output for active set")
+  }
+  
+  # produce plot
+  plot1 <- plot(GTI_posterior)
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+# Default plot for class malecot_GTI_logevidence_model
+#' @noRd
+plot.malecot_GTI_logevidence_model <- function(x, y, ...) {
+  
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
+  
+  # get quantiles
+  df$q_min <- df$mean - 1.96*df$SE
+  df$q_mid <- df$mean
+  df$q_max <- df$mean + 1.96*df$SE
+  q_x <- 1:n
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  width <- 0.1
+  plot1 <- plot1 + geom_point(aes_(x = ~as.factor(set), y = ~q_mid), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x, y = ~q_min, xend = ~q_x, yend = ~q_max), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x-width, y = ~q_min, xend = ~q_x+width, yend = ~q_min), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~q_x-width, y = ~q_max, xend = ~q_x+width, yend = ~q_max), na.rm = TRUE)
+  plot1 <- plot1 + scale_x_discrete(labels = df$name, breaks = 1:n)
+  plot1 <- plot1 + xlab("model") + ylab("log-evidence")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot log-evidence estimates over parameter sets
+#'
+#' @description Plot log-evidence estimates over parameter sets
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#'
+#' @export
+
+plot_logevidence_model <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  
+  # check output exists
+  GTI_logevidence_model <- project$output$all_sets$GTI_logevidence_model
+  if (is.null(GTI_logevidence_model)) {
+    stop("no GTI_logevidence_model output")
+  }
+  
+  # produce plot
+  plot1 <- plot(GTI_logevidence_model)
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+# Default plot for class malecot_GTI_posterior_model
+#' @noRd
+plot.malecot_GTI_posterior_model <- function(x, y, ...) {
+  
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  n <- nrow(df)
+  width <- 0.1
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_bar(aes_(x = ~as.factor(set), y = ~Q50, fill = "blue"), stat = "identity", na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~set, y = ~Q2.5, xend = ~set, yend = ~Q97.5), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~set-width, y = ~Q2.5, xend = ~set+width, yend = ~Q2.5), na.rm = TRUE)
+  plot1 <- plot1 + geom_segment(aes_(x = ~set-width, y = ~Q97.5, xend = ~set+width, yend = ~Q97.5), na.rm = TRUE)
+  
+  # add legends
+  plot1 <- plot1 + scale_fill_manual(values = "#4575B4")
+  plot1 <- plot1 + guides(fill = FALSE)
+  
+  # modify scales etc.
+  plot1 <- plot1 + scale_x_discrete(labels = df$name, breaks = 1:n)
+  plot1 <- plot1 + coord_cartesian(ylim = c(-0.05,1.05))
+  plot1 <- plot1 + scale_y_continuous(expand = c(0,0))
+  plot1 <- plot1 + xlab("model") + ylab("probability")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot posterior model
+#'
+#' @description Plot posterior model
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#'
+#' @export
+
+plot_posterior_model <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  
+  # check output exists
+  GTI_posterior_model <- project$output$all_sets$GTI_posterior_model
+  if (is.null(GTI_posterior_model)) {
+    stop("no GTI_posterior_model output")
+  }
+  
+  # produce plot
+  plot1 <- plot(GTI_posterior_model)
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Produce MCMC trace plot
+#'   
+#' @description Produce MCMC trace plot of the log-likelihood at each iteration.
+#'   
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
+#' @param rung which value of K to produce the plot for. Defaults to the cold rung
+#' @param col colour of the trace
+#'   
+#' @export
+
+plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
+  if (!is.null(rung)) {
+    assert_single_pos_int(rung)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no loglike_sampling output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
+  if (is.null(loglike_sampling)) {
+    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
+  }
+  
+  # use cold rung by default
+  rung <- define_default(rung, ncol(loglike_sampling))
+  assert_leq(rung, ncol(loglike_sampling))
+  loglike <- as.vector(loglike_sampling[,rung])
+  
+  # get into ggplot format
+  df <- data.frame(x = 1:length(loglike), y = loglike)
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw() + ylab("log-likelihood")
+  
+  # complete plot
+  plot1 <- plot1 + geom_line(aes_(x = ~x, y = ~y, colour = "col1"))
+  plot1 <- plot1 + coord_cartesian(xlim = c(0,nrow(df)))
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0))
+  plot1 <- plot1 + scale_colour_manual(values = col)
+  plot1 <- plot1 + guides(colour = FALSE)
+  plot1 <- plot1 + xlab("iteration")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Produce MCMC autocorrelation plot
+#'
+#' @description Produce MCMC autocorrelation plot of the log-likelihood
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
+#' @param rung which value of K to produce the plot for. Defaults to the cold rung
+#' @param col colour of the trace
+#'
+#' @export
+
+plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
+  if (!is.null(rung)) {
+    assert_single_pos_int(rung)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no loglike_sampling output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
+  if (is.null(loglike_sampling)) {
+    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
+  }
+  
+  # use cold rung by default
+  rung <- define_default(rung, ncol(loglike_sampling))
+  assert_leq(rung, ncol(loglike_sampling))
+  loglike <- as.vector(loglike_sampling[,rung])
+  
+  # store variable to plot
+  v <- loglike
+  
+  # get autocorrelation
+  lag_max <- round(3*length(v)/effectiveSize(v))
+  lag_max <- max(lag_max, 20)
+  lag_max <- min(lag_max, length(v))
+  
+  # get into ggplot format
+  a <- acf(v, lag.max = lag_max, plot = FALSE)
+  acf <- as.vector(a$acf)
+  df <- data.frame(lag = (1:length(acf))-1, ACF = acf)
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = ~lag, y = 0, xend = ~lag, yend = ~ACF, colour = "col1"))
+  plot1 <- plot1 + scale_colour_manual(values = col)
+  plot1 <- plot1 + guides(colour = FALSE)
+  plot1 <- plot1 + xlab("lag") + ylab("ACF")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Produce MCMC density plot
+#'
+#' @description Produce MCMC density plot of the log-likelihood
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{mavproject()}
+#' @param K which value of K to produce the plot for
+#' @param rung which value of K to produce the plot for. Defaults to the cold rung
+#' @param col colour of the trace
+#'
+#' @export
+
+plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
+  if (!is.null(rung)) {
+    assert_single_pos_int(rung)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no loglike_sampling output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
+  if (is.null(loglike_sampling)) {
+    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
+  }
+  
+  # use cold rung by default
+  rung <- define_default(rung, ncol(loglike_sampling))
+  assert_leq(rung, ncol(loglike_sampling))
+  loglike <- as.vector(loglike_sampling[,rung])
+  
+  # get into ggplot format
+  df <- data.frame(v = loglike)
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw() + xlab("log-likelihood")
+  
+  # produce plot
+  #plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_histogram(aes_(x = ~v, y = ~..density.., fill = "col1"), bins = 50)
+  plot1 <- plot1 + scale_fill_manual(values = col)
+  plot1 <- plot1 + guides(fill = FALSE)
+  plot1 <- plot1 + ylab("density")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Produce diagnostic plots of log-likelihood
+#'
+#' @description Produce diagnostic plots of the log-likelihood.
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
+#' @param col colour of the trace
+#'
+#' @export
+
+plot_loglike <- function(project, K = NULL, col = "black") {
+  
+  # produce individual diagnostic plots and add features
+  plot1 <- plot_trace(project, K = K, col = col)
+  plot1 <- plot1 + ggtitle("MCMC trace")
+  
+  plot2 <- plot_acf(project, K = K, col = col)
+  plot2 <- plot2 + ggtitle("autocorrelation")
+  
+  plot3 <- plot_density(project, K = K, col = col)
+  plot3 <- plot3 + ggtitle("density")
+  
+  # produce grid of plots
+  ret <- grid.arrange(plot1, plot2, plot3, layout_matrix = rbind(c(1,1), c(2,3)))
 }

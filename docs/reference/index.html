@@ -78,7 +78,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+    </li>
+    <li>
+      <a href="../articles/installation.html">Installing MALECOT</a>
     </li>
     <li>
       <a href="../articles/test.html">test</a>
@@ -127,15 +130,21 @@
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="bind_data.html">bind_data()</a></code> </p>
+          <p><code><a href="bind_data_biallelic.html">bind_data_biallelic()</a></code> </p>
         </td>
-        <td><p>Bind data to project</p></td>
+        <td><p>Bind bi-allelic data to project</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="bind_data_multiallelic.html">bind_data_multiallelic()</a></code> </p>
+        </td>
+        <td><p>Bind multi-allelic format data to project</p></td>
       </tr><tr>
         <!--  -->
         <td>
           <p><code><a href="delete_set.html">delete_set()</a></code> </p>
         </td>
-        <td><p>Delete MALECOT parameter set</p></td>
+        <td><p>Delete parameter set</p></td>
       </tr><tr>
         <!--  -->
         <td>
@@ -145,45 +154,15 @@
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="generate_scaffolds.html">generate_scaffolds()</a></code> </p>
-        </td>
-        <td><p>Generate scaffolds</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="is.malecot_GTI_path.html">is.malecot_GTI_path()</a></code> </p>
-        </td>
-        <td><p>Determine if object is of class malecot_GTI_path</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="is.malecot_loglike_quantiles.html">is.malecot_loglike_quantiles()</a></code> </p>
-        </td>
-        <td><p>Determine if object is of class malecot_loglike_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="is.malecot_m_quantiles.html">is.malecot_m_quantiles()</a></code> </p>
-        </td>
-        <td><p>Determine if object is of class malecot_m_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="is.malecot_p_quantiles.html">is.malecot_p_quantiles()</a></code> </p>
-        </td>
-        <td><p>Determine if object is of class malecot_p_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
           <p><code><a href="is.malecot_project.html">is.malecot_project()</a></code> </p>
         </td>
         <td><p>Determine if object is of class malecot_project</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="is.malecot_q_matrix.html">is.malecot_q_matrix()</a></code> </p>
+          <p><code><a href="malecot_file.html">malecot_file()</a></code> </p>
         </td>
-        <td><p>Determine if object is of class malecot_q_matrix</p></td>
+        <td><p>Import file</p></td>
       </tr><tr>
         <!--  -->
         <td>
@@ -199,51 +178,45 @@
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="plot.malecot_GTI_path.html">plot(<i>&lt;malecot_GTI_path&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Default plot for class malecot_GTI_path</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="plot.malecot_loglike_quantiles.html">plot(<i>&lt;malecot_loglike_quantiles&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Default plot for class malecot_loglike_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="plot.malecot_m_quantiles.html">plot(<i>&lt;malecot_m_quantiles&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Default plot for class malecot_m_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="plot.malecot_p_quantiles.html">plot(<i>&lt;malecot_p_quantiles&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Default plot for class malecot_p_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="plot.malecot_q_matrix.html">plot(<i>&lt;malecot_q_matrix&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Default plot for class malecot_q_matrix</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
           <p><code><a href="plot_GTI_path.html">plot_GTI_path()</a></code> </p>
         </td>
         <td><p>Plot GTI path of current active set</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="plot_evidence.html">plot_evidence()</a></code> </p>
+          <p><code><a href="plot_acf.html">plot_acf()</a></code> </p>
         </td>
-        <td><p>Plot model evidence estimates over K</p></td>
+        <td><p>Produce MCMC autocorrelation plot</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="plot_logevidence.html">plot_logevidence()</a></code> </p>
+          <p><code><a href="plot_density.html">plot_density()</a></code> </p>
         </td>
-        <td><p>Plot model log-evidence estimates over K</p></td>
+        <td><p>Produce MCMC density plot</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="plot_e_quantiles.html">plot_e_quantiles()</a></code> </p>
+        </td>
+        <td><p>Plot e quantiles of current active set</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="plot_logevidence_K.html">plot_logevidence_K()</a></code> </p>
+        </td>
+        <td><p>Plot log-evidence estimates over K</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="plot_logevidence_model.html">plot_logevidence_model()</a></code> </p>
+        </td>
+        <td><p>Plot log-evidence estimates over parameter sets</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="plot_loglike.html">plot_loglike()</a></code> </p>
+        </td>
+        <td><p>Produce diagnostic plots of log-likelihood</p></td>
       </tr><tr>
         <!--  -->
         <td>
@@ -271,45 +244,51 @@
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="plot_q_matrix.html">plot_q_matrix()</a></code> </p>
+          <p><code><a href="plot_posterior_K.html">plot_posterior_K()</a></code> </p>
+        </td>
+        <td><p>Plot posterior K</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="plot_posterior_model.html">plot_posterior_model()</a></code> </p>
+        </td>
+        <td><p>Plot posterior model</p></td>
+      </tr><tr>
+        <!--  -->
+        <td>
+          <p><code><a href="plot_qmatrix.html">plot_qmatrix()</a></code> </p>
         </td>
         <td><p>Plot Q-matrix of current active set</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="print.malecot_GTI_path.html">print(<i>&lt;malecot_GTI_path&gt;</i>)</a></code> </p>
+          <p><code><a href="plot_trace.html">plot_trace()</a></code> </p>
         </td>
-        <td><p>Overload print function for malecot_GTI_path</p></td>
+        <td><p>Produce MCMC trace plot</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="print.malecot_loglike_quantiles.html">print(<i>&lt;malecot_loglike_quantiles&gt;</i>)</a></code> </p>
+          <p><code><a href="print.malecot_project.html">print(<i>&lt;malecot_project&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Overload print function for malecot_loglike_quantiles</p></td>
+        <td><p>Custom print function for class malecot_project</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="print.malecot_m_quantiles.html">print(<i>&lt;malecot_m_quantiles&gt;</i>)</a></code> </p>
+          <p><code><a href="print_full.html">print_full()</a></code> </p>
         </td>
-        <td><p>Overload print function for malecot_m_quantiles</p></td>
+        <td><p>Ordinary print function for class malecot_project</p></td>
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="print.malecot_p_quantiles.html">print(<i>&lt;malecot_p_quantiles&gt;</i>)</a></code> </p>
+          <p><code><a href="recalculate_evidence.html">recalculate_evidence()</a></code> </p>
         </td>
-        <td><p>Overload print function for malecot_p_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="print.malecot_q_matrix.html">print(<i>&lt;malecot_q_matrix&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Overload print function for malecot_q_matrix</p></td>
+        <td><p>Recalculate evidence and posterior estimates</p></td>
       </tr><tr>
         <!--  -->
         <td>
           <p><code><a href="run_mcmc.html">run_mcmc()</a></code> </p>
         </td>
-        <td><p>Run MALECOT MCMC</p></td>
+        <td><p>Run main MCMC</p></td>
       </tr><tr>
         <!--  -->
         <td>
@@ -325,33 +304,9 @@
       </tr><tr>
         <!--  -->
         <td>
-          <p><code><a href="summary.malecot_GTI_path.html">summary(<i>&lt;malecot_GTI_path&gt;</i>)</a></code> </p>
+          <p><code><a href="summary.malecot_project.html">summary(<i>&lt;malecot_project&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Overload summary function for malecot_GTI_path</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="summary.malecot_loglike_quantiles.html">summary(<i>&lt;malecot_loglike_quantiles&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Overload summary function for malecot_loglike_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="summary.malecot_m_quantiles.html">summary(<i>&lt;malecot_m_quantiles&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Overload summary function for malecot_m_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="summary.malecot_p_quantiles.html">summary(<i>&lt;malecot_p_quantiles&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Overload summary function for malecot_p_quantiles</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="summary.malecot_q_matrix.html">summary(<i>&lt;malecot_q_matrix&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Overload summary function for malecot_q_matrix</p></td>
+        <td><p>Print summary for class malecot_project</p></td>
       </tr>
     </tbody>
     </table>

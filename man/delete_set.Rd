@@ -4,16 +4,16 @@
 \alias{delete_set}
 \title{Delete parameter set}
 \usage{
-delete_set(proj, set = NULL, check_delete_output = TRUE)
+delete_set(project, set = NULL, check_delete_output = TRUE)
 }
 \arguments{
+\item{project}{a MALECOT project, as produced by the function 
+\code{malecot_project()}}
+
 \item{set}{which set to delete. Defaults to the current active set}
 
 \item{check_delete_output}{whether to prompt the user before deleting any 
 existing output}
-
-\item{project}{a MALECOT project, as produced by the function 
-\code{malecot_project()}}
 }
 \description{
 Delete a given parameter set from a MALECOT project.
