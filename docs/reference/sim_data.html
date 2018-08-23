@@ -113,9 +113,9 @@
     </div>
 
     <pre class="usage"><span class='fu'>sim_data</span>(<span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>L</span> <span class='kw'>=</span> <span class='fl'>24</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>data_format</span> <span class='kw'>=</span> <span class='st'>"biallelic"</span>,
-  <span class='kw'>alleles</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>, <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>,
-  <span class='kw'>COI_manual</span> <span class='kw'>=</span> <span class='fu'>rep</span>(-<span class='fl'>1</span>, <span class='no'>n</span>), <span class='kw'>COI_mean</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>e1</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>e2</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>prop_missing</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
+  <span class='kw'>pop_col_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>alleles</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>,
+  <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>, <span class='kw'>COI_manual</span> <span class='kw'>=</span> <span class='fu'>rep</span>(-<span class='fl'>1</span>, <span class='no'>n</span>), <span class='kw'>COI_mean</span> <span class='kw'>=</span> <span class='fl'>3</span>,
+  <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>e1</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>e2</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>prop_missing</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -137,6 +137,10 @@
       <td><p>whether to produce data in "biallelic" or "multiallelic"
 format. Note that if biallelic format is chosen then <code>alleles</code> is
 always set to 2</p></td>
+    </tr>
+    <tr>
+      <th>pop_col_on</th>
+      <td><p>TODO</p></td>
     </tr>
     <tr>
       <th>alleles</th>
@@ -187,10 +191,6 @@ indicating that all samples should be estimated</p></td>
     </tr>
     <tr>
       <th>prop_missing</th>
-      <td><p>TODO</p></td>
-    </tr>
-    <tr>
-      <th>pop_col_on</th>
       <td><p>TODO</p></td>
     </tr>
     </table>
