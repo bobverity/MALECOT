@@ -487,7 +487,7 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' @examples
 #' # TODO
 
-run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 10, GTI_pow = 2, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
+run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 10, GTI_pow = 3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
   
   # start timer
   t0 <- Sys.time()
