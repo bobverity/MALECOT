@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Basic tutorial • MALECOT</title>
-<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/lux/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Basic tutorial">
@@ -47,6 +47,9 @@
     </li>
     <li>
       <a href="../articles/basic-tutorial.html">Basic tutorial</a>
+    </li>
+    <li>
+      <a href="../articles/multiallelic-data.html">Multi-allelic data</a>
     </li>
   </ul>
 </li>
@@ -91,72 +94,184 @@
 
     
     
-<p>This vignette demonstrates the use of the MALECOT package on a simple biallelic simulated data set, including installing the package, simulating some data, running the model and performing simple checks on the MCMC output.</p>
-<div id="simulating-some-data" class="section level2">
-<h2 class="hasAnchor">
-<a href="#simulating-some-data" class="anchor"></a>Simulating some data</h2>
-<p>MALECOT contains basic functions for simulating genetic data. The underlying model used in simulation is identical to that used in the inference step, meaning these simulations can be used to test the power and accuracy of the model in different settings.</p>
-<p>We start by simulating a biallelic data set of 100 samples at 24 loci, drawn from 3 distinct subpopulations.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p>If we look inside this object using <code>names(sim1)</code> we will see that, in addition to the raw “data” element, the function returns the <em>true</em> value of the grouping, complexity of infection (m), and allele frequencies (p). These can be used to ground truth our inference, and check that the model is behaving as we expect.</p>
+<p>This vignette demonstrates the complete MALECOT analysis pipeline, including:</p>
+<ul>
+<li>importing data</li>
+<li>running the main MCMC</li>
+<li>diagnosing good and bad MCMC behaviour</li>
+<li>comparing different models</li>
+<li>producing basic outputs.</li>
+</ul>
+<div id="simulate-some-data" class="section level3">
+<h3 class="hasAnchor">
+<a href="#simulate-some-data" class="anchor"></a>Simulate some data</h3>
+<p>MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program without worrying about discrepancies between the data and the assumed model. We will simulate a data set of 100 samples, each genotyped at 20 bi-allelic loci and originating from 3 distinct subpopulations. We will assume that the mean complexity of infection (COI) in these subpopulation varies from 1 to 3:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">data_format =</span> <span class="st">"biallelic"</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">COI_mean =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">1</span>))</code></pre></div>
+<p>Running <code>names(mysim)</code> we can see that the simulated data contains several elements:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(mysim)</code></pre></div>
+<pre><code>## [1] "data"       "n"          "L"          "true_group" "true_m"    
+## [6] "true_p"     "call"</code></pre>
+<p>The raw data is stored in the “data” element. In addition, we have a record of the allele frequencies (p), the complexity of infection (m) and the grouping that were used in generating these data. These additional records can be useful in ground-truthing our estimated values later on, but are not actually used by the program - all that is needed for MALECOT analysis is the “data” element.</p>
+<p>Data must be in dataframe format - when using real data, functions such as <code>read.csv()</code> and <code>read.table()</code> can be used to import data. Running <code>head(mysim$data)</code> we can see the general data format required by MALECOT:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(mysim$data)</code></pre></div>
+<pre><code>##   sample_ID pop locus1 locus2 locus3 locus4 locus5 locus6 locus7 locus8
+## 1   samp001   1    1.0    0.0    0.0    0.0    1.0    0.0    0.0    0.0
+## 2   samp002   1    0.0    0.5    0.0    0.5    0.0    0.5    1.0    0.5
+## 3   samp003   1    0.5    0.0    0.5    0.0    0.0    1.0    0.5    0.0
+## 4   samp004   1    0.5    0.5    0.5    0.5    0.0    1.0    0.0    0.0
+## 5   samp005   1    0.5    1.0    1.0    0.5    0.5    0.5    0.5    0.5
+## 6   samp006   1    0.0    0.5    1.0    0.5    0.0    1.0    0.0    0.5
+##   locus9 locus10 locus11 locus12 locus13 locus14 locus15 locus16 locus17
+## 1      1       1     0.0     1.0     1.0       0     0.0       1     0.0
+## 2      0       1     1.0     1.0     1.0       0     0.5       1     0.5
+## 3      0       1     0.5     0.5     1.0       0     1.0       1     0.0
+## 4      0       1     1.0     1.0     0.5       0     1.0       1     0.0
+## 5      0       1     1.0     0.5     0.5       0     0.5       1     0.0
+## 6      0       1     0.5     1.0     0.5       0     0.5       1     0.0
+##   locus18 locus19 locus20 locus21 locus22 locus23 locus24
+## 1     0.0     1.0       0     0.0     0.0     1.0       1
+## 2     0.0     0.5       0     0.5     0.0     1.0       1
+## 3     0.0     0.5       0     1.0     0.5     0.5       1
+## 4     0.5     1.0       0     0.5     0.5     1.0       1
+## 5     0.5     0.5       0     1.0     0.0     0.5       1
+## 6     0.5     1.0       0     1.0     0.5     0.5       1</code></pre>
+<p>Note that this is the required format <strong>for bi-allelic data only</strong> - for multi-allelic data see <a href="todo">this vignette</a>.</p>
+<p>Samples are in rows and loci are in columns. There are also several meta-data columns, including the sample ID and the population of origin. These meta-data columns are optional and can be turned on or off when loading the data into a project.</p>
+<p>The actual genetic data must be one of the following values</p>
+<ul>
+<li>1 = homozygote for the reference allele</li>
+<li>0 = homozygote for the alternative allele</li>
+<li>0.5 = heterozygote</li>
+<li>-9 = missing data (the value used can be specified, but -9 is the default)</li>
+</ul>
+<p>Note that MALECOT currently does not use within-sample allele frequency information other than in terms of the major homozygote/heterozygote call, therefore intermediate values should be converted to one of the above options. MALECOT does, however, include error terms to allow for misclassification of homozygote/heterozygote calls.</p>
 </div>
-<div id="basic-analysis" class="section level2">
-<h2 class="hasAnchor">
-<a href="#basic-analysis" class="anchor"></a>Basic analysis</h2>
-<p>The analysis pipeline is built around MALECOT “projects”, similar to the projects used in programs like STRUCTURE. This project will store all data, parameters, and output for a given analysis in one convenient location.</p>
-<p>We start by creating a new project, and loading in the simulated data.</p>
+<div id="create-a-project-and-read-in-data" class="section level3">
+<h3 class="hasAnchor">
+<a href="#create-a-project-and-read-in-data" class="anchor"></a>Create a project and read in data</h3>
+<p>MALCOT works with projects, which are essentially just simple lists containing all the inputs and outputs of a given analysis. We start by creating a project and loading in our data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, <span class="dt">df =</span> sim1$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
-<p>Notice that the <code>bind_data()</code> function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.</p>
-<p>Next, we create a new parameter set. There are multiple model parameters that can be defined at this stage - we will use default settings but exploring a range of K (the number of subpopulations) from 1 to 5.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">estimate_error =</span> <span class="ot">FALSE</span>)</code></pre></div>
-<p>We can now run the main MCMC under these parameter settings. For the sake of this vignette we will use the option <code>silent = TRUE</code>, although in general it is useful to leave this option on to get a running progress update of the MCMC.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">2</span>, <span class="dt">burnin =</span> <span class="fl">1e3</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">1</span>, <span class="dt">pb_markdown =</span> <span class="ot">TRUE</span>)</code></pre></div>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
+<p>Notice the general format of the <code>bind_data()</code> function, which takes the same project as both input and output. This is the format that most MALECOT functions will take, as it allows a function to modify the project before overwriting the original version. In the input arguments we have also specified which columns are meta-data, and all other columns are assumed to contain genetic data.</p>
+<p>We can view the project to check that the data have been loaded in correctly:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj</code></pre></div>
+<pre><code>## DATA:
+##    data format = biallelic
+##    samples = 100
+##    loci = 24
+##    pops = 3
+##    missing data = 0 of 2400 gene copies (0%)
+## 
+## PARAMETER SETS:
+##    (none defined)</code></pre>
+<p>If there have been mistakes in reading in the data, for example if meta-data columns have not been specified and so have been interpreted as genetic data (a common mistake) then this should be visible at this stage.</p>
+</div>
+<div id="define-parameters-and-run-basic-mcmc" class="section level3">
+<h3 class="hasAnchor">
+<a href="#define-parameters-and-run-basic-mcmc" class="anchor"></a>Define parameters and run basic MCMC</h3>
+<p>We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and <code>COI_max</code> is equally likely <em>a priori</em>, and in which there is zero error in genotype calls:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"uniform model"</span>, <span class="dt">COI_model =</span> <span class="st">"uniform"</span>,
+                  <span class="dt">COI_max =</span> <span class="dv">20</span>, <span class="dt">estimate_error =</span> <span class="ot">FALSE</span>, <span class="dt">e1 =</span> <span class="dv">0</span>, <span class="dt">e2 =</span> <span class="dv">0</span>)</code></pre></div>
+<p>Producing a summary of the project we can now see additional properties, including the current active set and the parameters of this set.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj</code></pre></div>
+<pre><code>## DATA:
+##    data format = biallelic
+##    samples = 100
+##    loci = 24
+##    pops = 3
+##    missing data = 0 of 2400 gene copies (0%)
+## 
+## PARAMETER SETS:
+##  * SET1: uniform model
+## 
+## ACTIVE SET: SET1
+##    lambda = 1
+##    COI model = uniform
+##    COI max = 20
+##    estimate COI mean = TRUE
+##    COI dispersion = 1
+##    estimate error = FALSE
+##    e1 = 0
+##    e2 = 0</code></pre>
+<p>Now we are ready to run a basic MCMC. We will start by exploring values of K from 1 to 5, using 1000 burn-in iterations and 1000 sampling iterations. By default the MCMC has <code>auto_converge</code> turned on, meaning it will test for convergence every <code>convergence_test</code> iterations and will exit if convergence is reached (<code>convergence_test = burnin/10</code> by default). Hence, it is generally a good idea to set <code>burnin</code> to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of “rungs”. MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a “temperature ladder”. The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with <code>pb_markdown = TRUE</code> to avoid printing large amounts of output, but you should run without this argument.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>,
+                   <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 1
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 400 iterations
+##    converged within 2000 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.294151 seconds
+##    completed in 2.69761 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 400 iterations
+##    converged within 1600 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.412496 seconds
+##    completed in 4.03981 seconds
+## 
+## Running MCMC for K = 3
+## Burn-in phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    converged within 2200 iterations
+## Sampling phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    completed in 5.34773 seconds
+## 
+## Running MCMC for K = 4
+## Burn-in phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    converged within 1400 iterations
+## Sampling phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    completed in 5.41736 seconds
+## 
+## Running MCMC for K = 5
+## Burn-in phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    converged within 1500 iterations
+## Sampling phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    completed in 6.96071 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 1.85 seconds</code></pre>
-<p>All output is stored within the <code>myproj</code> object, and we can now produce plots of the posterior population assignment (i.e. “structure” plots), and the posterior complexity of infection of all samples.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_quantiles.html">plot_loglike_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-2.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-3.png" width="700"></p>
+<pre><code>## Total run-time: 26.58 seconds</code></pre>
+<p>If any values of K failed to converge then we can use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:</p>
+</div>
+<div id="comparing-values-of-k" class="section level3">
+<h3 class="hasAnchor">
+<a href="#comparing-values-of-k" class="anchor"></a>Comparing values of K</h3>
+<p>The GTI method estimates the evidence for a given model by combining information across multiple temperature rungs. These rungs provide a series of point estimates that together make a “path”, and the final evidence estimate is computed from the area between this path and the zero-line. We can visualise this path using the <code><a href="../reference/plot_GTI_path.html">plot_GTI_path()</a></code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>All plots produced by MALECOT are produced using <a href="https://ggplot2.tidyverse.org/">ggplot</a>, meaning they can be stored and modified later on - for example adding titles, legends etc.</p>
+<p>In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of <code>rungs</code> used in the MCMC, 2) by changing the value of <code>GTI_pow</code> which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and a nice straight path, so there is no need to re-run the MCMC. <strong>This check should be performed on every value of K</strong>.</p>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-        <div id="tocnav">
-      <h2 class="hasAnchor">
-<a href="#tocnav" class="anchor"></a>Contents</h2>
-      <ul class="nav nav-pills nav-stacked">
-<li><a href="#simulating-some-data">Simulating some data</a></li>
-      <li><a href="#basic-analysis">Basic analysis</a></li>
-      </ul>
-</div>
       </div>
 
 </div>

@@ -2,7 +2,7 @@
 title: MALECOT
 template:
   params:
-    bootswatch: flatly
+    bootswatch: lux
     
 navbar:
   title: "MALECOT"
@@ -13,6 +13,8 @@ navbar:
           href: articles/installation.html
         - text: "Basic tutorial"
           href: articles/basic-tutorial.html
+        - text: "Multi-allelic data"
+          href: articles/multiallelic-data.html
     - text: "Functions"
       href: reference/index.html
     - text: "FAQ"

@@ -9,51 +9,106 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette demonstrates the use of the MALECOT package on a simple biallelic simulated data set, including installing the package, simulating some data, running the model and performing simple checks on the MCMC output.
+This vignette demonstrates the complete MALECOT analysis pipeline, including:
+
+* importing data
+* running the main MCMC
+* diagnosing good and bad MCMC behaviour
+* comparing different models
+* producing basic outputs.
 
 ```{r, echo=FALSE}
 set.seed(1)
 library(MALECOT)
 ```
 
-## Simulating some data
+### Simulate some data
 
-MALECOT contains basic functions for simulating genetic data. The underlying model used in simulation is identical to that used in the inference step, meaning these simulations can be used to test the power and accuracy of the model in different settings.
-
-We start by simulating a biallelic data set of 100 samples at 24 loci, drawn from 3 distinct subpopulations.
+MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program without worrying about discrepancies between the data and the assumed model. We will simulate a data set of 100 samples, each genotyped at 20 bi-allelic loci and originating from 3 distinct subpopulations. We will assume that the mean complexity of infection (COI) in these subpopulation varies from 1 to 3:
 
 ```{r}
-sim1 <- sim_data(n = 100, L = 24, K = 3)
+mysim <- sim_data(n = 100, data_format = "biallelic", L = 24, K = 3, COI_mean = c(3,2,1))
 ```
 
-If we look inside this object using `names(sim1)` we will see that, in addition to the raw "data" element, the function returns the *true* value of the grouping, complexity of infection (m), and allele frequencies (p). These can be used to ground truth our inference, and check that the model is behaving as we expect. 
+Running `names(mysim)` we can see that the simulated data contains several elements:
 
-## Basic analysis
+```{r}
+names(mysim)
+```
 
-The analysis pipeline is built around MALECOT "projects", similar to the projects used in programs like STRUCTURE. This project will store all data, parameters, and output for a given analysis in one convenient location.
+The raw data is stored in the "data" element. In addition, we have a record of the allele frequencies (p), the complexity of infection (m) and the grouping that were used in generating these data. These additional records can be useful in ground-truthing our estimated values later on, but are not actually used by the program - all that is needed for MALECOT analysis is the "data" element.
 
-We start by creating a new project, and loading in the simulated data.
+Data must be in dataframe format - when using real data, functions such as `read.csv()` and `read.table()` can be used to import data. Running `head(mysim$data)` we can see the general data format required by MALECOT:
+
+```{r}
+head(mysim$data)
+```
+
+Note that this is the required format **for bi-allelic data only** - for multi-allelic data see [this vignette](todo).
+
+Samples are in rows and loci are in columns. There are also several meta-data columns, including the sample ID and the population of origin. These meta-data columns are optional and can be turned on or off when loading the data into a project.
+
+The actual genetic data must be one of the following values
+
+* 1 = homozygote for the reference allele
+* 0 = homozygote for the alternative allele
+* 0.5 = heterozygote
+* -9 = missing data (the value used can be specified, but -9 is the default)
+
+Note that MALECOT currently does not use within-sample allele frequency information other than in terms of the major homozygote/heterozygote call, therefore intermediate values should be converted to one of the above options. MALECOT does, however, include error terms to allow for misclassification of homozygote/heterozygote calls.
+
+### Create a project and read in data
+
+MALCOT works with projects, which are essentially just simple lists containing all the inputs and outputs of a given analysis. We start by creating a project and loading in our data:
 
 ```{r}
 myproj <- malecot_project()
-myproj <- bind_data_biallelic(myproj, df = sim1$data, ID_col = 1, pop_col = 2)
+myproj <- bind_data_biallelic(myproj, mysim$data, ID_col = 1, pop_col = 2)
 ```
 
-Notice that the `bind_data()` function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.
+Notice the general format of the `bind_data()` function, which takes the same project as both input and output. This is the format that most MALECOT functions will take, as it allows a function to modify the project before overwriting the original version. In the input arguments we have also specified which columns are meta-data, and all other columns are assumed to contain genetic data.
 
-Next, we create a new parameter set. There are multiple model parameters that can be defined at this stage - we will use default settings but exploring a range of K (the number of subpopulations) from 1 to 5.
+We can view the project to check that the data have been loaded in correctly:
+
 ```{r}
-myproj <- new_set(myproj, estimate_error = FALSE)
+myproj
 ```
 
-We can now run the main MCMC under these parameter settings. For the sake of this vignette we will use the option `silent = TRUE`, although in general it is useful to leave this option on to get a running progress update of the MCMC.
+If there have been mistakes in reading in the data, for example if meta-data columns have not been specified and so have been interpreted as genetic data (a common mistake) then this should be visible at this stage.
+
+### Define parameters and run basic MCMC
+
+We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and `COI_max` is equally likely *a priori*, and in which there is zero error in genotype calls:
+
 ```{r}
-myproj <- run_mcmc(myproj, K = 1:2, burnin = 1e3, samples = 1e3, rungs = 1, pb_markdown = TRUE)
+myproj <- new_set(myproj, name = "uniform model", COI_model = "uniform",
+                  COI_max = 20, estimate_error = FALSE, e1 = 0, e2 = 0)
 ```
 
-All output is stored within the `myproj` object, and we can now produce plots of the posterior population assignment (i.e. "structure" plots), and the posterior complexity of infection of all samples.
+Producing a summary of the project we can now see additional properties, including the current active set and the parameters of this set.
+
 ```{r}
-plot_loglike_quantiles(myproj, K = 2)
-plot_m_quantiles(myproj, K = 2)
-plot_qmatrix(myproj, K = 2, divide_ind_on = TRUE)
+myproj
 ```
+
+Now we are ready to run a basic MCMC. We will start by exploring values of K from 1 to 5, using 1000 burn-in iterations and 1000 sampling iterations. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached (`convergence_test = burnin/10` by default). Hence, it is generally a good idea to set `burnin` to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of "rungs". MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a "temperature ladder". The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should run without this argument.
+
+```{r}
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
+                   rungs = 10, pb_markdown =  TRUE)
+```
+
+If any values of K failed to converge then we can use the same `run_mcmc()` function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:
+
+### Comparing values of K
+
+The GTI method estimates the evidence for a given model by combining information across multiple temperature rungs. These rungs provide a series of point estimates that together make a "path", and the final evidence estimate is computed from the area between this path and the zero-line. We can visualise this path using the `plot_GTI_path()` function:
+
+```{r}
+plot_GTI_path(myproj, K = 3)
+```
+
+All plots produced by MALECOT are produced using [ggplot](https://ggplot2.tidyverse.org/), meaning they can be stored and modified later on - for example adding titles, legends etc.
+
+In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of `rungs` used in the MCMC, 2) by changing the value of `GTI_pow` which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and a nice straight path, so there is no need to re-run the MCMC. **This check should be performed on every value of K**.
+
