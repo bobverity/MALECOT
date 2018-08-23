@@ -1,0 +1,24 @@
+
+title: MALECOT
+template:
+  params:
+    bootswatch: lux
+    
+navbar:
+  title: "MALECOT"
+  left:
+    - text: "Vignettes"
+      menu:
+        - text: "Installation"
+          href: articles/installation.html
+        - text: "Basic tutorial"
+          href: articles/basic_tutorial.html
+    - text: "Functions"
+      href: reference/index.html
+    - text: "FAQ"
+      href: articles/faq.html
+    - text: "Known issues"
+      href: articles/known-issues.html
+  right:
+   - icon: fa-github
+     href: https://github.com/bobverity/malecot

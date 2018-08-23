@@ -3,5 +3,7 @@ pkgdown: 1.0.0
 pkgdown_sha: ~
 articles:
   basic-tutorial: basic-tutorial.html
+  faq: faq.html
   installation: installation.html
+  known-issues: known-issues.html
 
