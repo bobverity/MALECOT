@@ -192,7 +192,7 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
   n <- length(ID)
   
   # check locus column
-  locus_names <- unique(subset(df, sample_ID == sample_ID[1])$locus)
+  locus_names <- unique(subset(df, df$sample_ID == df$sample_ID[1])$locus)
   L <- length(locus_names)
   good_loci <- mapply(function(x) {
                         return(isTRUE(all.equal(unique(x), locus_names)))
@@ -262,6 +262,9 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #' @param COI_model the type of prior on COI. Must be one of "uniform",
 #'   "poisson", or "nb" (negative binomial)
 #' @param COI_max TODO
+#' @param COI_manual TODO
+#' @param estimate_COI_mean TODO
+#' @param COI_mean TODO
 #' @param COI_dispersion must be > 1
 #' @param estimate_error TODO
 #' @param e1 TODO
@@ -274,7 +277,6 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #' # TODO
 
 new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_manual = NULL, estimate_COI_mean = TRUE, COI_mean = 3, COI_dispersion = 1, estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2, e2_max = 0.2) {
-  
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -680,7 +682,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     
     # get quantiles over COI_mean
     if (is.null(full_COI_mean)) {
-      fake_COI_mean <- matrix((COI_max + 1)/2, ncol = K[i])
+      fake_COI_mean <- matrix((args_model$COI_max + 1)/2, ncol = K[i])
       colnames(fake_COI_mean) <- deme_names
       COI_mean_quantiles <- t(apply(fake_COI_mean, 2, quantile_95))
     } else {

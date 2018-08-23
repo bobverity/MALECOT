@@ -12,6 +12,7 @@
 #' @param data_format whether to produce data in "biallelic" or "multiallelic"
 #'   format. Note that if biallelic format is chosen then \code{alleles} is
 #'   always set to 2
+#' @param pop_col_on TODO
 #' @param alleles the number of alleles at each locus. Can be a vector of length
 #'   \code{L} specifying the number of alleles at each locus, or a single scalar
 #'   value specifying the number of alleles at all loci
@@ -33,13 +34,12 @@
 #' @param e1 TODO
 #' @param e2 TODO
 #' @param prop_missing TODO
-#' @param pop_col_on TODO
 #'
 #' @export
 #' @examples
 #' # TODO
 
-sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles = 2, lambda = 1, COI_model = "poisson", COI_max = 20, COI_manual = rep(-1,n), COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0, prop_missing = 0) {
+sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_on = TRUE, alleles = 2, lambda = 1, COI_model = "poisson", COI_max = 20, COI_manual = rep(-1,n), COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0, prop_missing = 0) {
   
   ##### CHECK INPUTS #####
   
@@ -173,7 +173,8 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
                                   samp_names = samp_names,
                                   e1 = e1,
                                   e2 = e2,
-                                  prop_missing = prop_missing)
+                                  prop_missing = prop_missing,
+                                  pop_col_on)
   } else {
     dat_raw <- sim_data_multiallelic(n = n,
                                      L = L,
@@ -185,7 +186,8 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
                                      samp_names = samp_names,
                                      e1 = e1,
                                      e2 = e2,
-                                     prop_missing = prop_missing)
+                                     prop_missing = prop_missing,
+                                     pop_col_on)
   }
   
   # return simulated data and true parameter values
@@ -205,7 +207,7 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", alleles 
 #------------------------------------------------
 # simulate bi-allelic data
 #' @noRd
-sim_data_biallelic <- function(n, L, K, true_group, true_p = true_p, true_m, locus_names, samp_names, e1, e2, prop_missing) {
+sim_data_biallelic <- function(n, L, K, true_group, true_p = true_p, true_m, locus_names, samp_names, e1, e2, prop_missing, pop_col_on) {
   
   # simulate raw data
   dat <- NULL
@@ -264,6 +266,9 @@ sim_data_biallelic <- function(n, L, K, true_group, true_p = true_p, true_m, loc
   # convert dat and dat_uncorrupted to dataframe
   df <- data.frame(sample_ID = samp_names, stringsAsFactors = FALSE)
   rownames(df) <- NULL
+  if (pop_col_on) {
+    df$pop <- true_group
+  }
   df_uncorrupted <- NULL
   if (!is.null(dat_uncorrupted)) {
     df_uncorrupted <- cbind(df, dat_uncorrupted)
@@ -277,7 +282,7 @@ sim_data_biallelic <- function(n, L, K, true_group, true_p = true_p, true_m, loc
 #------------------------------------------------
 # simulate multi-allelic data
 #' @noRd
-sim_data_multiallelic <- function(n, L, K, true_group, true_p = true_p, true_m, locus_names, samp_names, e1, e2, prop_missing) {
+sim_data_multiallelic <- function(n, L, K, true_group, true_p = true_p, true_m, locus_names, samp_names, e1, e2, prop_missing, pop_col_on) {
   
   # simulate raw data
   df <- NULL

@@ -421,9 +421,6 @@ plot.malecot_p_quantiles <- function(x, y, ...) {
 plot_p_biallelic <- function(p) {
   
   # get data into ggplot format
-  df <- as.data.frame(unclass(x))
-  n <- nrow(df)
-  
   df <- as.data.frame(t(mapply(function(x){x}, p)))
   names(df) <- c("Q2.5", "Q50", "Q97.5")
   n <- nrow(df)
@@ -442,7 +439,7 @@ plot_p_biallelic <- function(p) {
 #------------------------------------------------
 # plot multi-allelic allele frequency estimates
 #' @noRd
-plot_p_multiallelic <- function(z) {
+plot_p_multiallelic <- function(x) {
   print("TODO")
   return(NULL)
 }

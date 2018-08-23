@@ -29,6 +29,12 @@ parameters to be specified for each allele individually}
 
 \item{COI_max}{TODO}
 
+\item{COI_manual}{TODO}
+
+\item{estimate_COI_mean}{TODO}
+
+\item{COI_mean}{TODO}
+
 \item{COI_dispersion}{must be > 1}
 
 \item{estimate_error}{TODO}
