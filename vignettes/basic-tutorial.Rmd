@@ -1,0 +1,60 @@
+---
+title: "Basic tutorial"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette demonstrates the use of the MALECOT package on a simple biallelic simulated data set, including installing the package, simulating some data, running the model and performing simple checks on the MCMC output.
+
+```{r, echo=FALSE}
+set.seed(1)
+library(MALECOT)
+```
+
+## Simulating some data
+
+MALECOT contains basic functions for simulating genetic data. The underlying model used in simulation is identical to that used in the inference step, meaning these simulations can be used to test the power and accuracy of the model in different settings.
+
+We start by simulating a biallelic data set of 100 samples at 24 loci, drawn from 3 distinct subpopulations.
+
+```{r}
+sim1 <- sim_data(n = 100, L = 24, K = 3)
+```
+
+If we look inside this object using `names(sim1)` we will see that, in addition to the raw "data" element, the function returns the *true* value of the grouping, complexity of infection (m), and allele frequencies (p). These can be used to ground truth our inference, and check that the model is behaving as we expect. 
+
+## Basic analysis
+
+The analysis pipeline is built around MALECOT "projects", similar to the projects used in programs like STRUCTURE. This project will store all data, parameters, and output for a given analysis in one convenient location.
+
+We start by creating a new project, and loading in the simulated data.
+
+```{r, fig.show='hold'}
+my_proj <- malecot_project()
+my_proj <- bind_data(my_proj, data = sim1$data)
+```
+
+Notice that the `bind_data()` function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.
+
+Next, we create a new parameter set. There are multiple model parameters that can be defined at this stage - we will use default settings but exploring a range of K (the number of subpopulations) from 1 to 5.
+```{r}
+my_proj <- new_set(my_proj, K = 1:5)
+```
+
+We can now run the main MCMC under these parameter settings. For the sake of this vignette we will use the option `silent = TRUE`, although in general it is useful to leave this option on to get a running progress update of the MCMC.
+```{r}
+my_proj <- run_mcmc(my_proj, burnin = 1e3, samples = 1e3, rungs = 1, silent = TRUE)
+```
+
+All output is stored within the `my_proj` object, and we can now produce plots of the posterior population assignment (i.e. "structure" plots), and the posterior complexity of infection of all samples.
+```{r}
+for (k in 1:5) {
+  plot_q_matrix(my_proj, K = k, main = paste("K =", k))
+  plot_m_quantiles(my_proj, K = k)
+}
+```
