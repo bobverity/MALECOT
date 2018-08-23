@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Basic tutorial • MALECOT</title>
-<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/lux/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Basic tutorial">
@@ -46,7 +46,7 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+      <a href="../articles/basic-tutorial.html">Basic tutorial</a>
     </li>
   </ul>
 </li>
@@ -105,21 +105,46 @@
 <a href="#basic-analysis" class="anchor"></a>Basic analysis</h2>
 <p>The analysis pipeline is built around MALECOT “projects”, similar to the projects used in programs like STRUCTURE. This project will store all data, parameters, and output for a given analysis in one convenient location.</p>
 <p>We start by creating a new project, and loading in the simulated data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
-my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data.html">bind_data</a></span>(my_proj, <span class="dt">data =</span> sim1$data)</code></pre></div>
-<pre><code>## biallelic format detected</code></pre>
-<p>Notice that the <code><a href="../reference/bind_data.html">bind_data()</a></code> function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, <span class="dt">df =</span> sim1$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
+<p>Notice that the <code>bind_data()</code> function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.</p>
 <p>Next, we create a new parameter set. There are multiple model parameters that can be defined at this stage - we will use default settings but exploring a range of K (the number of subpopulations) from 1 to 5.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(my_proj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">estimate_error =</span> <span class="ot">FALSE</span>)</code></pre></div>
 <p>We can now run the main MCMC under these parameter settings. For the sake of this vignette we will use the option <code>silent = TRUE</code>, although in general it is useful to leave this option on to get a running progress update of the MCMC.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my_proj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(my_proj, <span class="dt">burnin =</span> <span class="fl">1e3</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">1</span>, <span class="dt">silent =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Processing results</code></pre>
-<p>All output is stored within the <code>my_proj</code> object, and we can now produce plots of the posterior population assignment (i.e. “structure” plots), and the posterior complexity of infection of all samples.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">for (k in <span class="dv">1</span>:<span class="dv">5</span>) {
-  <span class="kw"><a href="../reference/plot_q_matrix.html">plot_q_matrix</a></span>(my_proj, <span class="dt">K =</span> k, <span class="dt">main =</span> <span class="kw">paste</span>(<span class="st">"K ="</span>, k))
-  <span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(my_proj, <span class="dt">K =</span> k)
-}</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-1.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-2.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-3.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-4.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-5.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-6.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-7.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-8.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-9.png" width="700"><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-10.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">2</span>, <span class="dt">burnin =</span> <span class="fl">1e3</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">1</span>, <span class="dt">pb_markdown =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<pre><code>## Running MCMC for K = 1
+## Burn-in phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    converged within 400 iterations
+## Sampling phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    completed in 0.294151 seconds
+## 
+## Running MCMC for K = 2
+## Burn-in phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    converged within 400 iterations
+## Sampling phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    completed in 0.412496 seconds
+## 
+## Processing results</code></pre>
+<pre><code>## Total run-time: 1.85 seconds</code></pre>
+<p>All output is stored within the <code>myproj</code> object, and we can now produce plots of the posterior population assignment (i.e. “structure” plots), and the posterior complexity of infection of all samples.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_quantiles.html">plot_loglike_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>)</code></pre></div>
+<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>)</code></pre></div>
+<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-2.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-6-3.png" width="700"></p>
 </div>
   </div>
 
