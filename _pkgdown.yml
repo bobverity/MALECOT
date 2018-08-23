@@ -2,7 +2,7 @@
 title: MALECOT
 template:
   params:
-    bootswatch: lux
+    bootswatch: flatly
     
 navbar:
   title: "MALECOT"
@@ -12,7 +12,7 @@ navbar:
         - text: "Installation"
           href: articles/installation.html
         - text: "Basic tutorial"
-          href: articles/basic_tutorial.html
+          href: articles/basic-tutorial.html
     - text: "Functions"
       href: reference/index.html
     - text: "FAQ"
