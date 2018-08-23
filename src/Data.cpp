@@ -7,7 +7,7 @@ using namespace std;
 //------------------------------------------------
 // declare static member variables for class Data_biallelic
 
-std::vector<std::vector<int>> Data_biallelic::data;
+vector<vector<int>> Data_biallelic::data;
 int Data_biallelic::n;
 int Data_biallelic::L;
 
@@ -24,7 +24,8 @@ Data_biallelic::Data_biallelic(const Rcpp::List &args) {
 //------------------------------------------------
 // declare static member variables for class Data_multiallelic
 
-std::vector<std::vector<int>> Data_multiallelic::data;
+vector<vector<vector<int>>> Data_multiallelic::data;
+vector<int> Data_multiallelic::alleles;
 int Data_multiallelic::n;
 int Data_multiallelic::L;
 
@@ -32,7 +33,8 @@ int Data_multiallelic::L;
 // constructor for Data_multiallelic class
 Data_multiallelic::Data_multiallelic(const Rcpp::List &args) {
   
-  data = rcpp_to_mat_int(args["data"]);
+  vector<vector<int>> data_raw = rcpp_to_mat_int(args["data"]);
+  alleles = rcpp_to_vector_int(args["alleles"]);
   n = rcpp_to_int(args["n"]);
   L = rcpp_to_int(args["L"]);
 }

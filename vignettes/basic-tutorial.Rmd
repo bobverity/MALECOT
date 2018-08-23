@@ -128,4 +128,52 @@ plot_posterior_K(myproj)
 
 This second plot is usually more straightforward to interpret, as it is in linear space and so can be understood in terms of ordinary probability. In this example we can see strong evidence for K=3, with a posterior probability of >0.99. Again, if we had seen wide credible intervals at this stage then it would have been worth repeating the MCMC with a larger number of `samples`, but in this case the result is clear and so there is no need.
 
+### Structure and COI plots
 
+The main result of interest from this sort of analysis is usually the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the K subpopulations. We can use the `plot_qmatrix()` function to produce posterior allocation plots for different values of K. The `divide_ind_on` argument adds white lines between individuals, and can be turned off if these lines start getting in the way.
+
+```{r, fig.height=5, fig.width=8}
+plot_qmatrix(myproj, K = 2:5, divide_ind_on = TRUE)
+```
+
+
+We can see that for K=3 (the most highly supported value of K) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at `mysim$true_group`, although obviously this is not possible for real data.
+
+When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of K so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - **the model used by rmaverick and similar programs is just a cartoon of reality, and there is no strict K in the real world**. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of K that fit the data well, it is just a guide and should be taken alongside other biological considerations.
+
+Alongside the posterior allocation plot, we can plot the posterior COI of all samples. Below we have also used the `ggplot2` package to add the true (simulated) COIs to the plot in the form of red crosses.
+
+```{r, fig.height=5, fig.width=8}
+posterior_m <- plot_m_quantiles(myproj, K = 3)
+
+library(ggplot2)
+posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = "red", shape = 4)
+posterior_m
+```
+
+Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most accurate when the COI is very low (1 or 2), but are highly inaccurate when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI decreasing from the first subpopulation to the last, but it has systematically overestimated the COI across the board. This is down to our choice of uniform prior on COI, which allowed for any COI from 1 to 20 with equal probability *a priori*. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around the mean, and so this prior gives too much flexibility for high COIs. We can address this issue along with some other weaknesses in another model run.
+
+### More realistic priors
+
+```{r}
+myproj <- new_set(myproj, name = "nb model", COI_model = "nb", COI_max = 20,
+                  estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
+myproj
+```
+
+```{r}
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
+                   rungs = 10, pb_markdown =  TRUE)
+```
+
+```{r}
+plot(myproj$output$single_set$set2$single_K$K3$raw$e1)
+plot(myproj$output$single_set$set2$single_K$K3$raw$e2)
+plot_e_quantiles(myproj)
+
+plot(myproj$output$single_set$set2$single_K$K3$raw$COI_mean[,1])
+plot(myproj$output$single_set$set2$single_K$K3$raw$COI_mean[,2])
+plot(myproj$output$single_set$set2$single_K$K3$raw$COI_mean[,3])
+
+plot_qmatrix(myproj, K = 2:5, divide_ind_on = TRUE)
+```

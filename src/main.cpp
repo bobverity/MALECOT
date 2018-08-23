@@ -83,6 +83,34 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
 }
 
 //------------------------------------------------
+// run multiallelic MCMC
+// [[Rcpp::export]]
+Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
+  
+  // split argument lists
+  Rcpp::List args_data = args["args_data"];
+  Rcpp::List args_model = args["args_model"];
+  Rcpp::List args_functions = args["args_functions"];
+  Rcpp::List args_progress = args["args_progress"];
+  
+  // read in parameters into separate class
+  Parameters parameters(args_model);
+  
+  // read in data into separate class
+  //Data_biallelic data(args_data);
+  
+  // create return object
+  Rcpp::List ret;
+  ret.push_back(Rcpp::wrap( -9 ));
+  
+  Rcpp::StringVector ret_names;
+  ret_names.push_back("foo");
+  
+  ret.names() = ret_names;
+  return ret;
+}
+
+//------------------------------------------------
 // estimate quantiles of posterior probability of K by simulation
 // [[Rcpp::export]]
 Rcpp::List GTI_posterior_K_sim_cpp(Rcpp::List args) {
@@ -178,22 +206,6 @@ Rcpp::List generate_scaffolds_multiallelic_cpp(Rcpp::List args) {
   Rcpp::StringVector ret_names;
   ret_names.push_back("foo");
   
-  ret.names() = ret_names;
-  return ret;
-}
-
-//------------------------------------------------
-// run multiallelic MCMC
-// [[Rcpp::export]]
-Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
-
-  // create return object
-  Rcpp::List ret;
-  ret.push_back(Rcpp::wrap( -9 ));
-
-  Rcpp::StringVector ret_names;
-  ret_names.push_back("foo");
-
   ret.names() = ret_names;
   return ret;
 }

@@ -25,7 +25,8 @@ class Data_multiallelic {
   
 public:
   
-  static std::vector<std::vector<int>> data;
+  static std::vector<std::vector<std::vector<int>>> data;
+  static std::vector<int> alleles;
   static int n;
   static int L;
   

@@ -5,6 +5,10 @@ run_mcmc_biallelic_cpp <- function(args) {
     .Call('_MALECOT_run_mcmc_biallelic_cpp', PACKAGE = 'MALECOT', args)
 }
 
+run_mcmc_multiallelic_cpp <- function(args) {
+    .Call('_MALECOT_run_mcmc_multiallelic_cpp', PACKAGE = 'MALECOT', args)
+}
+
 GTI_posterior_K_sim_cpp <- function(args) {
     .Call('_MALECOT_GTI_posterior_K_sim_cpp', PACKAGE = 'MALECOT', args)
 }
@@ -15,10 +19,6 @@ GTI_integrated_K_sim_cpp <- function(args) {
 
 generate_scaffolds_multiallelic_cpp <- function(args) {
     .Call('_MALECOT_generate_scaffolds_multiallelic_cpp', PACKAGE = 'MALECOT', args)
-}
-
-run_mcmc_multiallelic_cpp <- function(args) {
-    .Call('_MALECOT_run_mcmc_multiallelic_cpp', PACKAGE = 'MALECOT', args)
 }
 
 fix_labels_cpp <- function(args_model) {
