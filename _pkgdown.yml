@@ -2,7 +2,7 @@
 title: MALECOT
 template:
   params:
-    bootswatch: flatly
+    bootswatch: lux
     
 navbar:
   title: "MALECOT"
