@@ -55,6 +55,7 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
   # check inputs
   assert_custom_class(project, "malecot_project")
   assert_dataframe(df)
+  n <- nrow(df)
   if (!is.null(ID_col)) {
     assert_single_pos_int(ID_col, zero_allowed = FALSE)
     assert_leq(ID_col, ncol(df))
@@ -74,7 +75,7 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
   }
   ID <- define_default(ID, paste0("sample", zero_pad_simple(1:n, nchar(n))))
   assert_string(ID)
-  assert_length(ID,n)
+  assert_length(ID, n)
   pop <- define_default(pop, rep(1,n))
   assert_pos_int(pop)
   assert_length(pop,n)
@@ -99,7 +100,6 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
   
   # extract genetic data
   dat <- as.matrix(df[, data_cols, drop = FALSE])
-  n <- nrow(dat)
   L <- ncol(dat)
   locus_names <- colnames(dat)
   apply(dat, 1, function(x) {
@@ -326,7 +326,7 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
   
   # expand lambda to list
   if (length(lambda) == 1) {
-    lambda <- mapply(rep, lambda, times = project$data$alleles, SIMPLIFY = FALSE)
+    lambda <- mapply(rep, lambda, times = project$data_processed$alleles, SIMPLIFY = FALSE)
   }
   
   # count current parameter sets and add one

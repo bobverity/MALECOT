@@ -34,27 +34,26 @@ The analysis pipeline is built around MALECOT "projects", similar to the project
 
 We start by creating a new project, and loading in the simulated data.
 
-```{r, fig.show='hold'}
-my_proj <- malecot_project()
-my_proj <- bind_data(my_proj, data = sim1$data)
+```{r}
+myproj <- malecot_project()
+myproj <- bind_data_biallelic(myproj, df = sim1$data, ID_col = 1, pop_col = 2)
 ```
 
 Notice that the `bind_data()` function takes a project as input, and returns the modified project as output - this will be the general format for all functions in the pipeline.
 
 Next, we create a new parameter set. There are multiple model parameters that can be defined at this stage - we will use default settings but exploring a range of K (the number of subpopulations) from 1 to 5.
 ```{r}
-my_proj <- new_set(my_proj, K = 1:5)
+myproj <- new_set(myproj, estimate_error = FALSE)
 ```
 
 We can now run the main MCMC under these parameter settings. For the sake of this vignette we will use the option `silent = TRUE`, although in general it is useful to leave this option on to get a running progress update of the MCMC.
 ```{r}
-my_proj <- run_mcmc(my_proj, burnin = 1e3, samples = 1e3, rungs = 1, silent = TRUE)
+myproj <- run_mcmc(myproj, K = 1:2, burnin = 1e3, samples = 1e3, rungs = 1, pb_markdown = TRUE)
 ```
 
-All output is stored within the `my_proj` object, and we can now produce plots of the posterior population assignment (i.e. "structure" plots), and the posterior complexity of infection of all samples.
+All output is stored within the `myproj` object, and we can now produce plots of the posterior population assignment (i.e. "structure" plots), and the posterior complexity of infection of all samples.
 ```{r}
-for (k in 1:5) {
-  plot_q_matrix(my_proj, K = k, main = paste("K =", k))
-  plot_m_quantiles(my_proj, K = k)
-}
+plot_loglike_quantiles(myproj, K = 2)
+plot_m_quantiles(myproj, K = 2)
+plot_qmatrix(myproj, K = 2, divide_ind_on = TRUE)
 ```
