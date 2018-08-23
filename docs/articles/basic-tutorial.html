@@ -206,7 +206,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.94364 seconds
+##    completed in 2.60752 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -218,7 +218,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 5.44977 seconds
+##    completed in 3.96146 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -230,7 +230,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 6.28683 seconds
+##    completed in 4.72082 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -242,7 +242,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 7.4743 seconds
+##    completed in 6.33619 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -254,10 +254,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 8.82815 seconds
+##    completed in 7.57489 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 33.32 seconds</code></pre>
+<pre><code>## Total run-time: 27.27 seconds</code></pre>
 <p>If any values of K failed to converge then we can use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:</p>
 </div>
 <div id="comparing-values-of-k" class="section level3">
@@ -284,7 +284,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>:<span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p><img src="basic-tutorial_files/figure-html/unnamed-chunk-13-1.png" width="768"></p>
 <p>We can see that for K=3 (the most highly supported value of K) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at <code>mysim$true_group</code>, although obviously this is not possible for real data.</p>
-<p>When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of K so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - <strong>the model used by rmaverick and similar programs is just a cartoon of reality, and there is no strict K in the real world</strong>. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of K that fit the data well, it is just a guide and should be taken alongside other biological considerations.</p>
+<p>When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of K so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - <strong>the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world</strong>. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of K that fit the data well, it is just a guide and should be taken alongside other biological considerations.</p>
 <p>Alongside the posterior allocation plot, we can plot the posterior COI of all samples. Below we have also used the <code>ggplot2</code> package to add the true (simulated) COIs to the plot in the form of red crosses.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
 
@@ -297,108 +297,7 @@ posterior_m</code></pre></div>
 <div id="more-realistic-priors" class="section level3">
 <h3 class="hasAnchor">
 <a href="#more-realistic-priors" class="anchor"></a>More realistic priors</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"nb model"</span>, <span class="dt">COI_model =</span> <span class="st">"nb"</span>, <span class="dt">COI_max =</span> <span class="dv">20</span>,
-                  <span class="dt">estimate_error =</span> <span class="ot">TRUE</span>, <span class="dt">e1_max =</span> <span class="fl">0.2</span>, <span class="dt">e2_max =</span> <span class="fl">0.2</span>)
-myproj</code></pre></div>
-<pre><code>## DATA:
-##    data format = biallelic
-##    samples = 100
-##    loci = 24
-##    pops = 3
-##    missing data = 0 of 2400 gene copies (0%)
-## 
-## PARAMETER SETS:
-##    SET1: uniform model
-##  * SET2: nb model
-## 
-## ACTIVE SET: SET2
-##    lambda = 1
-##    COI model = nb
-##    COI max = 20
-##    estimate COI mean = TRUE
-##    COI dispersion = 2
-##    estimate error = TRUE
-##    e1_max = 0.2
-##    e2_max = 0.2</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>,
-                   <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Running MCMC for K = 1
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 3900 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 9.29336 seconds
-## 
-## Running MCMC for K = 2
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 4900 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 17.2111 seconds
-## 
-## Running MCMC for K = 3
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 7300 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 36.452 seconds
-## 
-## Running MCMC for K = 4
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    Warning: convergence still not reached within 10000 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 33.7779 seconds
-## 
-## Running MCMC for K = 5
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 8800 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 36.3996 seconds
-## 
-## Processing results</code></pre>
-<pre><code>## Total run-time: 2.26 minutes</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(myproj$output$single_set$set2$single_K$K3$raw$e1)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(myproj$output$single_set$set2$single_K$K3$raw$e2)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-2.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e_quantiles.html">plot_e_quantiles</a></span>(myproj)</code></pre></div>
-<pre><code>## using K = 1 by default</code></pre>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-3.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(myproj$output$single_set$set2$single_K$K3$raw$COI_mean[,<span class="dv">1</span>])</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-4.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(myproj$output$single_set$set2$single_K$K3$raw$COI_mean[,<span class="dv">2</span>])</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-5.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(myproj$output$single_set$set2$single_K$K3$raw$COI_mean[,<span class="dv">3</span>])</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-6.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>:<span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-17-7.png" width="700"></p>
+<p>(TODO)</p>
 </div>
   </div>
 

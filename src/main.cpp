@@ -7,6 +7,7 @@
 #include "misc.h"
 #include "probability.h"
 #include "MCMC_biallelic.h"
+#include "MCMC_multiallelic.h"
 #include "hungarian.h"
 
 using namespace std;
@@ -30,7 +31,7 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   
   // define look-up tables
   Lookup lookup;
-  lookup.init();
+  lookup.init_homohet();
   
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
@@ -97,7 +98,11 @@ Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
   Parameters parameters(args_model);
   
   // read in data into separate class
-  //Data_biallelic data(args_data);
+  Data_multiallelic data(args_data);
+  
+  // define look-up tables
+  Lookup lookup;
+  lookup.init_lgamma();
   
   // create return object
   Rcpp::List ret;

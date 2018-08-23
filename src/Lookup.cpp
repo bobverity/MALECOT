@@ -5,14 +5,15 @@
 using namespace std;
 
 //------------------------------------------------
-// declare static member variables
+// declare static member variables for Lookup class
 
-std::vector< std::vector<double> > Lookup::lookup_homo;
-std::vector< std::vector<double> > Lookup::lookup_het;
+vector< vector<double> > Lookup::lookup_homo;
+vector< vector<double> > Lookup::lookup_het;
+vector< vector<double> > Lookup::lookup_lgamma;
 
 //------------------------------------------------
-// initialise lookup class
-void Lookup::init() {
+// initialise homo/het lookup tables
+void Lookup::init_homohet(){
   
   // no need for lookup if using zero precision
   if (precision == 0) {
@@ -55,5 +56,23 @@ void Lookup::init() {
     }
   }
   
+}
+
+//------------------------------------------------
+// initialise lgamma lookup tables
+void Lookup::init_lgamma() {
+  
+  // initialise tables
+  int dim1 = 5;
+  int dim2 = 5;
+  lookup_lgamma = vector<vector<double>>(dim1, vector<double>(dim2));
+  
+  // populate tables
+  for (int i=0; i<dim1; i++) {
+    for (int j=0; j<dim2; j++) {
+      // TODO - pick up from here
+      //lookup[i][j] = lgamma(j + i*lambda);
+    }
+  }
   
 }

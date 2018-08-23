@@ -13,11 +13,14 @@ public:
   // lookup tables
   static std::vector< std::vector<double> > lookup_homo;
   static std::vector< std::vector<double> > lookup_het;
+  static std::vector< std::vector<double> > lookup_lgamma;
   
   // constructor
   Lookup() {};
   
   // public methods
-  void init();
+  void init_homohet();
+  void init_lgamma();
   
 };
+
