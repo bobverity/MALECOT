@@ -262,6 +262,30 @@ summary.malecot_e_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
+# Overload print function for malecot_COI_mean_quantiles
+#' @noRd
+print.malecot_COI_mean_quantiles <- function(x, ...) {
+  
+  # print raw list
+  print(unclass(x))
+  
+  # return invisibly
+  invisible(x)
+}
+
+#------------------------------------------------
+# Overload summary function for malecot_COI_mean_quantiles
+#' @noRd
+summary.malecot_COI_mean_quantiles <- function(object, ...) {
+  
+  # print raw summary
+  summary(unclass(object))
+  
+  # return invisibly
+  invisible(object)
+}
+
+#------------------------------------------------
 # Overload print function for malecot_GTI_path
 #' @noRd
 print.malecot_GTI_path <- function(x, ...) {

@@ -27,13 +27,22 @@ parameters to be specified for each allele individually}
 \item{COI_model}{the type of prior on COI. Must be one of "uniform",
 "poisson", or "nb" (negative binomial)}
 
-\item{COI_max}{TODO}
+\item{COI_max}{the maximum COI allowed for any given sample}
 
-\item{COI_manual}{TODO}
+\item{COI_manual}{A vector of length n (where n is the number of samples)
+allowing the COI to be specified manually. Positive values indicate fixed
+COIs that should not be updated as part of the MCMC, while -1 values
+indicate that COIs should be estimated. Defaults to \code{rep(-1,n)},
+meaning all COIs will be esimated}
 
-\item{estimate_COI_mean}{TODO}
+\item{estimate_COI_mean}{whether the mean COI should be estimated for each 
+subpopulation as part of the MCMC, otherwise the value \code{COI_mean} is 
+used for all subpopulations. Defaults to \code{TRUE}. Note that mean COI
+estimation is only possible under the "poisson" and "nb" models (see
+\code{COI_model})}
 
-\item{COI_mean}{TODO}
+\item{COI_mean}{single scalar value specifying the mean COI for all
+subpopulations (see \code{estimate_COI_mean} above)}
 
 \item{COI_dispersion}{must be > 1}
 

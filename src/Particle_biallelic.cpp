@@ -20,7 +20,7 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   p_propSD = vector<vector<double>>(K, vector<double>(L,1));
   
   // initialise COI_mean
-  COI_mean_vec = vector<double>(K, COI_max);
+  COI_mean_vec = vector<double>(K, COI_mean);
   COI_mean_shape = vector<double>(K);
   COI_mean_rate = vector<double>(K);
   COI_mean_propSD = vector<double>(K,1);
@@ -154,8 +154,16 @@ void Particle_biallelic::reset() {
     fill(p_propSD[k].begin(), p_propSD[k].end(), 1);
   }
   
+  // reset COI
+  m = vector<int>(n,COI_max);
+  for (int i=0; i<n; i++) {
+    if (COI_manual[i] != -1) {
+      m[i] = COI_manual[i];
+    }
+  }
+  
   // reset COI_mean
-  fill(COI_mean_vec.begin(), COI_mean_vec.end(), COI_max);
+  fill(COI_mean_vec.begin(), COI_mean_vec.end(), COI_mean);
   
   // reset order of labels
   label_order = seq_int(0,K-1);
@@ -345,14 +353,14 @@ void Particle_biallelic::update_m() {
   for (int i=0; i<n; i++) {
     int this_group = group[i];
     
+    // skip update if defined manually
+    if (COI_manual[i] != -1) {
+      continue;
+    }
+    
     // propose new m
     int m_prop = rbernoulli1(0.5);
     m_prop = (m_prop==0) ? m[i]-1 : m[i]+1;
-    
-    // TODO - skip if proposed m impossible? (and no error model)
-    //if (m_prop==1 && (*anyHet_ptr)[i]) {
-    //    continue;
-    //}
     
     // calculate likelihood
     if (m_prop>0 && m_prop<=COI_max) {

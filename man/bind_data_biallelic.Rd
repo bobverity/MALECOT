@@ -22,14 +22,14 @@ population of the samples. If NULL then populations must be defined
 seperately through the \code{pop} argument}
 
 \item{data_cols}{which columns of the input data contain genetic information.
-Defaults to all remaining columns of the data once special columns have 
+Defaults to all remaining columns of the data once meta-data columns have 
 been accounted for}
 
-\item{ID}{sample IDs, if not using the \code{ID_col} option}
+\item{ID}{sample IDs. Ignored if using the \code{ID_col} option}
 
-\item{pop}{ostensible populations, if not using the \code{pop_col} option}
+\item{pop}{ostensible populations. Ignored if using the \code{pop_col} option}
 
-\item{missing_data}{what value represents missing data (defaults to -9). Must
+\item{missing_data}{what value represents missing data. Defaults to -9. Must 
 be a positive or negative integer, and cannot equal 0 or 1 as these are 
 reserved for genetic data.}
 

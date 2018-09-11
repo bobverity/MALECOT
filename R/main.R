@@ -35,11 +35,11 @@ NULL
 #'   population of the samples. If NULL then populations must be defined 
 #'   seperately through the \code{pop} argument
 #' @param data_cols which columns of the input data contain genetic information.
-#'   Defaults to all remaining columns of the data once special columns have 
+#'   Defaults to all remaining columns of the data once meta-data columns have 
 #'   been accounted for
-#' @param ID sample IDs, if not using the \code{ID_col} option
-#' @param pop ostensible populations, if not using the \code{pop_col} option
-#' @param missing_data what value represents missing data (defaults to -9). Must
+#' @param ID sample IDs. Ignored if using the \code{ID_col} option
+#' @param pop ostensible populations. Ignored if using the \code{pop_col} option
+#' @param missing_data what value represents missing data. Defaults to -9. Must 
 #'   be a positive or negative integer, and cannot equal 0 or 1 as these are 
 #'   reserved for genetic data.
 #' @param name optional name of the data set to aid in record keeping
@@ -136,17 +136,16 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
 #'
 #' @description Bind data in multi-allelic format to MALECOT project. Data 
 #'   should be formatted as a dataframe with three columns: "sample_ID", "locus"
-#'   and "haplotype". Each row of this dataframe specifies a haplotype that was
-#'   observed at that locus in that individual (i.e. long format). Haplotypes
-#'   should be coded as positive integers.
+#'   and "haplotype". Each row of this dataframe specifies a haplotype that was 
+#'   observed at that locus in that individual. Haplotypes should be coded as
+#'   positive integers.
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param df a dataframe containing genetic information and optional meta-data
-#' @param pop ostensible populations, if not using the \code{pop_col} option
-#' @param missing_data what value represents missing data (defaults to -9). Must
-#'   be a positive or negative integer, and cannot equal 0 or 1 as these are 
-#'   reserved for genetic data.
+#' @param df a dataframe with three columns, as decribed above
+#' @param pop ostensible populations of the samples
+#' @param missing_data what value represents missing data. Defaults to -9. Must
+#'   be a positive or negative integer
 #' @param name optional name of the data set to aid in record keeping
 #' @param check_delete_output whether to prompt the user before overwriting 
 #'   existing data
@@ -170,7 +169,7 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
   assert_single_logical(check_delete_output)
   
   # check before overwriting existing output
-  if (project$active_set>0 && check_delete_output) {
+  if (project$active_set > 0 && check_delete_output) {
     
     # ask before overwriting. On abort, return original project
     if (!user_yes_no("All existing output and parameter sets for this project will be lost. Continue? (Y/N): ")) {
@@ -261,11 +260,20 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #'   parameters to be specified for each allele individually
 #' @param COI_model the type of prior on COI. Must be one of "uniform",
 #'   "poisson", or "nb" (negative binomial)
-#' @param COI_max TODO
-#' @param COI_manual TODO
-#' @param estimate_COI_mean TODO
-#' @param COI_mean TODO
-#' @param COI_dispersion must be > 1
+#' @param COI_max the maximum COI allowed for any given sample
+#' @param COI_manual A vector of length n (where n is the number of samples)
+#'   allowing the COI to be specified manually. Positive values indicate fixed
+#'   COIs that should not be updated as part of the MCMC, while -1 values
+#'   indicate that COIs should be estimated. Defaults to \code{rep(-1,n)},
+#'   meaning all COIs will be esimated
+#' @param estimate_COI_mean whether the mean COI should be estimated for each 
+#'   subpopulation as part of the MCMC, otherwise the value \code{COI_mean} is 
+#'   used for all subpopulations. Defaults to \code{TRUE}. Note that mean COI
+#'   estimation is only possible under the "poisson" and "nb" models (see
+#'   \code{COI_model})
+#' @param COI_mean single scalar value specifying the mean COI for all
+#'   subpopulations (see \code{estimate_COI_mean} above)
+#' @param COI_dispersion  must be > 1
 #' @param estimate_error TODO
 #' @param e1 TODO
 #' @param e2 TODO
@@ -688,6 +696,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     } else {
       COI_mean_quantiles <- t(apply(full_COI_mean, 2, quantile_95))
     }
+    class(COI_mean_quantiles) <- "malecot_COI_mean_quantiles"
     
     # get quantiles over e1 and e2
     if (args_model$estimate_error) {
@@ -958,6 +967,44 @@ integrate_GTI_logevidence_K <- function(proj, s) {
 }
 
 #------------------------------------------------
+#' @title Recalculate evidence and posterior estimates
+#'
+#' @description When a new value of K is added in to the analysis it affects all downstream evidence estimates that depend on this K - for example the overall model evidence integrated over K. This function therefore looks through all values of K in the active set and recalculates all downstream elements as needed.
+#'
+#' @param project a MALCOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' 
+#' @export
+
+recalculate_evidence <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  
+  # get active set
+  s <- project$active_set
+  if (s==0) {
+    stop("no active parameter set")
+  }
+  
+  # get log-evidence over all K and load into project
+  project <- get_GTI_logevidence_K(project, s)
+  
+  # produce posterior estimates of K by simulation and load into project
+  project <- get_GTI_posterior_K(project, s)
+  
+  # get log-evidence over all parameter sets
+  project <- integrate_GTI_logevidence_K(project, s)
+  
+  # get posterior over all parameter sets
+  project <- get_GTI_posterior_model(project)
+  
+  # return modified project
+  return(project)
+}
+
+
+#------------------------------------------------
 # align qmatrices over all K
 #' @noRd
 align_qmatrix <- function(proj) {
@@ -1030,137 +1077,76 @@ align_qmatrix <- function(proj) {
 }
 
 #------------------------------------------------
-#' @title Recalculate evidence and posterior estimates
+#' @title Match grouping against q-matrix
 #'
-#' @description When a new value of K is added in to the analysis it affects all downstream evidence estimates that depend on this K - for example the overall model evidence integrated over K. This function therefore looks through all values of K in the active set and recalculates all downstream elements as needed.
+#' @description Compares qmatrix output for a chosen value of K against a 
+#'   \code{target_group} vector. Returns the order of \code{target_group} 
+#'   groups, such that there is the best possible alignment against the qmatrix.
+#'   For example, if the vector returned is \code{c(2,3,1)} then the second
+#'   group in the target vector should be matched against the first group in the
+#'   qmatrix, followed by the third group in the target vector against the
+#'   second group in the qmatrix, followed by the first group in the target
+#'   vector against the third group in the qmatrix.
 #'
 #' @param project a MALCOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' 
-#' @export
-
-recalculate_evidence <- function(project) {
-  
-  # check inputs
-  assert_custom_class(project, "malecot_project")
-  
-  # get active set
-  s <- project$active_set
-  if (s==0) {
-    stop("no active parameter set")
-  }
-  
-  # get log-evidence over all K and load into project
-  project <- get_GTI_logevidence_K(project, s)
-  
-  # produce posterior estimates of K by simulation and load into project
-  project <- get_GTI_posterior_K(project, s)
-  
-  # get log-evidence over all parameter sets
-  project <- integrate_GTI_logevidence_K(project, s)
-  
-  # get posterior over all parameter sets
-  project <- get_GTI_posterior_model(project)
-  
-  # return modified project
-  return(project)
-}
-
-#------------------------------------------------
-#' @title Match groupings using Hungarian algorithm
-#'
-#' @description TODO
-#'
-#' @details TODO
-#'
-#' @param proj TODO
-#' @param target_group TODO
+#' @param K compare against qmatrix output for this value of K
+#' @param target_group the target group to be aligned against the qmatrix
 #'
 #' @export
 #' @examples
 #' # TODO
 
-fix_labels <- function(proj, target_group) {
+get_group_order <- function(project, K, target_group) {
   
-  # TODO - checks on inputs
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  assert_vector(target_group)
+  assert_pos_int(target_group)
   
-  # create target matrix from group
+  # create target_qmatrix from target_group
   n <- length(target_group)
-  target_mat <- matrix(0, n, max(target_group))
-  target_mat[cbind(1:n, target_group)] <- 1
+  target_qmatrix <- matrix(0, n, max(target_group))
+  target_qmatrix[cbind(1:n, target_group)] <- 1
   
   # get active set and check non-zero
-  s <- proj$active_set
-  if (s==0) {
+  s <- project$active_set
+  if (s == 0) {
     stop("no active parameter set")
   }
   
-  # check there is output for active set
-  if (is.null(proj$output[[s]])) {
-    stop("currently no output corresponding to active set")
+  # check output exists for chosen K
+  qmatrix <- project$output$single_set[[s]]$single_K[[K]]$summary$qmatrix
+  if (is.null(qmatrix)) {
+    stop(sprintf("no qmatrix output for K = %s of active set", K))
   }
   
-  # fix labels in all output for this set
-  for (i in 1:length(proj$output[[s]])) {
-    
-    # extract Qmatrix
-    qmatrix <- unclass(proj$output[[s]][[i]]$summary$qmatrix)
-    K <- ncol(qmatrix)
-    
-    # check same number of rows
-    if (nrow(qmatrix)!=nrow(target_mat)) {
-      stop("target_group must have same number of elements as qmatrix output")
-    }
-    
-    # expand qmatrix and/or target_mat to get same number of cols
-    if (K<ncol(target_mat)) {
-      qmatrix <- cbind( qmatrix, matrix(0, nrow(qmatrix), ncol(target_mat)-K) )
-    }
-    if (K>ncol(target_mat)) {
-      target_mat <- cbind( target_mat, matrix(0, nrow(qmatrix), K-ncol(target_mat)) )
-    }
-    
-    # calculate cost matrix
-    cost_mat <- matrix(0, ncol(qmatrix), ncol(qmatrix))
-    for (k1 in 1:ncol(cost_mat)) {
-      for (k2 in 1:ncol(cost_mat)) {
-        cost_mat[k1,k2] <- sum(qmatrix[,k1]*(1-target_mat[,k2]))
-      }
-    }
-    
-    # run Hungarian algorithm in Rcpp
-    best_perm <- fix_labels_cpp(list(cost_mat = mat_to_rcpp(cost_mat)))$best_perm
-    best_perm_order <- order(best_perm)
-    
-    # limit best_perm_order to K
-    best_perm_order <- best_perm_order[best_perm_order<=K]
-    
-    # re-order qmatrix
-    qmatrix <- qmatrix[,best_perm_order, drop=FALSE]
-    colnames(qmatrix) <- paste0("deme",1:ncol(qmatrix))
-    class(qmatrix) <- "malecot_qmatrix"
-    proj$output[[s]][[i]]$summary$qmatrix <- qmatrix
-    
-    # re-order allele frequencies
-    p_quantiles <- proj$output[[s]][[i]]$summary$p_quantiles
-    old_names <- names(p_quantiles)
-    proj$output[[s]][[i]]$summary$p_quantiles <- p_quantiles[best_perm_order]
-    names(proj$output[[s]][[i]]$summary$p_quantiles) <- old_names
-    
-    # TODO - re-order COI_mean
-    #COI_mean_quantiles <- proj[["output"]][[s]][[i]]$summary$COI_mean_quantiles
-    #oldNames <- colnames(COI_mean_quantiles)
-    #COI_mean_quantiles <- COI_mean_quantiles[,bestPermOrder,drop=FALSE]
-    #colnames(COI_mean_quantiles) <- oldNames
-    #class(COI_mean_quantiles) <- "malProject_COI_mean_quantiles"
-    #proj[["output"]][[s]][[i]]$summary$COI_mean_quantiles <- COI_mean_quantiles
-    
-    #TODO - reorder full output
-    
+  # check same number of rows
+  if (nrow(qmatrix) != nrow(target_qmatrix)) {
+    stop("target_group must have same number of elements as qmatrix output")
+  }
+  n <- nrow(qmatrix)
+  
+  # expand qmatrix and/or target_qmatrix to get same number of cols
+  if (ncol(target_qmatrix) > ncol(qmatrix)) {
+    qmatrix <- cbind( qmatrix, matrix(0, n, ncol(target_qmatrix) - ncol(qmatrix)) )
+  }
+  if (ncol(qmatrix) > ncol(target_qmatrix)) {
+    target_qmatrix <- cbind( target_qmatrix, matrix(0, n, ncol(qmatrix) - ncol(target_qmatrix)) )
   }
   
-  # return invisibly
-  invisible(proj)
+  # calculate cost matrix
+  cost_mat <- matrix(0,K,K)
+  for (k1 in 1:K) {
+    for (k2 in 1:K) {
+      cost_mat[k1,k2] <- sum(qmatrix[,k1]*(1-target_qmatrix[,k2]))
+    }
+  }
+  
+  # get lowest cost permutation
+  best_perm <- call_hungarian(cost_mat)$best_matching + 1
+  best_perm_order <- order(best_perm)
+  
+  return(best_perm)
 }
-
-

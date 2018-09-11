@@ -581,6 +581,82 @@ plot_e_quantiles <- function(project, K = NULL, ...) {
 }
 
 #------------------------------------------------
+# Default plot for class malecot_COI_mean_quantiles
+#' @noRd
+plot.malecot_COI_mean_quantiles <- function(x, y, ...) {
+  
+  # check for NULL
+  if (is.null(x)) {
+    message("no COI_mean_quantiles to plot")
+  }
+  
+  # get data into ggplot format
+  df <- as.data.frame(unclass(x))
+  xvals <- rownames(df)
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = xvals, y = ~Q2.5, xend = xvals, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = xvals, y = ~Q50))
+  plot1 <- plot1 + xlab("") + ylab("posterior mean COI")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot COI_mean quantiles of current active set
+#'
+#' @description Plot COI_mean quantiles of current active set
+#'
+#' @details TODO
+#'
+#' @param project TODO
+#' @param K TODO
+#' @param ... TODO
+#'
+#' @export
+#' @examples
+#' # TODO
+
+plot_COI_mean_quantiles <- function(project, K = NULL, ...) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$COI_mean_quantiles)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no COI_mean_quantiles output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  COI_mean_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_quantiles
+  if (is.null(COI_mean_quantiles)) {
+    stop(sprintf("no COI_mean_quantiles output for K = %s of active set", K))
+  }
+  
+  # produce quantile plot
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_quantiles)
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
 # Default plot for class maverick_GTI_path
 #' @noRd
 plot.malecot_GTI_path <- function(x, y, ...) {

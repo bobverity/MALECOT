@@ -11,13 +11,12 @@ bind_data_multiallelic(project, df, pop = NULL, missing_data = -9,
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{df}{a dataframe containing genetic information and optional meta-data}
+\item{df}{a dataframe with three columns, as decribed above}
 
-\item{pop}{ostensible populations, if not using the \code{pop_col} option}
+\item{pop}{ostensible populations of the samples}
 
-\item{missing_data}{what value represents missing data (defaults to -9). Must
-be a positive or negative integer, and cannot equal 0 or 1 as these are 
-reserved for genetic data.}
+\item{missing_data}{what value represents missing data. Defaults to -9. Must
+be a positive or negative integer}
 
 \item{name}{optional name of the data set to aid in record keeping}
 
@@ -27,9 +26,9 @@ existing data}
 \description{
 Bind data in multi-allelic format to MALECOT project. Data 
   should be formatted as a dataframe with three columns: "sample_ID", "locus"
-  and "haplotype". Each row of this dataframe specifies a haplotype that was
-  observed at that locus in that individual (i.e. long format). Haplotypes
-  should be coded as positive integers.
+  and "haplotype". Each row of this dataframe specifies a haplotype that was 
+  observed at that locus in that individual. Haplotypes should be coded as
+  positive integers.
 }
 \examples{
 # TODO
