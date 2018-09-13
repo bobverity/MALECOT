@@ -1,6 +1,6 @@
 
 #include "MCMC_multiallelic.h"
-#include "misc.h"
+#include "misc_v1.h"
 #include "probability.h"
 
 using namespace std;
@@ -39,15 +39,14 @@ MCMC_multiallelic::MCMC_multiallelic() {
   loglike_burnin = vector<vector<double>>(rungs, vector<double>(burnin));
   loglike_sampling = vector<vector<double>>(rungs, vector<double>(samples));
   m_store = vector<vector<int>>(samples, vector<int>(n));
-  p_store = vector<vector<vector<vector<double>>>>(samples, vector<vector<vector<double>>>(K));
-  e1_store = vector<double>(samples, e1);
-  e2_store = vector<double>(samples, e2);
+  //p_store = vector<vector<vector<vector<double>>>>(samples, vector<vector<vector<double>>>(K));
+  
+  p_store = vector<vector<vector<vector<double>>>>(K, vector<vector<vector<double>>>(L, vector<vector<double>>(samples)));
+  
   COI_mean_store = vector<vector<double>>(samples, vector<double>(K));
   
   // objects for storing acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
-  e1_accept = 0;
-  e2_accept = 0;
   coupling_accept = vector<int>(rungs-1);
   
 }
@@ -94,26 +93,20 @@ void MCMC_multiallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args
       }
       int rung = rung_order[r];
       
-      // update error estimates
-      if (estimate_error) {
-        particle_vec[rung].update_e(1, true, rep+1);
-        particle_vec[rung].update_e(2, true, rep+1);
-      }
-      
       // update p
       particle_vec[rung].update_p(true, rep+1);
       
       // update m
       particle_vec[rung].update_m();
-      
+      /*
       // update COI_means
       if (COI_model==2 || COI_model==3) {
         particle_vec[rung].update_COI_mean(true, rep+1);
       }
-      
+       */
       // update group
       particle_vec[rung].update_group();
-      
+       
       // calculate log-likelihood
       particle_vec[rung].calculate_loglike();
       
@@ -213,11 +206,6 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
   Rcpp::Function update_progress = args_functions["update_progress"];
   
   // reset acceptance rates
-  for (int r=0; r<rungs; r++) {
-    particle_vec[r].p_accept = vector<vector<int>>(K, vector<int>(L));
-    particle_vec[r].e1_accept = 0;
-    particle_vec[r].e2_accept = 0;
-  }
   coupling_accept = vector<int>(rungs-1);
   
   // loop through sampling iterations
@@ -227,23 +215,17 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
     for (int r=0; r<rungs; r++) {
       int rung = rung_order[r];
       
-      // update error estimates
-      if (estimate_error) {
-        particle_vec[rung].update_e(1, false, rep+1);
-        particle_vec[rung].update_e(2, false, rep+1);
-      }
-      
       // update p
       particle_vec[rung].update_p(false, rep+1);
       
       // update m
       particle_vec[rung].update_m();
-      
+      /*
       // update COI_means
       if (COI_model==2 || COI_model==3) {
         particle_vec[rung].update_COI_mean(false, rep+1);
       }
-      
+       */
       // update group
       particle_vec[rung].update_group();
       
@@ -294,13 +276,10 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
     // store m and p
     m_store[rep] = particle_vec[cold_rung].m;
     for (int k=0; k<K; k++) {
-      p_store[rep][k] = particle_vec[cold_rung].p[label_order[k]];
-    }
-    
-    // store e1 and e2
-    if (estimate_error) {
-      e1_store[rep] = particle_vec[cold_rung].e1;
-      e2_store[rep] = particle_vec[cold_rung].e2;
+      //p_store[rep][k] = particle_vec[cold_rung].p[label_order[k]];
+      for (int j=0; j<L; j++) {
+        p_store[k][j][rep] = particle_vec[cold_rung].p[label_order[k]][j];
+      }
     }
     
     // store COI_mean
@@ -331,8 +310,6 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
   
   // store acceptance rates
   p_accept = particle_vec[cold_rung].p_accept;
-  e1_accept = particle_vec[cold_rung].e1_accept;
-  e2_accept = particle_vec[cold_rung].e2_accept;
 }
 
 //------------------------------------------------

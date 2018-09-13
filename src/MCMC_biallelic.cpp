@@ -1,6 +1,6 @@
 
 #include "MCMC_biallelic.h"
-#include "misc.h"
+#include "misc_v1.h"
 #include "probability.h"
 
 using namespace std;

@@ -26,6 +26,7 @@ public:
   
   // model parameters
   static std::vector<std::vector<double>> lambda;
+  static bool lambda_scalar;
   static int COI_model;
   static int COI_max;
   static std::vector<int> COI_manual;

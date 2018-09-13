@@ -11,9 +11,9 @@ class Lookup : public Parameters {
 public:
   
   // lookup tables
-  static std::vector< std::vector<double> > lookup_homo;
-  static std::vector< std::vector<double> > lookup_het;
-  static std::vector< std::vector<double> > lookup_lgamma;
+  static std::vector<std::vector<double>> lookup_homo;
+  static std::vector<std::vector<double>> lookup_het;
+  static std::vector<double> lookup_lgamma;
   
   // constructor
   Lookup() {};

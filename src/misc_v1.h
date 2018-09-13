@@ -9,68 +9,74 @@
 #define UNDERFLO   1e-100
 
 //------------------------------------------------
-// basic sum over elements in a vector (templated for different data types).
+// basic sum over elements in a vector
 template<class TYPE>
 TYPE sum(std::vector<TYPE> &x) {
-    TYPE output = 0;
-    for (int i=0; i<int(x.size()); i++) {
-        output += x[i];
-    }
-    return output;
+  TYPE ret = 0;
+  for (int i=0; i<int(x.size()); i++) {
+    ret += x[i];
+  }
+  return ret;
 }
 
 //------------------------------------------------
-// mean of vector (templated for different data types)
+// mean of vector
 template<class TYPE>
 double mean(std::vector<TYPE> &x) {
-    return sum(x)/double(x.size());
+  return sum(x)/double(x.size());
 }
 
 //------------------------------------------------
-// min of vector (templated for different data types)
+// min of vector
 template<class TYPE>
 TYPE min(std::vector<TYPE> x) {
-    return *min_element(x.begin(), x.end());
+  return *min_element(x.begin(), x.end());
 }
 
 //------------------------------------------------
-// max of vector (templated for different data types)
+// max of vector
 template<class TYPE>
 TYPE max(std::vector<TYPE> x) {
-    return *max_element(x.begin(), x.end());
+  return *max_element(x.begin(), x.end());
 }
 
 //------------------------------------------------
 // push back multiple values to vector
 template<class TYPE>
 void push_back_multiple(std::vector<TYPE> &lhs, std::vector<TYPE> &rhs) {
-    lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+  lhs.insert(lhs.end(), rhs.begin(), rhs.end());
 }
 
 //------------------------------------------------
 // test whether value can be found in vector
 template<class TYPE>
-bool is_in_vector(TYPE x, std::vector<TYPE> &v) {
-  bool ret = false;
-  for (int i=0; i<int(v.size()); i++) {
-    if (v[i] == x) {
-      ret = true;
-      break;
-    }
-  }
-  return ret;
+bool is_in_vector(TYPE x, const std::vector<TYPE> &v) {
+  return find(v.begin(), v.end(), x) != v.end();
 }
 
 //------------------------------------------------
 // test whether two vectors have all matching values
 template<class TYPE>
-bool vectors_identical(std::vector<TYPE> &v1, std::vector<TYPE> &v2) {
+bool vectors_identical(const std::vector<TYPE> &v1, const std::vector<TYPE> &v2) {
   for (int i=0; i<int(v1.size()); i++) {
     if (v1[i] != v2[i]) {
       return false;
     }
   }
   return true;
+}
+
+//------------------------------------------------
+// return unique values in a vector
+template<class TYPE>
+std::vector<TYPE> unique(const std::vector<TYPE> &v) {
+  std::vector<TYPE> ret;
+  for (int i=0; i<int(v.size()); ++i) {
+    if (find(ret.begin(), ret.end(), v[i]) == ret.end()) {
+      ret.push_back(v[i]);
+    }
+  }
+  return ret;
 }
 
 //------------------------------------------------
@@ -129,7 +135,7 @@ void print(TYPE1 x1, TYPE2 x2, TYPE3 x3, TYPE4 x4, TYPE5 x5, TYPE6 x6) {
 //------------------------------------------------
 // helper function for printing contents of a vector (templated for different data types)
 template<class TYPE>
-void print_vector(std::vector<TYPE> &x) {
+void print_vector(const std::vector<TYPE> &x) {
     for (int i=0; i<x.size(); i++) {
         Rcpp::Rcout << x[i] << " ";
     }
@@ -140,7 +146,7 @@ void print_vector(std::vector<TYPE> &x) {
 //------------------------------------------------
 // helper function for printing contents of a matrix (templated for different data types)
 template<class TYPE>
-void print_matrix(std::vector< std::vector<TYPE> > &x) {
+void print_matrix(const std::vector< std::vector<TYPE> > &x) {
     for (int i=0; i<x.size(); i++) {
         for (int j=0; j<x[i].size(); j++) {
             Rcpp::Rcout << x[i][j] << " ";
@@ -154,7 +160,7 @@ void print_matrix(std::vector< std::vector<TYPE> > &x) {
 //------------------------------------------------
 // helper function for printing contents of a 3D array (templated for different data types)
 template<class TYPE>
-void print_array(std::vector< std::vector< std::vector<TYPE> > > &x) {
+void print_array(const std::vector< std::vector< std::vector<TYPE> > > &x) {
     for (int i=0; i<x.size(); i++) {
         Rcpp::Rcout << "--- slice " << i+1 << " ---\n";
         for (int j=0; j<x[i].size(); j++) {
@@ -171,33 +177,39 @@ void print_array(std::vector< std::vector< std::vector<TYPE> > > &x) {
 
 //------------------------------------------------
 // helper function for printing contents of an Rcpp numeric vector
-void rcpp_print_vector(Rcpp::NumericVector &x);
-void rcpp_print_vector(Rcpp::IntegerVector &x);
+void rcpp_print_vector(const Rcpp::NumericVector &x);
+
+//------------------------------------------------
+// helper function for printing contents of an Rcpp integer vector
+void rcpp_print_vector(const Rcpp::IntegerVector &x);
 
 //------------------------------------------------
 // helper function for printing contents of an Rcpp numeric matrix
-void rcpp_print_matrix(Rcpp::NumericMatrix &x);
-void rcpp_print_matrix(Rcpp::IntegerMatrix &x);
+void rcpp_print_matrix(const Rcpp::NumericMatrix &x);
+
+//------------------------------------------------
+// helper function for printing contents of an Rcpp integer matrix
+void rcpp_print_matrix(const Rcpp::IntegerMatrix &x);
 
 //------------------------------------------------
 // print simple bar-graph composed of title followed by n stars
-void print_stars(std::string title="", int n=10);
+void print_stars(int n = 10, std::string title = "");
 
 //------------------------------------------------
 // print "foo", with option number e.g. "foo2"
-void foo(int n=0);
+void foo(int n = 0);
 
 //------------------------------------------------
 // print "bar", with option number e.g. "bar2"
-void bar(int n=0);
+void bar(int n = 0);
 
 //------------------------------------------------
 // print "foobar", with option number e.g. "foobar2"
-void foobar(int n=0);
+void foobar(int n = 0);
 
 //------------------------------------------------
 // analogue of R function seq() for integers
-std::vector<int> seq_int(int from, int to, int by=1);
+std::vector<int> seq_int(int from, int to, int by = 1);
 
 //------------------------------------------------
 // converts input from Rcpp::List format to bool format.

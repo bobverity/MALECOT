@@ -16,9 +16,10 @@ public:
   // power GTI_pow
   double beta_raised;
   
+  // scalar lambda value
+  double lambda0;
+  
   // proposal standard deviations
-  double e1_propSD;
-  double e2_propSD;
   std::vector< std::vector<double> > p_propSD;
   
   // COI objects
@@ -39,15 +40,19 @@ public:
   // COI and allele frequencies
   std::vector<int> m;
   std::vector<std::vector<std::vector<double>>> p;
+  std::vector<std::vector<std::vector<double>>> logp;
   
-  // probability vectors and matrices used when updating draws
+  // qmatrices
   std::vector<std::vector<double>> log_qmatrix;
   std::vector<std::vector<double>> qmatrix;
   
+  // objects used when updating draws
+  std::vector<double> v;
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
-  std::vector<std::vector<double>> p_prop;
-  std::vector<double> COI_mean_prop;
+  std::vector<std::vector<std::vector<double>>> p_prop;
+  std::vector<std::vector<std::vector<double>>> logp_prop;
+  //std::vector<double> COI_mean_prop;
   
   // initialise ordering of labels
   std::vector<int> label_order;
@@ -64,11 +69,6 @@ public:
   
   // store acceptance rates
   std::vector<std::vector<int>> p_accept;
-  int e1_accept;
-  int e2_accept;
-  
-  // function pointers
-  double (Particle_multiallelic::*logprob_genotype_ptr) (int, double, int, double, double);
   
   // PUBLIC FUNCTIONS
   
@@ -77,18 +77,13 @@ public:
   Particle_multiallelic(double beta_raised);
   
   // other functions
+  double logprob_genotype(const std::vector<int> &x, const std::vector<double> &logp, int m);
   void reset();
-  void update_e(int which_e, bool robbins_monro_on, int iteration);
   void update_p(bool robbins_monro_on, int iteration);
   void update_m();
   void update_group();
   void update_COI_mean(bool robbins_monro_on, int iteration);
   void calculate_loglike();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
-  
-  double logprob_genotype(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_exact(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_lookup_varE(int S, double p, int m, double e1, double e2);
   
 };

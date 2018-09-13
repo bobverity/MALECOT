@@ -9,8 +9,9 @@
 #' @import ggplot2
 #' @import gridExtra
 #' @importFrom plotly plot_ly
+#' @importFrom RColorBrewer brewer.pal
 #' @importFrom Rcpp sourceCpp
-#' @importFrom grDevices colorRampPalette
+#' @importFrom grDevices colorRampPalette grey
 #' @import stats
 #' @import utils
 #' @import graphics
@@ -113,6 +114,14 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
   dat[dat == 0] <- 3
   dat[w] <- 0
   
+  # check for invariant loci
+  invariant <- apply(dat, 2, function(x) {
+                      all(x == 1) || all(x == 3)
+                    })
+  if (any(invariant)) {
+    stop("data cannot contain invariant loci (i.e. loci for which the same single haplotype is observed in every sample)")
+  }
+  
   # create dat_processed list
   dat_processed <- list(data = dat,
                         n = nrow(dat),
@@ -204,30 +213,41 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
   if (any(df$haplotype <= 0 && df$haplotype != missing_data)) {
     stop("for the multi-allelic format haplotypes must be coded as positive integers (or as missing data)")
   }
+  alleles <- mapply(function(x) {
+                      length(unique(x[!is.na(x)]))
+                    }, split(df$haplotype, f = df$locus))
+  if (any(alleles == 1)) {
+    stop("data cannot contain invariant loci (i.e. loci for which the same single haplotype is observed in every sample)")
+  }
+  if (all(alleles == 2)) {
+    message("Note: data contains two alleles at every locus. Consider reformatting in bi-allelic format to speed up MCMC")
+  }
   
   # process genetic data. Re-factor loci as increasing integers, and haplotypes
   # as increasing integers with 0 indicating missing data
   df_processed <- df
   df_processed$locus <- match(df_processed$locus, locus_names)
   df_processed$haplotype[df_processed$haplotype == missing_data] <- NA
-  alleles <- mapply(function(x) {
-                      length(unique(x[!is.na(x)]))
-                    }, split(df_processed$haplotype, f = df_processed$locus))
-  if (all(alleles == 2)) {
-    message("Note: data contains two alleles at every locus. Consider reformatting in bi-allelic format to speed up MCMC")
-  }
-  new_haplotype_order <- mapply(function(x) {
-                                  order(unique(x[!is.na(x)]))
-                                }, split(df_processed$haplotype, f = df_processed$locus), SIMPLIFY = FALSE)
+  haplotype_uniques <- mapply(function(x) {
+                                sort(unique(x[!is.na(x)]))
+                              }, split(df_processed$haplotype, f = df_processed$locus), SIMPLIFY = FALSE)
   new_haplotype <- mapply(function(x,y) {
-                            new_haplotype_order[[x]][y]
+                            match(y, haplotype_uniques[[x]])
                           }, df_processed$locus, df_processed$haplotype)
   df_processed$haplotype <- new_haplotype
   df_processed$haplotype[is.na(df_processed$haplotype)] <- 0
   
+  # reformat into list over samples and loci
+  data_processed <- mapply(function(x) {
+    tmp <- mapply(function(y) y$haplotype, split(x, f = x$locus), SIMPLIFY = FALSE)
+    names(tmp) <- NULL
+    tmp
+  }, split(df_processed, f = df_processed$sample_ID), SIMPLIFY = FALSE)
+  names(data_processed) <- NULL
+  
   # add data to project
   project$data <- df
-  project$data_processed <- list(data = df_processed,
+  project$data_processed <- list(data = data_processed,
                                  n = n,
                                  L = L,
                                  ID = ID,
@@ -252,12 +272,14 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #' @param name the name of the parameter set
 #' @param lambda shape parameter(s) governing the prior on allele frequencies. 
 #'   This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-#'   distribution for the multi-allelic case. \code{lambda} can be a single
-#'   scalar value, in which case the same shape paremeter is applied to all loci
-#'   and all alleles (i.e. a symmetric Beta or Dirichlet prior), or
-#'   \code{lambda} can be a list of length \code{L} containing vectors of length
-#'   equal to the number of alleles at each locus, allowing different shape
-#'   parameters to be specified for each allele individually
+#'   distribution for the multi-allelic case. In the b-allelic case, 
+#'   \code{lambda} can be either a single scalar value, in which case the same 
+#'   shape paremeter is applied to all loci and all alleles (i.e. a symmetric 
+#'   Beta prior), or \code{lambda} can be a list of length \code{L} of vectors
+#'   of length 2, allowing different shape parameters to be specified for each
+#'   allele at each locus individually. In the multi-allelic case, \code{lambda}
+#'   must be a single scalar value that applies to all loci and all alleles
+#'   (i.e. a symmetric Dirichlet prior)
 #' @param COI_model the type of prior on COI. Must be one of "uniform",
 #'   "poisson", or "nb" (negative binomial)
 #' @param COI_max the maximum COI allowed for any given sample
@@ -290,9 +312,14 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
   assert_custom_class(project, "malecot_project")
   n <- project$data_processed$n
   L <- project$data_processed$L
+  data_format <- project$data_processed$data_format
   assert_single_string(name)
-  assert_in(length(lambda), c(1,L))
-  assert_pos(unlist(lambda), zero_allowed = FALSE)
+  if (is.list(lambda)) {
+    assert_length(lambda,L)
+    assert_pos(unlist(lambda), zero_allowed = FALSE)
+  } else {
+    assert_single_pos(lambda, zero_allowed = FALSE)
+  }
   assert_single_string(COI_model)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   assert_single_pos_int(COI_max, zero_allowed = FALSE)
@@ -325,16 +352,9 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
   }
   
   # check that lambda specified correctly
-  if (length(lambda) == L) {
+  if (is.list(lambda)) {
     lambda_length <- mapply(length, lambda)
-    assert_eq(project$data_processed$alleles, lambda_length, message = sprintf("lambda does not match number of alleles at every locus. Length of lambda: %s. Number of alleles: %s.", nice_format(lambda_length), nice_format(project$data_processed$alleles)))
-  } else {
-    assert_length(lambda, 1)
-  }
-  
-  # expand lambda to list
-  if (length(lambda) == 1) {
-    lambda <- mapply(rep, lambda, times = project$data_processed$alleles, SIMPLIFY = FALSE)
+    assert_eq(project$data_processed$alleles, lambda_length, message = sprintf("when in list form, lambda must have one value for every allele at every locus."))
   }
   
   # count current parameter sets and add one
@@ -538,11 +558,14 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   L <- project$data_processed$L
   data_format <- project$data_processed$data_format
   dat <- project$data_processed$data
+  if (data_format == "biallelic") {
+    dat = mat_to_rcpp(dat)
+  }
   
   # ---------- create argument lists ----------
   
   # data list
-  args_data <- list(data = mat_to_rcpp(dat),
+  args_data <- list(data = dat,
                     n = n,
                     L = L,
                     alleles = project$data_processed$alleles)
@@ -565,6 +588,9 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   
   # get COI_model in numeric form
   args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
+  
+  # record whether lambda defined as scalar value
+  args_model$lambda_scalar <- (length(args_model$lambda) == 1)
   
   # R functions to pass to Rcpp
   args_functions <- list(test_convergence = test_convergence,
@@ -652,7 +678,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     
     # get full e1 and e2 trace in coda::mcmc format
     full_e1 <- full_e2 <- NULL
-    if (args_model$estimate_error) {
+    if (data_format == "biallelic" && args_model$estimate_error) {
       full_e1 <- mcmc(output_raw[[i]]$e1_store)
       full_e2 <- mcmc(output_raw[[i]]$e2_store)
     }
@@ -699,13 +725,16 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     class(COI_mean_quantiles) <- "malecot_COI_mean_quantiles"
     
     # get quantiles over e1 and e2
-    if (args_model$estimate_error) {
-      e_quantiles <- rbind(quantile_95(full_e1), quantile_95(full_e2))
-    } else {
-      e_quantiles <- rbind(quantile_95(args_model$e1), quantile_95(args_model$e2))
+    e_quantiles <- NULL
+    if (data_format == "biallelic") {
+      if (args_model$estimate_error) {
+        e_quantiles <- rbind(quantile_95(full_e1), quantile_95(full_e2))
+      } else {
+        e_quantiles <- rbind(quantile_95(args_model$e1), quantile_95(args_model$e2))
+      }
+      rownames(e_quantiles) <- c("e1", "e2")
+      class(e_quantiles) <- "malecot_e_quantiles"
     }
-    rownames(e_quantiles) <- c("e1", "e2")
-    class(e_quantiles) <- "malecot_e_quantiles"
     
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)

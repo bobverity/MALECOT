@@ -195,13 +195,15 @@ summary.malecot_project <- function(object, ...) {
       cat(sprintf("   COI mean = %s\n", COI_mean))
     }
     cat(sprintf("   COI dispersion = %s\n", COI_dispersion))
-    cat(sprintf("   estimate error = %s\n", estimate_error))
-    if (estimate_error) {
-      cat(sprintf("   e1_max = %s\n", e1_max))
-      cat(sprintf("   e2_max = %s\n", e2_max))
-    } else {
-      cat(sprintf("   e1 = %s\n", e1))
-      cat(sprintf("   e2 = %s\n", e2))
+    if (data_format == "biallelic") {
+      cat(sprintf("   estimate error = %s\n", estimate_error))
+      if (estimate_error) {
+        cat(sprintf("   e1_max = %s\n", e1_max))
+        cat(sprintf("   e2_max = %s\n", e2_max))
+      } else {
+        cat(sprintf("   e1 = %s\n", e1))
+        cat(sprintf("   e2 = %s\n", e2))
+      }
     }
     
   }

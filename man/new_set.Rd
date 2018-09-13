@@ -17,12 +17,14 @@ new_set(project, name = "(no name)", lambda = 1, COI_model = "poisson",
 
 \item{lambda}{shape parameter(s) governing the prior on allele frequencies. 
 This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-distribution for the multi-allelic case. \code{lambda} can be a single
-scalar value, in which case the same shape paremeter is applied to all loci
-and all alleles (i.e. a symmetric Beta or Dirichlet prior), or
-\code{lambda} can be a list of length \code{L} containing vectors of length
-equal to the number of alleles at each locus, allowing different shape
-parameters to be specified for each allele individually}
+distribution for the multi-allelic case. In the b-allelic case, 
+\code{lambda} can be either a single scalar value, in which case the same 
+shape paremeter is applied to all loci and all alleles (i.e. a symmetric 
+Beta prior), or \code{lambda} can be a list of length \code{L} of vectors
+of length 2, allowing different shape parameters to be specified for each
+allele at each locus individually. In the multi-allelic case, \code{lambda}
+must be a single scalar value that applies to all loci and all alleles
+(i.e. a symmetric Dirichlet prior)}
 
 \item{COI_model}{the type of prior on COI. Must be one of "uniform",
 "poisson", or "nb" (negative binomial)}

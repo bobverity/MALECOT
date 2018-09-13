@@ -1,6 +1,6 @@
 
 #include "Particle_biallelic.h"
-#include "misc.h"
+#include "misc_v1.h"
 #include "probability.h"
 #include "hungarian.h"
 
@@ -147,15 +147,13 @@ void Particle_biallelic::reset() {
   }
   
   // reset allele frequencies
-  p = vector<vector<double>>(K, vector<double>(L,0.5));
-  p_propSD = vector<vector<double>>(K, vector<double>(L,1));
   for (int k=0; k<K; k++) {
     fill(p[k].begin(), p[k].end(), 0.5);
     fill(p_propSD[k].begin(), p_propSD[k].end(), 1);
   }
   
   // reset COI
-  m = vector<int>(n,COI_max);
+  fill(m.begin(), m.end(), COI_max);
   for (int i=0; i<n; i++) {
     if (COI_manual[i] != -1) {
       m[i] = COI_manual[i];
@@ -182,6 +180,17 @@ void Particle_biallelic::reset() {
     }
   }
   
+}
+
+//------------------------------------------------
+// get lambda value for locus i, allele j
+double Particle_biallelic::get_lambda(int i, int j) {
+  if (lambda_scalar) {
+    return lambda[0][0];
+  } else {
+    return lambda[i][j];
+  }
+  return 1.0;
 }
 
 //------------------------------------------------
@@ -294,17 +303,17 @@ void Particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
     // Metropolis step for all K
     for (int k=0; k<K; k++) {
       
-      // incorporate lambda prior
-      double prior_old = dbeta1(p[k][j], lambda[j][0], lambda[j][1]);
-      double prior_new = dbeta1(p_prop[k][j], lambda[j][0], lambda[j][1]);
-      
       // catch impossible proposed values
       if (sum_loglike_new_vec[k] <= -OVERFLO) {
         continue;
       }
       
+      // incorporate prior
+      double log_prior_old = dbeta1(p[k][j], get_lambda(j,0), get_lambda(j,1));
+      double log_prior_new = dbeta1(p_prop[k][j], get_lambda(j,0), get_lambda(j,1));
+      
       // Metropolis step
-      double MH = (beta_raised*sum_loglike_new_vec[k] + prior_new) - (beta_raised*sum_loglike_old_vec[k] + prior_old);
+      double MH = (beta_raised*sum_loglike_new_vec[k] + log_prior_new) - (beta_raised*sum_loglike_old_vec[k] + log_prior_old);
       if (log(runif_0_1())<MH) {
         
         // update p

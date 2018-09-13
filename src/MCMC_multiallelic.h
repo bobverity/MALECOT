@@ -35,14 +35,10 @@ public:
   std::vector<std::vector<double>> loglike_sampling;
   std::vector<std::vector<int>> m_store;
   std::vector<std::vector<std::vector<std::vector<double>>>> p_store;
-  std::vector<double> e1_store;
-  std::vector<double> e2_store;
   std::vector<std::vector<double>> COI_mean_store;
   
   // objects for storing acceptance rates
   std::vector<std::vector<int>> p_accept;
-  int e1_accept;
-  int e2_accept;
   std::vector<int> coupling_accept;
   
   

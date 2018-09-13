@@ -290,7 +290,7 @@ sim_data_multiallelic <- function(n, L, K, true_group, true_p = true_p, true_m, 
     true_p_group <- lapply(true_group, function(i) {true_p[[l]][i,]})
     haplotypes <- mapply(function(x,y) {
       sort(unique(sample.int(length(x), y, replace = TRUE, prob = x)))
-    }, true_p_group, y = true_m)
+    }, true_p_group, y = true_m, SIMPLIFY = FALSE)
     df_l <- data.frame(sample_ID = rep(samp_names, times = sapply(haplotypes,length)), locus = l, haplotype = unlist(haplotypes), stringsAsFactors = FALSE)
     df <- rbind(df, df_l)
   }

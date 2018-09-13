@@ -1,6 +1,6 @@
 
 #include "Parameters.h"
-#include "misc.h"
+#include "misc_v1.h"
 
 using namespace std;
 
@@ -24,6 +24,7 @@ bool Parameters::silent;
 
 // model parameters
 std::vector<std::vector<double>> Parameters::lambda;
+bool Parameters::lambda_scalar;
 int Parameters::COI_model;
 int Parameters::COI_max;
 std::vector<int> Parameters::COI_manual;
@@ -56,7 +57,13 @@ Parameters::Parameters(const Rcpp::List &args) {
   silent = rcpp_to_bool(args["silent"]);
   
   // model parameters
-  lambda = rcpp_to_mat_double(args["lambda"]);
+  lambda_scalar = rcpp_to_bool(args["lambda_scalar"]);
+  if (lambda_scalar) {
+    lambda = vector<vector<double>>(1, vector<double>(1));
+    lambda[0][0] = rcpp_to_double(args["lambda"]);
+  } else {
+    lambda = rcpp_to_mat_double(args["lambda"]);
+  }
   COI_model = rcpp_to_int(args["COI_model_numeric"]);
   COI_max = rcpp_to_int(args["COI_max"]);
   COI_manual = rcpp_to_vector_int(args["COI_manual"]);

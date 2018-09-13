@@ -17,10 +17,6 @@ GTI_integrated_K_sim_cpp <- function(args) {
     .Call('_MALECOT_GTI_integrated_K_sim_cpp', PACKAGE = 'MALECOT', args)
 }
 
-generate_scaffolds_multiallelic_cpp <- function(args) {
-    .Call('_MALECOT_generate_scaffolds_multiallelic_cpp', PACKAGE = 'MALECOT', args)
-}
-
 fix_labels_cpp <- function(args_model) {
     .Call('_MALECOT_fix_labels_cpp', PACKAGE = 'MALECOT', args_model)
 }

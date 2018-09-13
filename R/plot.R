@@ -402,10 +402,10 @@ plot_m_quantiles <- function(project, K = NULL, ...) {
 plot.malecot_p_quantiles <- function(x, y, ...) {
   
   # get maximum number of alleles over all loci
-  max_alleles <- max(mapply(nrow, x)) + 1
+  max_alleles <- max(mapply(nrow, x))
   
   # split plotting method for bi-allelic vs. multi-allelic estimates
-  if (max_alleles == 2) {
+  if (max_alleles == 1) {
     plot1 <- plot_p_biallelic(x)
   } else {
     plot1 <- plot_p_multiallelic(x)
@@ -440,8 +440,44 @@ plot_p_biallelic <- function(p) {
 # plot multi-allelic allele frequency estimates
 #' @noRd
 plot_p_multiallelic <- function(x) {
-  print("TODO")
-  return(NULL)
+  
+  # get maximum number of alleles at any locus
+  L <- length(x)
+  max_alleles <- max(mapply(nrow, x))
+  
+  # add empty rows so same number of alleles at every locus
+  x_expanded <- mapply(function(y) {
+    ret <- y
+    if (nrow(ret) < max_alleles) {
+      ret <- rbind(ret, matrix(0, max_alleles - nrow(ret), ncol(ret)))
+    }
+    cbind(allele = 1:nrow(ret), ret)
+  }, x, SIMPLIFY = FALSE)
+  
+  # get into dataframe
+  df <- do.call(rbind.data.frame, x_expanded)
+  df$locus <- rep(1:L, each = max_alleles)
+  
+  # bar colours
+  col_vec <- brewer.pal(max_alleles+3, "Blues")[-(1:3)]
+  
+  # create basic plot
+  plot1 <- ggplot(df, aes_(x = ~as.factor(locus), y = ~Q50, fill = ~as.factor(allele)))  + theme_bw() + theme(panel.grid.major.x = element_blank())
+  
+  # add grouped barpot
+  plot1 <- plot1 + geom_bar(stat = "identity", position = "dodge")
+  
+  # add error bars
+  plot1 <- plot1 + geom_errorbar(aes_(ymin = ~Q2.5, ymax = ~Q97.5), position = "dodge")
+  
+  # scales, titles, legends etc.
+  plot1 <- plot1 + scale_fill_manual(values = col_vec, name = "allele")
+  plot1 <- plot1 + scale_y_continuous(limits = c(0,1), expand = c(0,0))
+  plot1 <- plot1 + geom_vline(xintercept = 1:L + 0.5, col = grey(0.9))
+  plot1 <- plot1 + xlab("locus") + ylab("allele frequency")
+  
+  # return plot object
+  return(plot1)
 }
 
 #------------------------------------------------

@@ -4,7 +4,7 @@
 #include "Parameters.h"
 #include "Data.h"
 #include "Lookup.h"
-#include "misc.h"
+#include "misc_v1.h"
 #include "probability.h"
 #include "MCMC_biallelic.h"
 #include "MCMC_multiallelic.h"
@@ -104,12 +104,41 @@ Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
   Lookup lookup;
   lookup.init_lgamma();
   
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // create MCMC object
+  MCMC_multiallelic mcmc_multiallelic;
+  
+  // run MCMC
+  mcmc_multiallelic.burnin_mcmc(args_functions, args_progress);
+  mcmc_multiallelic.sampling_mcmc(args_functions, args_progress);
+  
+  // end timer
+  chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+  chrono::duration<double> time_span = chrono::duration_cast< chrono::duration<double> >(t2-t1);
+  if (!parameters.silent) {
+    print("   completed in", time_span.count(), "seconds\n");
+  }
+  
   // create return object
   Rcpp::List ret;
-  ret.push_back(Rcpp::wrap( -9 ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.loglike_burnin ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.loglike_sampling ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.p_store ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.m_store ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.qmatrix_final ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.p_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.coupling_accept ));
   
   Rcpp::StringVector ret_names;
-  ret_names.push_back("foo");
+  ret_names.push_back("loglike_burnin");
+  ret_names.push_back("loglike_sampling");
+  ret_names.push_back("p_store");
+  ret_names.push_back("m_store");
+  ret_names.push_back("qmatrix");
+  ret_names.push_back("p_accept");
+  ret_names.push_back("coupling_accept");
   
   ret.names() = ret_names;
   return ret;
@@ -197,22 +226,6 @@ Rcpp::List GTI_integrated_K_sim_cpp(Rcpp::List args) {
   // return as Rcpp object
   return Rcpp::List::create(Rcpp::Named("mean")=x_mean,
                             Rcpp::Named("SE")=x_var);
-}
-
-//------------------------------------------------
-// generate scaffolds under multiallelic model
-// [[Rcpp::export]]
-Rcpp::List generate_scaffolds_multiallelic_cpp(Rcpp::List args) {
-  
-  // create return object
-  Rcpp::List ret;
-  ret.push_back(Rcpp::wrap( -9 ));
-  
-  Rcpp::StringVector ret_names;
-  ret_names.push_back("foo");
-  
-  ret.names() = ret_names;
-  return ret;
 }
 
 //------------------------------------------------

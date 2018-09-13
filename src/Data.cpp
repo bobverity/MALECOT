@@ -1,6 +1,6 @@
 
 #include "Data.h"
-#include "misc.h"
+#include "misc_v1.h"
 
 using namespace std;
 
@@ -20,11 +20,11 @@ Data_biallelic::Data_biallelic(const Rcpp::List &args) {
   L = rcpp_to_int(args["L"]);
 }
 
-
 //------------------------------------------------
 // declare static member variables for class Data_multiallelic
 
 vector<vector<vector<int>>> Data_multiallelic::data;
+vector<int> Data_multiallelic::observed_COI;
 vector<int> Data_multiallelic::alleles;
 int Data_multiallelic::n;
 int Data_multiallelic::L;
@@ -33,8 +33,20 @@ int Data_multiallelic::L;
 // constructor for Data_multiallelic class
 Data_multiallelic::Data_multiallelic(const Rcpp::List &args) {
   
-  vector<vector<int>> data_raw = rcpp_to_mat_int(args["data"]);
+  // read in data
+  data = rcpp_to_array_int(args["data"]);
   alleles = rcpp_to_vector_int(args["alleles"]);
   n = rcpp_to_int(args["n"]);
   L = rcpp_to_int(args["L"]);
+  
+  // get observed number of alleles in each sample
+  observed_COI = vector<int>(n);
+  for (int i=0; i<n; ++i) {
+    for (int l=0; l<L; ++l) {
+      if (data[i][l].size() > observed_COI[i]) {
+        observed_COI[i] = data[i][l].size();
+      }
+    }
+  }
+  
 }

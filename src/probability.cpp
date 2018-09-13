@@ -1,8 +1,9 @@
 
 #include <Rcpp.h>
 #include <math.h>
+
 #include "probability.h"
-#include "misc.h"
+#include "misc_v1.h"
 
 using namespace std;
 
@@ -76,6 +77,83 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
 }
 
 //------------------------------------------------
+// draw from multivariate logit-normal distribution, given mean and standard 
+// deviation on the logit scale. Produces one more draw than the number of
+// meanlog values. Assumes same standard deviation in all dimensions and zero
+// correlation
+vector<double> rmlogitnorm1(const vector<double> &meanlog, double sdlog) {
+  
+  int n = int(meanlog.size());
+  vector<double> ret(n+1);
+  double tmp1 = 0;
+  for (int i=0; i<n; ++i) {
+    ret[i] = exp(rnorm1(meanlog[i], sdlog));
+    tmp1 += ret[i];
+  }
+  double tmp2 = 1.0/(1.0 + tmp1);
+  for (int i=0; i<n; ++i) {
+    ret[i] *= tmp2;
+  }
+  ret[n] = tmp2;
+  
+  return ret;
+}
+
+//------------------------------------------------
+// probability density of rmlogitnorm1 distribution
+double dmlogitnorm1(const std::vector<double> &x, const vector<double> &meanlog, double sdlog, bool return_log) {
+  
+  int n = int(meanlog.size());
+  double ret = -log(x[n]);
+  for (int i=0; i<n; ++i) {
+    ret += dnorm1(log(x[i]/x[n]), meanlog[i], sdlog, true) - log(x[i]);
+  }
+  if (!return_log) {
+    return exp(ret);
+  }
+  return ret;
+}
+
+//------------------------------------------------
+// equivalent to rmlogitnorm2, except proportions p are passed in and 
+// transformed to obtain the meanlog values. Note that p should sum to 1, and 
+// therefore should be one element longer than the meanlog argument in 
+// rmlogitnorm1. If sdlog is zero then draws will equal p, although generally p 
+// does not equal the mean of the distribution.
+std::vector<double> rmlogitnorm2(const std::vector<double> &p, double sdlog) {
+  
+  int n = int(p.size()) - 1;
+  vector<double> ret(n+1);
+  double tmp1 = 0;
+  for (int i=0; i<n; ++i) {
+    ret[i] = exp(rnorm1(log(p[i]/p[n]), sdlog));
+    tmp1 += ret[i];
+  }
+  double tmp2 = 1.0/(1.0 + tmp1);
+  for (int i=0; i<n; ++i) {
+    ret[i] *= tmp2;
+  }
+  ret[n] = tmp2;
+  
+  return ret;
+}
+
+//------------------------------------------------
+// probability density of rmlogitnorm1 distribution
+double dmlogitnorm2(const std::vector<double> &x, const vector<double> &p, double sdlog, bool return_log) {
+  
+  int n = int(p.size()) - 1;
+  double ret = -log(x[n]);
+  for (int i=0; i<n; ++i) {
+    ret += dnorm1(log(x[i]/x[n]), log(p[i]/p[n]), sdlog, true) - log(x[i]);
+  }
+  if (!return_log) {
+    return exp(ret);
+  }
+  return ret;
+}
+
+//------------------------------------------------
 // sample single value from given probability vector (that sums to pSum)
 int sample1(vector<double> &p, double pSum) {
   double rand = pSum*runif_0_1();
@@ -140,14 +218,48 @@ double dbeta1(double x, double shape1, double shape2, bool return_log) {
 }
 
 //------------------------------------------------
-// draw from dirichlet distribution using vector of shape parameters. Return vector of values.
-vector<double> rdirichlet1(vector<double> &shapeVec) {
+// draw from symmetric dirichlet distribution using single shape parameter
+// repeated d times
+vector<double> rsym_dirichlet1(double shape, int d) {
   // draw a series of gamma random variables
-  int n = shapeVec.size();
+  vector<double> ret(d);
+  double ret_sum = 0;
+  for (int i=0; i<d; i++) {
+    ret[i] = rgamma1(shape, 1.0);
+    ret_sum += ret[i];
+  }
+  // divide all by the sum
+  double ret_inv_sum = 1.0/ret_sum;
+  for (int i=0; i<d; i++) {
+    ret[i] *= ret_inv_sum;
+  }
+  return(ret);
+}
+
+//------------------------------------------------
+// probability density of symmetric Dirichlet distribution
+double dsym_dirichlet1(const std::vector<double> &p, double shape, bool return_log) {
+  int d = p.size();
+  double ret = lgamma(d*shape);
+  double lgs = lgamma(shape);
+  for (int i=0; i<d; ++i) {
+    ret += (shape - 1)*log(p[i]) - lgs;
+  }
+  if (!return_log) {
+    return exp(ret);
+  }
+  return ret;
+}
+
+//------------------------------------------------
+// draw from dirichlet distribution using vector of shape parameters
+vector<double> rdirichlet1(const vector<double> &shape_vec) {
+  // draw a series of gamma random variables
+  int n = shape_vec.size();
   vector<double> ret(n);
   double retSum = 0;
   for (int i=0; i<n; i++) {
-    ret[i] = rgamma1(shapeVec[i], 1.0);
+    ret[i] = rgamma1(shape_vec[i], 1.0);
     retSum += ret[i];
   }
   // divide all by the sum
@@ -159,8 +271,8 @@ vector<double> rdirichlet1(vector<double> &shapeVec) {
 }
 
 //------------------------------------------------
-// draw from dirichlet distribution using bespoke inputs. Outputs are stored in
-// x, passed by reference for speed. Shape parameters are equal to alpha+beta,
+// draw from dirichlet distribution using bespoke inputs. Outputs are stored in 
+// x, passed by reference for speed. Shape parameters are equal to alpha+beta, 
 // where alpha is an integer vector, and beta is a single double.
 void rdirichlet2(std::vector<double> &x, std::vector<int> &alpha, double beta) {
   

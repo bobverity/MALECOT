@@ -78,6 +78,7 @@ public:
   
   // other functions
   void reset();
+  double get_lambda(int i, int j);
   void update_e(int which_e, bool robbins_monro_on, int iteration);
   void update_p(bool robbins_monro_on, int iteration);
   void update_m();

@@ -1,5 +1,5 @@
 
-#include "misc.h"
+#include "misc_v1.h"
 #include "hungarian.h"
 
 using namespace std;
@@ -11,22 +11,22 @@ using namespace std;
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// basic sum over elements in a vector (templated for different data types)
+// basic sum over elements in a vector
 // sum
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// mean of vector (templated for different data types)
+// mean of vector
 // mean
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// min of vector (templated for different data types)
+// min of vector
 // min
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// max of vector (templated for different data types)
+// max of vector
 // max
 // DEFINED IN HEADER
 
@@ -43,6 +43,11 @@ using namespace std;
 //------------------------------------------------
 // test whether two vectors have all matching values
 // vectors_identical
+// DEFINED IN HEADER
+
+//------------------------------------------------
+// return unique values in a vector
+// unique
 // DEFINED IN HEADER
 
 //------------------------------------------------
@@ -156,14 +161,17 @@ Rcpp::List call_hungarian_cpp(Rcpp::List args) {
 
 //------------------------------------------------
 // helper function for printing contents of an Rcpp numeric vector
-void rcpp_print_vector(Rcpp::NumericVector &x) {
+void rcpp_print_vector(const Rcpp::NumericVector &x) {
   for (int i=0; i<x.length(); i++) {
     Rcpp::Rcout << x[i] << " ";
   }
   Rcpp::Rcout << "\n";
   R_FlushConsole();
 }
-void rcpp_print_vector(Rcpp::IntegerVector &x) {
+
+//------------------------------------------------
+// helper function for printing contents of an Rcpp integer vector
+void rcpp_print_vector(const Rcpp::IntegerVector &x) {
   for (int i=0; i<x.length(); i++) {
     Rcpp::Rcout << x[i] << " ";
   }
@@ -173,7 +181,7 @@ void rcpp_print_vector(Rcpp::IntegerVector &x) {
 
 //------------------------------------------------
 // helper function for printing contents of an Rcpp numeric matrix
-void rcpp_print_matrix(Rcpp::NumericMatrix &x) {
+void rcpp_print_matrix(const Rcpp::NumericMatrix &x) {
   for (int i=0; i<x.nrow(); i++) {
     for (int j=0; j<x.ncol(); j++) {
       Rcpp::Rcout << x(i,j) << " ";
@@ -183,7 +191,10 @@ void rcpp_print_matrix(Rcpp::NumericMatrix &x) {
   Rcpp::Rcout << "\n";
   R_FlushConsole();
 }
-void rcpp_print_matrix(Rcpp::IntegerMatrix &x) {
+
+//------------------------------------------------
+// helper function for printing contents of an Rcpp integer matrix
+void rcpp_print_matrix(const Rcpp::IntegerMatrix &x) {
   for (int i=0; i<x.nrow(); i++) {
     for (int j=0; j<x.ncol(); j++) {
       Rcpp::Rcout << x(i,j) << " ";
@@ -196,7 +207,7 @@ void rcpp_print_matrix(Rcpp::IntegerMatrix &x) {
 
 //------------------------------------------------
 // print simple bar-graph composed of title followed by n stars
-void print_stars(string title, int n) {
+void print_stars(int n, string title) {
   Rcpp::Rcout << title << " ";
   for (int i=0; i<n; i++) {
     Rcpp::Rcout << "*";

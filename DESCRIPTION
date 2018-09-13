@@ -21,7 +21,8 @@ Imports:
     coda,
     ggplot2,
     gridExtra,
-    plotly
+    plotly,
+    RColorBrewer
 SystemRequirements: C++11
 Suggests: 
     testthat,

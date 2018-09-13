@@ -49,17 +49,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// generate_scaffolds_multiallelic_cpp
-Rcpp::List generate_scaffolds_multiallelic_cpp(Rcpp::List args);
-RcppExport SEXP _MALECOT_generate_scaffolds_multiallelic_cpp(SEXP argsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(generate_scaffolds_multiallelic_cpp(args));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fix_labels_cpp
 Rcpp::List fix_labels_cpp(Rcpp::List args_model);
 RcppExport SEXP _MALECOT_fix_labels_cpp(SEXP args_modelSEXP) {
@@ -99,7 +88,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_MALECOT_run_mcmc_multiallelic_cpp", (DL_FUNC) &_MALECOT_run_mcmc_multiallelic_cpp, 1},
     {"_MALECOT_GTI_posterior_K_sim_cpp", (DL_FUNC) &_MALECOT_GTI_posterior_K_sim_cpp, 1},
     {"_MALECOT_GTI_integrated_K_sim_cpp", (DL_FUNC) &_MALECOT_GTI_integrated_K_sim_cpp, 1},
-    {"_MALECOT_generate_scaffolds_multiallelic_cpp", (DL_FUNC) &_MALECOT_generate_scaffolds_multiallelic_cpp, 1},
     {"_MALECOT_fix_labels_cpp", (DL_FUNC) &_MALECOT_fix_labels_cpp, 1},
     {"_MALECOT_GTI_evidence_sim_cpp", (DL_FUNC) &_MALECOT_GTI_evidence_sim_cpp, 1},
     {"_MALECOT_call_hungarian_cpp", (DL_FUNC) &_MALECOT_call_hungarian_cpp, 1},
