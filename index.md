@@ -15,5 +15,5 @@ MALECOT is an R package for inferring population structure from genetic data, an
 
 The first two parameters are estimated by programs like [STRUCTURE](https://web.stanford.edu/group/pritchardlab/structure.html), but the third parameter is not, making STRUCTURE not ideally suited to malaria data where complex infections are common.
 
-To get started, take a look at the [installation instructions](https://bobverity.github.io/MALECOT), followed by a [basic tutorial](https://bobverity.github.io/MALECOT) on running the program.
+To get started, take a look at the [installation instructions](https://bobverity.github.io/MALECOT/articles/installation.html), followed by a [basic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) on running the program.
 

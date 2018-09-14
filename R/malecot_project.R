@@ -190,11 +190,15 @@ summary.malecot_project <- function(object, ...) {
     if (any(COI_manual != -1)) {
       cat(sprintf("   COI specified manually for %s samples\n", sum(COI_manual != -1)))
     }
-    cat(sprintf("   estimate COI mean = %s\n", estimate_COI_mean))
-    if (!estimate_COI_mean) {
-      cat(sprintf("   COI mean = %s\n", COI_mean))
+    if (COI_model != "uniform") {
+      cat(sprintf("   estimate COI mean = %s\n", estimate_COI_mean))
+      if (!estimate_COI_mean) {
+        cat(sprintf("   COI mean = %s\n", COI_mean))
+      }
+      if (COI_model == "nb") {
+        cat(sprintf("   COI dispersion = %s\n", COI_dispersion))
+      }
     }
-    cat(sprintf("   COI dispersion = %s\n", COI_dispersion))
     if (data_format == "biallelic") {
       cat(sprintf("   estimate error = %s\n", estimate_error))
       if (estimate_error) {

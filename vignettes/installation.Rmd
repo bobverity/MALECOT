@@ -4,7 +4,7 @@ author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Installing MALECOT}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -39,7 +39,7 @@ Then install the MALECOT package directly from GitHub by running
 devtools::install_github("bobverity/malecot")
 ```
 
-If you have any problems installing, please check the [Known issues](https://bobverity.github.io/malecot/articles/known-issues.html) page to see if there is a known solution. If not then please [raise an issue](https://github.com/bobverity/malecot/issues) on github.
+If you have any problems installing, please check the [Known issues](https://bobverity.github.io/MALECOT/articles/known-issues.html) page to see if there is a known solution. If not then please [raise an issue](https://github.com/bobverity/malecot/issues) on github.
 
 Assuming everything installed correctly, we need to load the package:
 
