@@ -125,8 +125,9 @@ Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
   Rcpp::List ret;
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.loglike_burnin ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.loglike_sampling ));
-  ret.push_back(Rcpp::wrap( mcmc_multiallelic.p_store ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.m_store ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.p_store ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.COI_mean_store ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.qmatrix_final ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.p_accept ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.coupling_accept ));
@@ -134,8 +135,9 @@ Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
   Rcpp::StringVector ret_names;
   ret_names.push_back("loglike_burnin");
   ret_names.push_back("loglike_sampling");
-  ret_names.push_back("p_store");
   ret_names.push_back("m_store");
+  ret_names.push_back("p_store");
+  ret_names.push_back("COI_mean_store");
   ret_names.push_back("qmatrix");
   ret_names.push_back("p_accept");
   ret_names.push_back("coupling_accept");

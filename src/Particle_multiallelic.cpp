@@ -56,7 +56,7 @@ Particle_multiallelic::Particle_multiallelic(double beta_raised) {
   sum_loglike_new_vec = vector<double>(K);
   p_prop = p;
   logp_prop = logp;
-  //COI_mean_prop = vector<double>(K);
+  COI_mean_prop = vector<double>(K);
   
   // initialise ordering of labels
   label_order = seq_int(0,K-1);
@@ -77,7 +77,8 @@ Particle_multiallelic::Particle_multiallelic(double beta_raised) {
 }
 
 //------------------------------------------------
-// exact log-probabilty of genotypes
+// calculate exact log-probabilty of genotypes. Credit goes to Inna Gerlovina
+// for the clever way of looping over configurations
 double Particle_multiallelic::logprob_genotype(const vector<int> &x, const vector<double> &logp, int m) {
   
   // skip over missing data
@@ -426,10 +427,10 @@ void Particle_multiallelic::update_group() {
 //------------------------------------------------
 // update mean COI
 void Particle_multiallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
-  /*
+  
   // split method between poisson and negative binomial
   // poisson model
-  if (COI_model==2) {
+  if (COI_model == 2) {
     
     // reset shape and rate vectors
     fill(COI_mean_shape.begin(), COI_mean_shape.end(), 0.25);
@@ -449,7 +450,7 @@ void Particle_multiallelic::update_COI_mean(bool robbins_monro_on, int iteration
   } // end poisson model
   
   // negative binomial model
-  if (COI_model==3) {
+  if (COI_model == 3) {
     
     // clear vectors storing sum over old and new likelihood
     fill(sum_loglike_old_vec.begin(), sum_loglike_old_vec.end(), 0);
@@ -491,7 +492,7 @@ void Particle_multiallelic::update_COI_mean(bool robbins_monro_on, int iteration
       }
     }  // end Metropolis step
   } // end negative binomial model
-  */
+  
 }
 
 //------------------------------------------------

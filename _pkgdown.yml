@@ -12,7 +12,7 @@ navbar:
         - text: "Installation"
           href: articles/installation.html
         - text: "Basic tutorial"
-          href: articles/basic-tutorial.html
+          href: articles/tutorial-biallelic.html
         - text: "Multi-allelic data"
           href: articles/multiallelic-data.html
     - text: "Functions"

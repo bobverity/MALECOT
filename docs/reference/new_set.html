@@ -144,12 +144,14 @@
       <th>lambda</th>
       <td><p>shape parameter(s) governing the prior on allele frequencies. 
 This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-distribution for the multi-allelic case. <code>lambda</code> can be a single
-scalar value, in which case the same shape paremeter is applied to all loci
-and all alleles (i.e. a symmetric Beta or Dirichlet prior), or
-<code>lambda</code> can be a list of length <code>L</code> containing vectors of length
-equal to the number of alleles at each locus, allowing different shape
-parameters to be specified for each allele individually</p></td>
+distribution for the multi-allelic case. In the b-allelic case, 
+<code>lambda</code> can be either a single scalar value, in which case the same 
+shape paremeter is applied to all loci and all alleles (i.e. a symmetric 
+Beta prior), or <code>lambda</code> can be a list of length <code>L</code> of vectors
+of length 2, allowing different shape parameters to be specified for each
+allele at each locus individually. In the multi-allelic case, <code>lambda</code>
+must be a single scalar value that applies to all loci and all alleles
+(i.e. a symmetric Dirichlet prior)</p></td>
     </tr>
     <tr>
       <th>COI_model</th>
@@ -158,19 +160,28 @@ parameters to be specified for each allele individually</p></td>
     </tr>
     <tr>
       <th>COI_max</th>
-      <td><p>TODO</p></td>
+      <td><p>the maximum COI allowed for any given sample</p></td>
     </tr>
     <tr>
       <th>COI_manual</th>
-      <td><p>TODO</p></td>
+      <td><p>A vector of length n (where n is the number of samples)
+allowing the COI to be specified manually. Positive values indicate fixed
+COIs that should not be updated as part of the MCMC, while -1 values
+indicate that COIs should be estimated. Defaults to <code>rep(-1,n)</code>,
+meaning all COIs will be esimated</p></td>
     </tr>
     <tr>
       <th>estimate_COI_mean</th>
-      <td><p>TODO</p></td>
+      <td><p>whether the mean COI should be estimated for each 
+subpopulation as part of the MCMC, otherwise the value <code>COI_mean</code> is 
+used for all subpopulations. Defaults to <code>TRUE</code>. Note that mean COI
+estimation is only possible under the "poisson" and "nb" models (see
+<code>COI_model</code>)</p></td>
     </tr>
     <tr>
       <th>COI_mean</th>
-      <td><p>TODO</p></td>
+      <td><p>single scalar value specifying the mean COI for all
+subpopulations (see <code>estimate_COI_mean</code> above)</p></td>
     </tr>
     <tr>
       <th>COI_dispersion</th>

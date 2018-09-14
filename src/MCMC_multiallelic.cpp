@@ -39,10 +39,7 @@ MCMC_multiallelic::MCMC_multiallelic() {
   loglike_burnin = vector<vector<double>>(rungs, vector<double>(burnin));
   loglike_sampling = vector<vector<double>>(rungs, vector<double>(samples));
   m_store = vector<vector<int>>(samples, vector<int>(n));
-  //p_store = vector<vector<vector<vector<double>>>>(samples, vector<vector<vector<double>>>(K));
-  
   p_store = vector<vector<vector<vector<double>>>>(K, vector<vector<vector<double>>>(L, vector<vector<double>>(samples)));
-  
   COI_mean_store = vector<vector<double>>(samples, vector<double>(K));
   
   // objects for storing acceptance rates
@@ -98,12 +95,14 @@ void MCMC_multiallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args
       
       // update m
       particle_vec[rung].update_m();
-      /*
+      
       // update COI_means
-      if (COI_model==2 || COI_model==3) {
-        particle_vec[rung].update_COI_mean(true, rep+1);
+      if (COI_model == 2 || COI_model == 3) {
+        if (estimate_COI_mean) {
+          particle_vec[rung].update_COI_mean(true, rep+1);
+        }
       }
-       */
+       
       // update group
       particle_vec[rung].update_group();
        
@@ -220,12 +219,14 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
       
       // update m
       particle_vec[rung].update_m();
-      /*
+      
       // update COI_means
-      if (COI_model==2 || COI_model==3) {
-        particle_vec[rung].update_COI_mean(false, rep+1);
+      if (COI_model == 2 || COI_model == 3) {
+        if (estimate_COI_mean) {
+          particle_vec[rung].update_COI_mean(false, rep+1);
+        }
       }
-       */
+      
       // update group
       particle_vec[rung].update_group();
       

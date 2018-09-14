@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Basic tutorial • MALECOT</title>
+<title>Tutorial: bi-allelic data • MALECOT</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Basic tutorial">
+<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial: bi-allelic data">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -82,13 +82,13 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Basic tutorial</h1>
+      <h1>Tutorial: bi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-08-23</h4>
+            <h4 class="date">2018-09-14</h4>
       
       
-      <div class="hidden name"><code>basic-tutorial.Rmd</code></div>
+      <div class="hidden name"><code>tutorial-biallelic.Rmd</code></div>
 
     </div>
 
@@ -206,7 +206,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.60752 seconds
+##    completed in 1.77608 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -218,7 +218,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.96146 seconds
+##    completed in 2.95426 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -230,7 +230,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 4.72082 seconds
+##    completed in 3.56088 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -242,7 +242,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 6.33619 seconds
+##    completed in 4.46868 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -254,10 +254,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 7.57489 seconds
+##    completed in 5.34991 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 27.27 seconds</code></pre>
+<pre><code>## Total run-time: 19.75 seconds</code></pre>
 <p>If any values of K failed to converge then we can use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:</p>
 </div>
 <div id="comparing-values-of-k" class="section level3">
@@ -265,16 +265,16 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <a href="#comparing-values-of-k" class="anchor"></a>Comparing values of K</h3>
 <p>The GTI method estimates the evidence for a given model by combining information across multiple temperature rungs. These rungs provide a series of point estimates that together make a “path”, and the final evidence estimate is computed from the area between this path and the zero-line. We can visualise this path using the <code><a href="../reference/plot_GTI_path.html">plot_GTI_path()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <p>All plots produced by MALECOT are produced using <a href="https://ggplot2.tidyverse.org/">ggplot</a>, meaning they can be stored and modified later on - for example adding titles, legends etc.</p>
 <p>In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of <code>rungs</code> used in the MCMC, 2) by changing the value of <code>GTI_pow</code> which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and the path is about as straight as we can get it, so there is no need to re-run the MCMC. <strong>This check should be performed on every value of K</strong>.</p>
 <p>Once we are happy with our GTI paths we can look at our evidence estimates, first of all in log space:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>We can see a clear signal for K=3 or higher, and the 95% credible intervals are nice and tight. If we needed tighter credible intervals at this stage then we could re-run the MCMC (for the problem values of K only) with a larger number of <code>samples</code>.</p>
 <p>We can also plot the full posterior distribution of K, which is obtained by transforming these values out of log space and normalising to sum to one:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>This second plot is usually more straightforward to interpret, as it is in linear space and so can be understood in terms of ordinary probability. In this example we can see strong evidence for K=3, with a posterior probability of &gt;0.99. Again, if we had seen wide credible intervals at this stage then it would have been worth repeating the MCMC with a larger number of <code>samples</code>, but in this case the result is clear and so there is no need.</p>
 </div>
 <div id="structure-and-coi-plots" class="section level3">
@@ -282,7 +282,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <a href="#structure-and-coi-plots" class="anchor"></a>Structure and COI plots</h3>
 <p>The main result of interest from this sort of analysis is usually the posterior allocation or “structure” plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the K subpopulations. We can use the <code><a href="../reference/plot_qmatrix.html">plot_qmatrix()</a></code> function to produce posterior allocation plots for different values of K. The <code>divide_ind_on</code> argument adds white lines between individuals, and can be turned off if these lines start getting in the way.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>:<span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-13-1.png" width="768"></p>
+<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-13-1.png" width="768"></p>
 <p>We can see that for K=3 (the most highly supported value of K) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at <code>mysim$true_group</code>, although obviously this is not possible for real data.</p>
 <p>When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of K so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - <strong>the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world</strong>. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of K that fit the data well, it is just a guide and should be taken alongside other biological considerations.</p>
 <p>Alongside the posterior allocation plot, we can plot the posterior COI of all samples. Below we have also used the <code>ggplot2</code> package to add the true (simulated) COIs to the plot in the form of red crosses.</p>
@@ -291,7 +291,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <span class="kw">library</span>(ggplot2)
 posterior_m &lt;-<span class="st"> </span>posterior_m +<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(<span class="dt">x =</span> <span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">y =</span> mysim$true_m), <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">shape =</span> <span class="dv">4</span>)
 posterior_m</code></pre></div>
-<p><img src="basic-tutorial_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
+<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
 <p>Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most accurate when the COI is very low (1 or 2), but are highly inaccurate when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI decreasing from the first subpopulation to the last, but it has systematically overestimated the COI across the board. This is down to our choice of uniform prior on COI, which allowed for any COI from 1 to 20 with equal probability <em>a priori</em>. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around the mean, and so this prior gives too much flexibility for high COIs. We can address this issue along with some other weaknesses in another model run.</p>
 </div>
 <div id="more-realistic-priors" class="section level3">

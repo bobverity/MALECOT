@@ -163,20 +163,20 @@ seperately through the <code>pop</code> argument</p></td>
     <tr>
       <th>data_cols</th>
       <td><p>which columns of the input data contain genetic information.
-Defaults to all remaining columns of the data once special columns have 
+Defaults to all remaining columns of the data once meta-data columns have 
 been accounted for</p></td>
     </tr>
     <tr>
       <th>ID</th>
-      <td><p>sample IDs, if not using the <code>ID_col</code> option</p></td>
+      <td><p>sample IDs. Ignored if using the <code>ID_col</code> option</p></td>
     </tr>
     <tr>
       <th>pop</th>
-      <td><p>ostensible populations, if not using the <code>pop_col</code> option</p></td>
+      <td><p>ostensible populations. Ignored if using the <code>pop_col</code> option</p></td>
     </tr>
     <tr>
       <th>missing_data</th>
-      <td><p>what value represents missing data (defaults to -9). Must
+      <td><p>what value represents missing data. Defaults to -9. Must 
 be a positive or negative integer, and cannot equal 0 or 1 as these are 
 reserved for genetic data.</p></td>
     </tr>

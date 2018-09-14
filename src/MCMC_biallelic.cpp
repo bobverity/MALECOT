@@ -242,7 +242,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
       particle_vec[rung].update_m();
       
       // update COI_means
-      if (COI_model==2 || COI_model==3) {
+      if (COI_model == 2 || COI_model == 3) {
         if (estimate_COI_mean) {
           particle_vec[rung].update_COI_mean(false, rep+1);
         }

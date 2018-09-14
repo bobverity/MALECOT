@@ -52,7 +52,7 @@ public:
   std::vector<double> sum_loglike_new_vec;
   std::vector<std::vector<std::vector<double>>> p_prop;
   std::vector<std::vector<std::vector<double>>> logp_prop;
-  //std::vector<double> COI_mean_prop;
+  std::vector<double> COI_mean_prop;
   
   // initialise ordering of labels
   std::vector<int> label_order;

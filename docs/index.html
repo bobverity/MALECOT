@@ -93,21 +93,13 @@
 <a href="#version-0-1-0" class="anchor"></a>Version 0.1.0</h3>
 
 <hr>
-<p>MALECOT is an R package for inferring population structure from genetic data in situations where each sample might represent multiple genotypes. It does this using Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:</p>
+<p>MALECOT is an R package for inferring population structure from genetic data, and is tailored to problems in malaria where each sample commonly contains multiple genotypes. The basic model assumes that there are <em>K</em> subpopulations represented in the data, and that we are interested in working out which samples belong to which subpopulations. The analysis works via Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:</p>
 <ol>
 <li>Allele frequencies in all subpopulations</li>
-<li>Allocation of samples to subpopulations</li>
-<li>Complexity of infection (COI) of each sample</li>
+<li>Complexity of infection (COI) of each sample, i.e. how many genotypes are represented in each sample</li>
+<li>Group allocation, i.e. which samples belong to which subpopulations</li>
 </ol>
-<p><strong>WARNING: Although MALECOT is live, it is still very much in development!</strong></p>
-<p>The current version (0.1.0) has the following limitations:</p>
-<ul>
-<li>takes biallelic data only</li>
-<li>patchy documentation</li>
-<li>limited and basic plotting functions</li>
-<li>some formats/pipelines likely to change slightly</li>
-</ul>
-<p>Most of these limitations should be ironed out within a few weeks of this release. See the <a href="https://bobverity.github.io/MALECOT/articles/basic_tutorial.html">associated vignette</a> for a worked example analysis on simulated data.</p>
+<p>To get started, we suggest looking at the <a href="https://bobverity.github.io/MALECOT">installation instructions</a>, followed by a <a href="https://bobverity.github.io/MALECOT">basic tutorial</a> on running the program.</p>
 </div>
 </div>
   </div>

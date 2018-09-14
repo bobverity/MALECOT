@@ -30,7 +30,8 @@
 #'   \code{n} specifing the integer valued COI of each sample, with -1
 #'   indicating that all samples should be estimated
 #' @param COI_mean TODO
-#' @param COI_dispersion must be > 1
+#' @param COI_dispersion must be > 1. Only used under the negative binomial
+#'   model
 #' @param e1 TODO
 #' @param e2 TODO
 #' @param prop_missing TODO
@@ -39,7 +40,7 @@
 #' @examples
 #' # TODO
 
-sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_on = TRUE, alleles = 2, lambda = 1, COI_model = "poisson", COI_max = 20, COI_manual = rep(-1,n), COI_mean = 3, COI_dispersion = 1, e1 = 0, e2 = 0, prop_missing = 0) {
+sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_on = TRUE, alleles = 2, lambda = 1, COI_model = "poisson", COI_max = 20, COI_manual = rep(-1,n), COI_mean = 3, COI_dispersion = 2, e1 = 0, e2 = 0, prop_missing = 0) {
   
   ##### CHECK INPUTS #####
   
