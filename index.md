@@ -10,8 +10,10 @@
 MALECOT is an R package for inferring population structure from genetic data, and is tailored to problems in malaria where each sample commonly contains multiple genotypes. The basic model assumes that there are *K* subpopulations represented in the data, and that we are interested in working out which samples belong to which subpopulations. The analysis works via Bayesian Markov chain Monte Carlo, alternately estimating each of three unknown parameters:
 
 1. Allele frequencies in all subpopulations
-2. Complexity of infection (COI) of each sample, i.e. how many genotypes are represented in each sample
-3. Group allocation, i.e. which samples belong to which subpopulations
+2. Group allocation, i.e. which samples belong to which subpopulations
+3. Complexity of infection (COI) of each sample, i.e. how many genotypes are represented in each sample
+
+The first two parameters are estimated by programs like [STRUCTURE](https://web.stanford.edu/group/pritchardlab/structure.html), but the third parameter is not, making STRUCTURE not ideally suited to malaria data where complex infections are common.
 
 To get started, take a look at the [installation instructions](https://bobverity.github.io/MALECOT), followed by a [basic tutorial](https://bobverity.github.io/MALECOT) on running the program.
 

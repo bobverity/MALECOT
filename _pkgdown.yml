@@ -11,10 +11,10 @@ navbar:
       menu:
         - text: "Installation"
           href: articles/installation.html
-        - text: "Basic tutorial"
+        - text: "Tutorial: bi-allelic data"
           href: articles/tutorial-biallelic.html
-        - text: "Multi-allelic data"
-          href: articles/multiallelic-data.html
+        - text: "Tutorial: multi-allelic data"
+          href: articles/tutorial-multiallelic.html
     - text: "Functions"
       href: reference/index.html
     - text: "FAQ"
