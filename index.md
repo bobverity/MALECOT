@@ -13,5 +13,5 @@ MALECOT is an R package for inferring population structure from genetic data, an
 2. Complexity of infection (COI) of each sample, i.e. how many genotypes are represented in each sample
 3. Group allocation, i.e. which samples belong to which subpopulations
 
-To get started, we suggest looking at the [installation instructions](https://bobverity.github.io/MALECOT), followed by a [basic tutorial](https://bobverity.github.io/MALECOT) on running the program.
+To get started, take a look at the [installation instructions](https://bobverity.github.io/MALECOT), followed by a [basic tutorial](https://bobverity.github.io/MALECOT) on running the program.
 
