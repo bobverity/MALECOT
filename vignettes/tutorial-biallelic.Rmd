@@ -18,10 +18,10 @@ library(MALECOT)
 
 ### Simulate some data
 
-MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations. We will assume that the mean complexity of infection (COI) in these subpopulation varies from 1.5 to 3:
+MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations. We will assume that the mean complexity of infection (COI) in these subpopulation varies from 1.2 to 3:
 
 ```{r}
-mysim <- sim_data(n = 100, data_format = "biallelic", L = 24, K = 3, COI_mean = c(1.5,2,3))
+mysim <- sim_data(n = 100, data_format = "biallelic", L = 24, K = 3, COI_mean = c(1.2,2,3))
 ```
 
 Running `names(mysim)` we can see that the simulated data contains several elements:
@@ -75,8 +75,8 @@ If there have been mistakes in reading in the data, for example if meta-data col
 We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and `COI_max` is equally likely *a priori*. We also assume zero error in genotype calls:
 
 ```{r}
-myproj <- new_set(myproj, name = "uniform model", COI_model = "uniform",
-                  COI_max = 20, estimate_error = FALSE, e1 = 0, e2 = 0)
+myproj <- new_set(myproj, name = "uniform model", COI_model = "uniform", COI_max = 20,
+                  estimate_error = FALSE, e1 = 0, e2 = 0)
 ```
 
 Viewing the project we can now see additional properties, including the current active set and the parameters of this set.
@@ -85,7 +85,7 @@ Viewing the project we can now see additional properties, including the current 
 myproj
 ```
 
-Now we are ready to run a basic MCMC. We will start by exploring values of K from 1 to 5, using 1000 burn-in iterations and 1000 sampling iterations. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached (`convergence_test = burnin/10` by default). Hence, it is generally a good idea to set `burnin` to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of "rungs". MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a "temperature ladder". The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should run without this argument.
+Now we are ready to run a basic MCMC. We will start by exploring values of *K* from 1 to 5, using 10,000 burn-in iterations and 1000 sampling iterations. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached (`convergence_test = burnin/10` by default). Hence, it is generally a good idea to set `burnin` to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of "rungs". MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a "temperature ladder". The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should omit this argument.
 
 ```{r}
 myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
@@ -102,9 +102,9 @@ The GTI method estimates the evidence for a given model by combining information
 plot_GTI_path(myproj, K = 3)
 ```
 
-All plots produced by MALECOT are produced using [ggplot](https://ggplot2.tidyverse.org/), meaning they can be stored and modified later on - for example adding titles, legends etc.
+Note that all plots produced by MALECOT are produced as [ggplot](https://ggplot2.tidyverse.org/) objects, meaning they can be stored and modified later - for example by adding titles, legends etc.
 
-In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of `rungs` used in the MCMC, 2) by changing the value of `GTI_pow` which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and the path is about as straight as we can get it, so there is no need to re-run the MCMC. **This check should be performed on every value of K**.
+In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of `rungs` used in the MCMC, 2) by changing the value of `GTI_pow` which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and the path is relatively straight, so there is no need to re-run the MCMC. **This check should be performed on every value of K**.
 
 Once we are happy with our GTI paths we can look at our evidence estimates, first of all in log space:
 
@@ -124,18 +124,18 @@ This second plot is usually more straightforward to interpret, as it is in linea
 
 ### Structure and COI plots
 
-The main result of interest from this sort of analysis is usually the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the K subpopulations. We can use the `plot_qmatrix()` function to produce posterior allocation plots for different values of K. The `divide_ind_on` argument adds white lines between individuals, and can be turned off if these lines start getting in the way.
+The main result of interest from this sort of analysis is usually the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the *K* subpopulations. We can use the `plot_qmatrix()` function to produce posterior allocation plots for different values of *K*. The `divide_ind_on` argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.
 
 ```{r, fig.height=5, fig.width=8}
 plot_qmatrix(myproj, K = 2:5, divide_ind_on = TRUE)
 ```
 
 
-We can see that for K=3 (the most highly supported value of K) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at `mysim$true_group`, although obviously this is not possible for real data.
+We can see that for *K*=3 (the most highly supported value of *K*) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at `mysim$true_group`, although obviously this is not possible for real data.
 
-When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of K so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - **the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world**. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of K that fit the data well, it is just a guide and should be taken alongside other biological considerations.
+When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of *K* so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - **the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world**. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of *K* that fit the data well, it is just a guide and should be taken alongside other biological considerations.
 
-Alongside the posterior allocation plot, we can plot the posterior COI of all samples. Below we have also used the `ggplot2` package to add the true (simulated) COIs to the plot in the form of red crosses.
+Alongside the posterior allocation plot, we can plot the posterior COI of all samples. The example below uses the `ggplot2` package to add the true (simulated) COIs to the plot in the form of red crosses.
 
 ```{r, fig.height=5, fig.width=8}
 posterior_m <- plot_m_quantiles(myproj, K = 3)
@@ -145,8 +145,33 @@ posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = 
 posterior_m
 ```
 
-Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most accurate when the COI is very low (1 or 2), but are highly inaccurate when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI decreasing from the first subpopulation to the last, but it has systematically overestimated the COI across the board. This is down to our choice of uniform prior on COI, which allowed for any COI from 1 to 20 with equal probability *a priori*. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around the mean, and so this prior gives too much flexibility for high COIs. We can address this issue along with some other weaknesses in another model run.
+Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We can address this issue, along with some other weaknesses of the model, in another model run.
 
 ### More realistic priors
 
-(TODO)
+In order for our posterior estimates to be accurate it is important that we use sensible priors. As well as the uniform prior on COI there are two other options implemented in MALECOT - the Poisson distribution (`COI_mean = "poisson"`) and the negative binomial distribution (`COI_mean = "nb"`). The Poisson distribution assumes that values are clustered around a mean value, and the negative binomial distribution can be thought of as an over-dispersed Poisson distribution, i.e. it allows for a greater spread of values around the mean.
+
+The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter `COI_dispersion = 2` to set the level of over-dispersion compared to the Poisson distribution - in this example the prior variance will be twice that of the Poisson distribution. The argument `COI_mean = TRUE` tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value. Note that values will still be truncated at `COI_max`.
+
+In some cases we may want to specify the COI of certain samples manually. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples, with values of -1 indicating that the COI should be estimated, and positive values indicate that the COI should be fixed at this value. In this example we will assume that we know the COI of sample 100 to be 5.
+
+Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be called as heterozygotes (error 1), and true heterozygotes will be called as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. Alternatively, these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max`, for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.
+
+```{r}
+# define some COIs manually
+known_COI <- rep(-1,100)
+known_COI[100] <- 5
+
+# create new parameter set
+myproj <- new_set(myproj, name = "nb model", COI_model = "nb", COI_max = 20,
+                  COI_manual = known_COI, estimate_COI_mean = TRUE, COI_dispersion = 2,
+                  estimate_error = TRUE, e1_max = 0.1, e2_max = 0.1)
+myproj
+```
+
+As before, we run the MCMC using the `run_mcmc()` command.
+
+```{r}
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
+                   rungs = 10, pb_markdown =  TRUE)
+```

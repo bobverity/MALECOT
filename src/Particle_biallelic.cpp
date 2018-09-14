@@ -38,10 +38,11 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   m = vector<int>(n,COI_max);
   p = vector<vector<double>>(K, vector<double>(L,0.5));
   
-  // probability vectors and matrices used when updating draws
+  // qmatrices
   log_qmatrix = vector<vector<double>>(n, vector<double>(K));
   qmatrix = vector<vector<double>>(n, vector<double>(K));
   
+  // probability vectors and matrices used when updating draws
   sum_loglike_old_vec = vector<double>(K);
   sum_loglike_new_vec = vector<double>(K);
   p_prop = vector<vector<double>>(K, vector<double>(L));
@@ -239,7 +240,7 @@ void Particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iterat
     
     // update selected parameter, apply Robbins-Monro positive update step, and
     // update acceptance rate.
-    if (which_e==1) {
+    if (which_e == 1) {
       e1 = e_prop;
       if (robbins_monro_on) {
         e1_propSD  += (1-0.23)/sqrt(double(iteration));
@@ -256,7 +257,7 @@ void Particle_biallelic::update_e(int which_e, bool robbins_monro_on, int iterat
   } else {
 
     // Robbins-Monro negative update step
-    if (which_e==1) {
+    if (which_e == 1) {
       if (robbins_monro_on) {
         e1_propSD  -= 0.23/sqrt(double(iteration));
         if (e1_propSD < UNDERFLO) {
@@ -498,7 +499,7 @@ void Particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
   
   // split method between poisson and negative binomial
   // poisson model
-  if (COI_model==2) {
+  if (COI_model == 2) {
     
     // reset shape and rate vectors
     fill(COI_mean_shape.begin(), COI_mean_shape.end(), 0.25);
@@ -518,7 +519,7 @@ void Particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
   } // end poisson model
   
   // negative binomial model
-  if (COI_model==3) {
+  if (COI_model == 3) {
     
     // clear vectors storing sum over old and new likelihood
     fill(sum_loglike_old_vec.begin(), sum_loglike_old_vec.end(), 0);

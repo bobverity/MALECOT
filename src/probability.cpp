@@ -33,8 +33,8 @@ double rnorm1(double mean, double sd) {
 
 //------------------------------------------------
 // density of univariate normal distribution
-double dnorm1(double x, double mean, double sd, bool log_on) {
-  return R::dnorm(x, mean, sd, log_on);
+double dnorm1(double x, double mean, double sd, bool return_log) {
+  return R::dnorm(x, mean, sd, return_log);
 }
 
 //------------------------------------------------
@@ -299,8 +299,8 @@ int rpois1(double rate) {
 
 //------------------------------------------------
 // probability mass of Poisson(rate) distribution
-double dpois1(int n, double rate, bool returnLog) {
-  return R::dpois(n,rate,returnLog);
+double dpois1(int n, double rate, bool return_log) {
+  return R::dpois(n,rate,return_log);
 }
 
 //------------------------------------------------
@@ -312,7 +312,7 @@ int rnbinom1(double lambda, double gamma) {
 //------------------------------------------------
 // probability mass of negative binomial distribution with mean lambda and
 // variance gamma*lambda (gamma must be >1)
-double dnbinom1(int n, double lambda, double gamma, bool returnLog) {
-  return R::dnbinom(n, lambda/(gamma-1), 1/gamma, returnLog);
+double dnbinom1(int n, double lambda, double gamma, bool return_log) {
+  return R::dnbinom(n, lambda/(gamma-1), 1/gamma, return_log);
 }
 

@@ -21,7 +21,7 @@ double rnorm1(double mean = 0, double sd = 1);
 
 //------------------------------------------------
 // density of univariate normal distribution
-double dnorm1(double x, double mean = 0, double sd = 1, bool log_on = true);
+double dnorm1(double x, double mean = 0, double sd = 1, bool return_log = true);
 
 //------------------------------------------------
 // draw from univariate normal distribution and reflect to interval (a,b)
@@ -106,7 +106,7 @@ int rpois1(double rate);
 
 //------------------------------------------------
 // probability mass of Poisson(rate) distribution
-double dpois1(int n, double rate, bool returnLog=true);
+double dpois1(int n, double rate, bool return_log = true);
 
 //------------------------------------------------
 // draw from negative binomial distribution with mean lambda and variance
@@ -116,5 +116,5 @@ int rnbinom1(double lambda, double gamma);
 //------------------------------------------------
 // probability mass of negative binomial distribution with mean lambda and
 // variance gamma*lambda (gamma must be >1)
-double dnbinom1(int n, double lambda, double gamma, bool returnLog=true);
+double dnbinom1(int n, double lambda, double gamma, bool return_log = true);
 

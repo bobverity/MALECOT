@@ -40,10 +40,11 @@ public:
   std::vector<int> m;
   std::vector<std::vector<double>> p;
   
-  // probability vectors and matrices used when updating draws
+  // qmatrices
   std::vector<std::vector<double>> log_qmatrix;
   std::vector<std::vector<double>> qmatrix;
   
+  // probability vectors and matrices used when updating draws
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
   std::vector<std::vector<double>> p_prop;

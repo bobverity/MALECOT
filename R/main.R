@@ -297,10 +297,12 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #'   subpopulations (see \code{estimate_COI_mean} above)
 #' @param COI_dispersion  must be > 1
 #' @param estimate_error TODO
-#' @param e1 TODO
-#' @param e2 TODO
-#' @param e1_max TODO
-#' @param e2_max TODO
+#' @param e1 the probability of a true homozygote being incorrectly called as a
+#'   heterozygote
+#' @param e2 the probability of a true heterozygote being incorrectly called as a
+#'   homozygote
+#' @param e1_max the maximum possible value of \code{e1}
+#' @param e2_max the maximum possible value of \code{e2}
 #'
 #' @export
 #' @examples

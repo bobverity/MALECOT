@@ -50,13 +50,15 @@ subpopulations (see \code{estimate_COI_mean} above)}
 
 \item{estimate_error}{TODO}
 
-\item{e1}{TODO}
+\item{e1}{the probability of a true homozygote being incorrectly called as a
+heterozygote}
 
-\item{e2}{TODO}
+\item{e2}{the probability of a true heterozygote being incorrectly called as a
+homozygote}
 
-\item{e1_max}{TODO}
+\item{e1_max}{the maximum possible value of \code{e1}}
 
-\item{e2_max}{TODO}
+\item{e2_max}{the maximum possible value of \code{e2}}
 }
 \description{
 TODO
