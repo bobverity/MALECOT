@@ -11,9 +11,11 @@ navbar:
       menu:
         - text: "Installation"
           href: articles/installation.html
-        - text: "Tutorial: bi-allelic data"
+        - text: "Tutorial 1: bi-allelic data"
           href: articles/tutorial-biallelic.html
-        - text: "Tutorial: multi-allelic data"
+        - text: "Tutorial 2: more realistic priors"
+          href: articles/complex-priors.html
+        - text: "Tutorial 3: multi-allelic data"
           href: articles/tutorial-multiallelic.html
     - text: "Functions"
       href: reference/index.html

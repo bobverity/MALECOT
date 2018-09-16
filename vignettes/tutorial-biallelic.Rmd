@@ -11,6 +11,9 @@ vignette: >
 
 This vignette demonstrates the complete MALECOT analysis pipeline for *bi-allelic* data, i.e. data for which there are two alleles at every locus (the classic example being SNP data).
 
+* item1
+* item2
+
 ```{r, echo=FALSE}
 set.seed(1)
 library(MALECOT)
@@ -145,33 +148,5 @@ posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = 
 posterior_m
 ```
 
-Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We can address this issue, along with some other weaknesses of the model, in another model run.
+Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We will address this issue, along with some other weaknesses of the model, in the [next tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html).
 
-### More realistic priors
-
-In order for our posterior estimates to be accurate it is important that we use sensible priors. As well as the uniform prior on COI there are two other options implemented in MALECOT - the Poisson distribution (`COI_mean = "poisson"`) and the negative binomial distribution (`COI_mean = "nb"`). The Poisson distribution assumes that values are clustered around a mean value, and the negative binomial distribution can be thought of as an over-dispersed Poisson distribution, i.e. it allows for a greater spread of values around the mean.
-
-The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter `COI_dispersion = 2` to set the level of over-dispersion compared to the Poisson distribution - in this example the prior variance will be twice that of the Poisson distribution. The argument `COI_mean = TRUE` tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value. Note that values will still be truncated at `COI_max`.
-
-In some cases we may want to specify the COI of certain samples manually. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples, with values of -1 indicating that the COI should be estimated, and positive values indicate that the COI should be fixed at this value. In this example we will assume that we know the COI of sample 100 to be 5.
-
-Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be called as heterozygotes (error 1), and true heterozygotes will be called as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. Alternatively, these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max`, for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.
-
-```{r}
-# define some COIs manually
-known_COI <- rep(-1,100)
-known_COI[100] <- 5
-
-# create new parameter set
-myproj <- new_set(myproj, name = "nb model", COI_model = "nb", COI_max = 20,
-                  COI_manual = known_COI, estimate_COI_mean = TRUE, COI_dispersion = 2,
-                  estimate_error = TRUE, e1_max = 0.1, e2_max = 0.1)
-myproj
-```
-
-As before, we run the MCMC using the `run_mcmc()` command.
-
-```{r}
-myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
-                   rungs = 10, pb_markdown =  TRUE)
-```

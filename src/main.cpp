@@ -61,8 +61,7 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( mcmc_biallelic.COI_mean_store ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.qmatrix_final ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.p_accept ));
-  ret.push_back(Rcpp::wrap( mcmc_biallelic.e1_accept ));
-  ret.push_back(Rcpp::wrap( mcmc_biallelic.e2_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.e_accept ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.coupling_accept ));
   
   Rcpp::StringVector ret_names;
@@ -75,8 +74,7 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret_names.push_back("COI_mean_store");
   ret_names.push_back("qmatrix");
   ret_names.push_back("p_accept");
-  ret_names.push_back("e1_accept");
-  ret_names.push_back("e2_accept");
+  ret_names.push_back("e_accept");
   ret_names.push_back("coupling_accept");
   
   ret.names() = ret_names;

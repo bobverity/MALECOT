@@ -1,0 +1,53 @@
+---
+title: "Tutorial 2: more realistic priors"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+In order for our posterior estimates to be accurate it is important that we use sensible priors. As well as the uniform prior on COI there are two other options implemented in MALECOT - the Poisson distribution (`COI_mean = "poisson"`) and the negative binomial distribution (`COI_mean = "nb"`). The Poisson distribution assumes that values are clustered around a mean value, and the negative binomial distribution can be thought of as an over-dispersed Poisson distribution, i.e. it allows for a greater spread of values around the mean.
+
+The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter `COI_dispersion = 2` to set the level of over-dispersion compared to the Poisson distribution - in this example the prior variance will be twice that of the Poisson distribution. The argument `COI_mean = TRUE` tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value. Note that values will still be truncated at `COI_max`.
+
+In some cases we may want to specify the COI of certain samples manually. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples, with values of -1 indicating that the COI should be estimated, and positive values indicate that the COI should be fixed at this value. In this example we will assume that we know the COI of sample 100 to be 5.
+
+Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be called as heterozygotes (error 1), and true heterozygotes will be called as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. Alternatively, these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max`, for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.
+
+```{r}
+# define some COIs manually
+known_COI <- rep(-1,100)
+known_COI[100] <- 5
+
+# create new parameter set
+myproj <- new_set(myproj, name = "nb model", COI_model = "poisson", COI_max = 20,
+                  COI_manual = known_COI, estimate_COI_mean = TRUE, COI_dispersion = 2,
+                  estimate_error = FALSE, e1_max = 0.1, e2_max = 0.1)
+myproj
+```
+
+As before, we run the MCMC using the `run_mcmc()` command.
+
+```{r}
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
+                   rungs = 10, pb_markdown =  TRUE)
+```
+
+```{r}
+plot_GTI_path(myproj, K = 3)
+plot_logevidence_K(myproj)
+plot_qmatrix(myproj, K = 2:5, divide_ind_on = TRUE)
+
+posterior_m <- plot_m_quantiles(myproj, K = 3)
+
+library(ggplot2)
+posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = "red", shape = 4)
+posterior_m
+
+best_group <- get_group_order(myproj, K = 3, target_group = mysim$true_group)
+plot_COI_mean_quantiles(myproj, K = 3) + geom_point(aes(x = 1:3, y = c(1.2,2,3)[best_group]), col = "red", shape = 4)
+```

@@ -791,8 +791,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     
     # process acceptance rates
     p_accept <- rcpp_to_mat(output_raw[[i]]$p_accept)/samples
-    e1_accept <- output_raw[[i]]$e1_accept/samples
-    e2_accept <- output_raw[[i]]$e2_accept/samples
+    e_accept <- output_raw[[i]]$e_accept/samples
     coupling_accept <- output_raw[[i]]$coupling_accept/samples
     scaf_trials <- output_raw[[i]]$scaf_trials/samples
     scaf_accept <- output_raw[[i]]$scaf_accept/samples
@@ -834,8 +833,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
                                                                 e2 = full_e2,
                                                                 COI_mean = full_COI_mean,
                                                                 p_accept = p_accept,
-                                                                e1_accept = e1_accept,
-                                                                e2_accept = e2_accept,
+                                                                e_accept = e_accept,
                                                                 coupling_accept = coupling_accept)
     
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,

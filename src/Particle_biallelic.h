@@ -4,6 +4,7 @@
 #include <Rcpp.h>
 #include "Data.h"
 #include "Lookup.h"
+#include "Data_counts.h"
 
 //------------------------------------------------
 // class defining particle for biallelic case
@@ -16,9 +17,11 @@ public:
   // power GTI_pow
   double beta_raised;
   
+  // store of data frequencies
+  Data_counts data_counts;
+  
   // proposal standard deviations
-  double e1_propSD;
-  double e2_propSD;
+  double e_propSD;
   std::vector< std::vector<double> > p_propSD;
   
   // COI objects
@@ -47,7 +50,7 @@ public:
   // probability vectors and matrices used when updating draws
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
-  std::vector<std::vector<double>> p_prop;
+  double p_prop;
   std::vector<double> COI_mean_prop;
   
   // initialise ordering of labels
@@ -65,8 +68,7 @@ public:
   
   // store acceptance rates
   std::vector<std::vector<int>> p_accept;
-  int e1_accept;
-  int e2_accept;
+  int e_accept;
   
   // function pointers
   double (Particle_biallelic::*logprob_genotype_ptr) (int, double, int, double, double);
@@ -80,10 +82,10 @@ public:
   // other functions
   void reset();
   double get_lambda(int i, int j);
-  void update_e(int which_e, bool robbins_monro_on, int iteration);
   void update_p(bool robbins_monro_on, int iteration);
   void update_m();
   void update_group();
+  void update_e(bool robbins_monro_on, int iteration);
   void update_COI_mean(bool robbins_monro_on, int iteration);
   void calculate_loglike();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);

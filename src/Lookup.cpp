@@ -19,7 +19,7 @@ void Lookup::init_homohet(){
   if (precision == 0) {
     return;
   }
-    
+  
   // initialise tables
   lookup_homo = vector<vector<double>>(precision_size + 1, vector<double>(COI_max));
   lookup_het = vector<vector<double>>(precision_size + 1, vector<double>(COI_max));

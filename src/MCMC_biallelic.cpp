@@ -46,8 +46,7 @@ MCMC_biallelic::MCMC_biallelic() {
   
   // objects for storing acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
-  e1_accept = 0;
-  e2_accept = 0;
+  e_accept = 0;
   coupling_accept = vector<int>(rungs-1);
   
 }
@@ -94,14 +93,13 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
       }
       int rung = rung_order[r];
       
-      // update error estimates
-      if (estimate_error) {
-        particle_vec[rung].update_e(1, true, rep+1);
-        particle_vec[rung].update_e(2, true, rep+1);
-      }
-      
       // update p
       particle_vec[rung].update_p(true, rep+1);
+      
+      // update error estimates
+      if (estimate_error) {
+        particle_vec[rung].update_e(true, rep+1);
+      }
       
       // update m
       particle_vec[rung].update_m();
@@ -217,8 +215,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   // reset acceptance rates
   for (int r=0; r<rungs; r++) {
     particle_vec[r].p_accept = vector<vector<int>>(K, vector<int>(L));
-    particle_vec[r].e1_accept = 0;
-    particle_vec[r].e2_accept = 0;
+    particle_vec[r].e_accept = 0;
   }
   coupling_accept = vector<int>(rungs-1);
   
@@ -229,14 +226,13 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
     for (int r=0; r<rungs; r++) {
       int rung = rung_order[r];
       
-      // update error estimates
-      if (estimate_error) {
-        particle_vec[rung].update_e(1, false, rep+1);
-        particle_vec[rung].update_e(2, false, rep+1);
-      }
-      
       // update p
       particle_vec[rung].update_p(false, rep+1);
+      
+      // update error estimates
+      if (estimate_error) {
+        particle_vec[rung].update_e(false, rep+1);
+      }
       
       // update m
       particle_vec[rung].update_m();
@@ -337,8 +333,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   
   // store acceptance rates
   p_accept = particle_vec[cold_rung].p_accept;
-  e1_accept = particle_vec[cold_rung].e1_accept;
-  e2_accept = particle_vec[cold_rung].e2_accept;
+  e_accept = particle_vec[cold_rung].e_accept;
 }
 
 //------------------------------------------------
