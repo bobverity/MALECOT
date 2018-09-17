@@ -17,12 +17,12 @@
 #'   \code{L} specifying the number of alleles at each locus, or a single scalar
 #'   value specifying the number of alleles at all loci
 #' @param lambda the shape parameter(s) of the prior on allele frequencies. This
-#'   prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic
-#'   case. \code{lambda} can be a list of length \code{L} containing vectors of
-#'   length equal to the number of alleles at that locus, or it can be a single
-#'   scalar value. If a list then \code{lambda} specifies all shape parameters
-#'   of the prior at each locus separately, if a scalar value then the same
-#'   shape parameter is used over all loci and all alleles
+#'   prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
+#'   case. \code{lambda} can be a single scalar vaue or a list of length
+#'   \code{L} containing vectors of length equal to the number of alleles at
+#'   that locus. If a list then \code{lambda} specifies all shape parameters of
+#'   the prior at each locus separately, if a scalar value then the same shape
+#'   parameter is used over all loci and all alleles
 #' @param COI_model TODO
 #' @param COI_max TODO
 #' @param COI_manual option to override the MCMC and set the COI of one or more

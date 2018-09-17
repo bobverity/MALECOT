@@ -4,7 +4,7 @@ author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Tutorial: bi-allelic data}
+  %\VignetteIndexEntry{"Tutorial: bi-allelic data"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,7 +14,7 @@ set.seed(1)
 library(MALECOT)
 ```
 
-This vignette demonstrates a very basic MALECOT analysis for *bi-allelic* data, i.e. data for which there are two alleles at every locus. It covers:
+This vignette demonstrates a very basic MALECOT analysis for bi-allelic data, i.e. data for which there are two alleles at every locus. It covers:
 
 * simulating/loading data into R
 * creating a project and binding data to the project
@@ -26,7 +26,7 @@ This vignette demonstrates a very basic MALECOT analysis for *bi-allelic* data, 
 
 ### Simulate some data
 
-MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations. We will assume that the mean complexity of infection (COI) in these subpopulation varies from 1.2 to 3:
+MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations. We will assume that the mean complexity of infection (COI) in these three subpopulation varies from 1.2 to 3:
 
 ```{r}
 mysim <- sim_data(n = 100, data_format = "biallelic", L = 24, K = 3, COI_mean = c(1.2,2,3))
@@ -48,16 +48,16 @@ head(mysim$data)
 
 Note that this is the required format **for bi-allelic data only** - multi-allelic data is dealt with in [another vignette](https://bobverity.github.io/MALECOT/articles/tutorial-multiallelic.html).
 
-Data must be in the form of a dataframe, with samples in rows and loci in columns. When using real data, functions such as `read.csv()` and `read.table()` can be used to import data in this format. There are several meta-data columns in the example above, including the sample ID and the population of origin. These meta-data columns are optional and can be turned on or off when loading the data into a project.
+Data must be in the form of a dataframe, with samples in rows and loci in columns. When using real data, functions such as `read.csv()` and `read.table()` can be used to import data in dataframe format. There are several meta-data columns in the example above, including the sample ID and the population of origin. These meta-data columns are optional and can be turned on or off when loading the data into a project.
 
 The actual genetic data must be one of the following values
 
-* 1 = homozygote for the reference (REF) allele
-* 0 = homozygote for the alternative (ALT) allele
-* 0.5 = heterozygote (both alleles seen)
-* -9 = missing data (this value can be specified, -9 is the default)
+* 1 = homozygote for the reference allele (REF)
+* 0 = homozygote for the alternative allele (ALT)
+* 0.5 = heterozygote (both REF and ALT alleles observed)
+* -9 = missing data. This value can be specified, -9 is the default
 
-MALECOT currently does not use within-sample allele frequency data - for example the raw read depth of REF vs. ALT alleles - and hence read depths should be converted to homozygote/heterozygote calls prior to analysis. It does, however, include error terms that allow for misclassification of homozygotes as heterozygotes and vice versa, which can account for some noise in the data.
+MALECOT currently does not use within-sample allele frequency data - for example the raw read depth of REF vs. ALT alleles - and hence read depths should be converted to homozygote/heterozygote calls prior to analysis.
 
 ### Create a project and read in data
 
@@ -80,82 +80,115 @@ If there have been mistakes in reading in the data, for example if meta-data col
 
 ### Define parameters and run basic MCMC
 
-We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and `COI_max` is equally likely *a priori*. We also assume zero error in genotype calls:
+We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and `COI_max` is equally likely *a priori*:
 
 ```{r}
-myproj <- new_set(myproj, name = "uniform model", COI_model = "uniform", COI_max = 20,
-                  estimate_error = FALSE, e1 = 0.0, e2 = 0.0)
+myproj <- new_set(myproj, name = "uniform model", COI_model = "uniform", COI_max = 20)
 ```
 
-Viewing the project we can now see additional properties, including the current active set and the parameters of this set.
+Viewing the project we can now see additional properties, including the current active set and the parameters of this set:
 
 ```{r}
 myproj
 ```
 
-Now we are ready to run a basic MCMC. We will start by exploring values of *K* from 1 to 5, using 10,000 burn-in iterations and 1000 sampling iterations. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached. Hence, it is generally a good idea to set `burnin` to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of "rungs". MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a "temperature ladder". The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should omit this argument.
+Now we are ready to run our first MCMC. We will start by exploring values of *K* from 1 to 5, using 10,000 burn-in iterations and 10,000 sampling iterations. The burn-in phase is required for the MCMC to "forget" its initial conditions and converge on the correct answer. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached. Hence, it is generally a good idea to set `burnin` to a high value, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should omit this argument.
 
 ```{r}
-myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
-                   rungs = 10, pb_markdown =  TRUE)
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e4, pb_markdown =  TRUE)
 ```
 
-If any values of K failed to converge then we can use the same `run_mcmc()` function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:
+If any values of *K* failed to converge then we could use the same `run_mcmc()` function to re-run the MCMC for just a single value of *K* and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of *K*, but will leave all other values untouched:
 
-### Comparing values of K
 
-The GTI method estimates the evidence for a given model by combining information across multiple temperature rungs. These rungs provide a series of point estimates that together make a "path", and the final evidence estimate is computed from the area between this path and the zero-line. We can visualise this path using the `plot_GTI_path()` function:
+### Checking MCMC behaviour
+
+Before diving into results, it is important to check that our MCMC has behaved as expected. There are many ways of checking MCMC performace, and here we will focus on only the most simple checks.
+
+We can explore the estimated log-likelihood values through a series of plots:
 
 ```{r}
-plot_GTI_path(myproj, K = 3)
+plot_loglike(myproj, K = 3)
 ```
 
-Note that all plots produced by MALECOT are produced as [ggplot](https://ggplot2.tidyverse.org/) objects, meaning they can be stored and modified later - for example by adding titles and legends.
+The top panel shows a "trace plot" of the log-likelihood, in other words the value of the log-likelihood at each sampling iteration of the MCMC. The bottom right panel shows a histogram of these same values We can see that the log-likelihood has fluctuated around a single stable value, and has bounced around freely enough to cover the same range of values many times over. This indicates that the MCMC has *probably* explored the space well, although we can never rule out that there might be another "level" of log-likelihood that the MCMC has not found yet. This is one of the many paradoxes of MCMC - we can never be 100% sure that an MCMC has completely explored the space, we can only diagnose if it definitly *hasn't* explored the space well. In other words, when looking at these pots we are looking for tell-tale signs of *bad* MCMC behaviour, such as jumping sporadically between levels or moving very slowly through a range of values. The plot above is generally what we would expect from good MCMC behaviour.
 
-In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of `rungs` used in the MCMC, 2) by changing the value of `GTI_pow` which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and the path is relatively straight, so there is no need to re-run the MCMC. **This check should be performed on every value of K**.
-
-Once we are happy with our GTI paths we can look at our evidence estimates, first of all in log space:
+The bottom left panel shows the level of autocorrelation in the trace plot for different degrees of separation between points. When autocorrelation approaches zero it means that values are approximately independent - this occurs ar around 15 lags here, meaning every 15th draw is approximately independent. The number of independent samples is therefore much smaller than the raw number of samples We can use the `get_ESS()` function to get at exactly how many effectively independent samples we have:
 
 ```{r}
-plot_logevidence_K(myproj)
+get_ESS(myproj, K = 3)
 ```
 
-We can see a clear signal for K=3 or higher, and the 95% credible intervals are nice and tight. If we needed tighter credible intervals at this stage then we could re-run the MCMC (for the problem values of K only) with a larger number of `samples`.
+It is worth keeping this value in mind when looking at trace plots. If our ESS is very small (tens to hundreds) then we are extremely unlikely to have explored the full model space, even if the raw number of samples is in the millions.
 
-We can also plot the full posterior distribution of K, which is obtained by transforming these values out of log space and normalising to sum to one:
+These checks should be carried out on each value of *K*, and if any values show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or [other more sophisticated techniques](todo) should be used.
 
-```{r}
-plot_posterior_K(myproj)
-```
 
-This second plot is usually more straightforward to interpret, as it is in linear space and so can be understood in terms of ordinary probability. In this example we can see strong evidence for K=3, with a posterior probability of >0.99. Again, if we had seen wide credible intervals at this stage then it would have been worth repeating the MCMC with a larger number of `samples`, but in this case the result is clear and so there is no need.
+### Structure plots
 
-### Structure and COI plots
-
-The main result of interest from this sort of analysis is usually the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the *K* subpopulations. We can use the `plot_qmatrix()` function to produce posterior allocation plots for different values of *K*. The `divide_ind_on` argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.
+One of the main results of interest from this sort of analysis is the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the *K* subpopulations. We can use the `plot_qmatrix()` function to produce posterior allocation plots for different values of *K*. The `divide_ind_on` argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.
 
 ```{r, fig.height=5, fig.width=8}
 plot_qmatrix(myproj, K = 2:5, divide_ind_on = TRUE)
 ```
 
+The advantage of simulated data is that we know the true value of *K* used when generating the data (`K = 3` in this case), and also which samples belong to which groups, meaning we can verify that the model has in fact found the correct grouping. In this example almost all samples are allocated correctly, demonstrating that there was significant signal in the data for pulling apart these groups.
 
-We can see that for *K*=3 (the most highly supported value of *K*) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at `mysim$true_group`, although obviously this is not possible for real data.
+The issue of deciding between different values of *K* is a big one, and will be dealt with in [a later vignette](https://bobverity.github.io/MALECOT/articles/comparing-models.html).
 
-When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of *K* so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - **the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world**. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of *K* that fit the data well, it is just a guide and should be taken alongside other biological considerations.
 
-Next we will plot the posterior COI of all samples. The example below uses the `ggplot2` package to add the true (i.e. simulated) COIs to the plot in the form of red crosses.
+### Posterior COI plots
+
+Next we can plot the posterior COI of our samples. All plots produced by MALECOT are produced as [ggplot](https://ggplot2.tidyverse.org/) objects, meaning they can be stored and modified later, for example, here we overlay the true (i.e. simulated) COIs on top of the posterior estimates:
 
 ```{r, fig.height=4, fig.width=8}
-# plot posterior COIs
+# produce plot of posterior COIs
 posterior_m <- plot_m_quantiles(myproj, K = 3)
 
-# overlay true values
+# overlay true COI values
 library(ggplot2)
 posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = "red", shape = 4)
+
 posterior_m
 ```
 
-Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gives equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central value, and so the uniform prior gives too much flexibility in this example. We will address this issue, along with some other weaknesses of the model, in the [next tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html).
+Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has mostly done a good job of estimating COIS. Estimates are most precise when the COI is very low (1 or 2), although they become very imprecise when COI is large. The model has also picked up the general trend in the simulated data of being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI across the board, as demonstrated by the fact that most red crosses are in the lower half of the credible intervals. This is down to our choice of uniform prior on COI, which gives equal weight to any COI from 1 to 20. In reality most COIs will tend to be clustered around small values, and so the uniform prior gives too much flexibility. We will address this issue, along with some other weaknesses of the model, in the [next tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html).
+
+
+### Posterior allele frequency plots
+
+The third parameter of interest is the posterior allele frequency at each locus in each subpopulation. Again, we have a record of the true values used when generating the data, so we can check that the model output matches these true values.
+
+Before doing so, however, we need to revisit structure plots. One thing to note when looking at structure plots is that the group labelling is arbitrary, and labels can be swapped around without undermining results. For example, we could swap around what we call group1 and group2 and the overall estimated structure would be the same. In fact, the group labels used in MALECOT are simply chosen to minmise the visual differences between plots - for example, in the structure plots above the colours are chosen to mostly align between different values of *K*.
+
+When comparing true allele frequencies against MCMC output we need to make sure our labels match up, otherwise we will be comparing apples and oranges. We can do this using the `get_group_order()` function, which takes a project and value of *K* as input, along with a "target group". The target group will be matched against the MCMC output for this value of *K*, and re-ordered as needed to get the best possible matching. For example, using `mysim$true_group` as the target group:
+
+```{r}
+group_order_k3 <- get_group_order(myproj, K = 3, target_group = mysim$true_group)
+group_order_k3
+```
+
+This tells us that group `r group_order_k3[1]` in our simulated data matches the first group in the MCMC output, group `r group_order_k3[2]` in the simulated data matches the second group in the MCMC output, and `r group_order_k3[3]` in the simulated data matches the third group in the MCMC output. Now that we know this, we can plot posterior allele frequencies in each subpopulation and overlay the correct corresponding values from the simulated data:
+
+```{r, fig.height=3, fig.width=6}
+# loop through subpopulations
+for (i in 1:3) {
+  
+  # produce plot of posterior allele frequencies for this subpopulation
+  plot1 <- plot_p_quantiles(myproj, K = 3, deme = i)
+  
+  # get true simulated allele frequencies for this subpopulation
+  sim_p <- mapply(function(x){x[group_order_k3[i],1]}, mysim$true_p)
+  df <- data.frame(x = 1:24, y = sim_p)
+    
+  # overlay true allele frequencies
+  plot1 <- plot1 + geom_point(aes(x = x, y = y), data = df, col = "red", shape = 4)
+  print(plot1)
+}
+```
+
+We can see that the MCMC has correctly estimated allele frequencies in all three subpopulations to a good level of precision. In reality allele frequencies are rarely as evenly spread as this - something we will deal with in the [next tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html).
 
 ```{r, echo=FALSE}
 # save output of this tutorial to inst/extdata folder

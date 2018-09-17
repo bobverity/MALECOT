@@ -260,7 +260,7 @@ plot_loglike_quantiles <- function(project, K = NULL, axis_type = 1, connect_poi
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   assert_in(axis_type, 1:3)
   assert_single_logical(connect_points)
@@ -364,7 +364,7 @@ plot_m_quantiles <- function(project, K = NULL, ...) {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   
   # get active set and check non-zero
@@ -501,7 +501,7 @@ plot_p_quantiles <- function(project, K = NULL, deme = 1, ...) {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   assert_single_pos_int(deme)
   
@@ -584,7 +584,7 @@ plot_e_quantiles <- function(project, K = NULL, ...) {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   
   # get active set and check non-zero
@@ -660,7 +660,7 @@ plot_COI_mean_quantiles <- function(project, K = NULL, ...) {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   
   # get active set and check non-zero
@@ -757,7 +757,7 @@ plot_GTI_path <- function(project, K = NULL, axis_type = 1) {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   assert_in(axis_type, 1:2)
   
@@ -1051,7 +1051,7 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
@@ -1120,7 +1120,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
@@ -1195,7 +1195,7 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
-    assert_single_pos_int(K)
+    assert_single_pos_int(K, zero_allowed = FALSE)
   }
   if (!is.null(rung)) {
     assert_single_pos_int(rung)

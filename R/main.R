@@ -517,7 +517,7 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' @examples
 #' # TODO
 
-run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 10, GTI_pow = 3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
+run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
   
   # start timer
   t0 <- Sys.time()
@@ -1186,4 +1186,50 @@ get_group_order <- function(project, K, target_group) {
   best_perm_order <- order(best_perm)
   
   return(best_perm)
+}
+
+#------------------------------------------------
+#' @title Get ESS
+#'
+#' @description Returns effective sample size (ESS) of chosen model run.
+#'
+#' @param project a MALCOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K get ESS for this value of K
+#'
+#' @export
+#' @examples
+#' # TODO
+
+get_ESS <- function(project, K = NULL) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K, zero_allowed = FALSE)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$ESS)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no ESS output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  ESS <- project$output$single_set[[s]]$single_K[[K]]$summary$ESS
+  if (is.null(ESS)) {
+    stop(sprintf("no ESS output for K = %s of active set", K))
+  }
+  
+  return(ESS)
 }

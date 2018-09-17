@@ -5,7 +5,7 @@
 \title{Run main MCMC}
 \usage{
 run_mcmc(project, K = NULL, precision = 0.01, burnin = 1000,
-  samples = 1000, rungs = 10, GTI_pow = 3, auto_converge = TRUE,
+  samples = 1000, rungs = 1, GTI_pow = 3, auto_converge = TRUE,
   converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE,
   coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE,
   silent = !is.null(cluster))

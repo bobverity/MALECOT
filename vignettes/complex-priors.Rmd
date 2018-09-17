@@ -1,10 +1,10 @@
 ---
 title: "Tutorial 2: more realistic data and priors"
-author: "Vignette Author"
+author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{"Tutorial 2: more realistic data and priors"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -52,8 +52,8 @@ myproj
 As before, we run the MCMC using the `run_mcmc()` command:
 
 ```{r}
-myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2, samples = 1e3,
-                   rungs = 1, pb_markdown =  TRUE)
+myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e3, pb_markdown =  TRUE)
 ```
 
 As before, we need to check that we are happy with the behaviour of our MCMC by looking at GTI paths, trace plots, and any other useful diagnostics. Assuming everything looks OK, we can go ahead and produce the structure and posterior COI plots:
@@ -83,10 +83,11 @@ plot_COI_mean_quantiles(myproj, K = 3)
 
 
 ```{r, echo=FALSE}
-group_order <- get_group_order(myproj, 3, mysim$true_group)
+# get order of structure plot
+so <- order(get_group_order(myproj, 3, mysim$true_group))
 ```
 
-Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go `r group_order[1]`, then `r group_order[2]`, then `r group_order[3]`; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of *K*. If we read the mean COI estimates in this order (`r group_order[1]`,`r group_order[2]`,`r group_order[3]`) we can see that the model has indeed estimated the correct values.
+Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go `r so[1]`, then `r so[2]`, then `r so[3]`; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of *K*. If we read the mean COI estimates in this order (`r so[1]`,`r so[2]`,`r so[3]`) we can see that the model has indeed estimated the correct values.
 
 
 ### More realistic priors on allele frequencies
@@ -104,26 +105,15 @@ set.seed(1)
 set.seed(1)
 ```
 
-Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. We can either use fixed values, or these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max` - for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.
+We do not always want to assume that we have zero error in our data. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. We can either use fixed values, or these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max` (for example values of `1.0` are usually inappropriate as we do not expect all of our data to be mistakes).
+
+Let us simulate some data with errors to test the model in a more challenging setting. We will assume that artificial heterozygotes occur with probability 0.1, and artificial homozygotes with probability 0.05. We will also assume that 20% of the data is missing, and hence encoded as `-9`.
 
 ```{r}
-mysim_errors <- sim_data(n = 100, L = 24, K = 3, e1 = 0.1, e2 = 0.05, prop_missing = 0.1)
+mysim_errors <- sim_data(n = 100, L = 24, K = 3, e1 = 0.1, e2 = 0.05, prop_missing = 0.2)
 ```
 
-Extra output:
-
-```{r}
-names(mysim_errors)
-```
-
-Compare uncorrupted and corrupted data:
-
-```{r}
-head(mysim_errors$data)
-head(mysim_errors$data_uncorrupted)
-```
-
-Create new project and bind data
+Next we will create a new project and bind the new data:
 
 ```{r}
 myproj_errors <- malecot_project()
@@ -131,7 +121,9 @@ myproj_errors <- bind_data_biallelic(myproj_errors, mysim_errors$data, ID_col = 
 myproj_errors
 ```
 
-Check that registered 10% missing data.
+Looking at this output we can see that the project has correctly registered 20% of the data as missing.
+
+For the model, we will assume a Poisson prior on the COI and a maximum value of 0.2 in both `e1` and `e2`. We then run the MCMC as usual:
 
 ```{r}
 # create new parameter set
@@ -139,8 +131,8 @@ myproj_errors <- new_set(myproj_errors, name = "errors", COI_model = "poisson",
                          COI_max = 20, estimate_COI_mean = TRUE,
                          estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
 
-myproj_errors <- run_mcmc(myproj_errors, K = 3, burnin = 1e4, converge_test = 1e2, samples = 1e3,
-                          rungs = 1, pb_markdown =  TRUE)
+myproj_errors <- run_mcmc(myproj_errors, K = 3, burnin = 1e4, converge_test = 1e2,
+                          samples = 1e3, pb_markdown =  TRUE)
 ```
 
 ```{r}

@@ -78,10 +78,13 @@
       <a href="../articles/tutorial-biallelic.html">Tutorial 1: bi-allelic data</a>
     </li>
     <li>
-      <a href="../articles/complex-priors.html">Tutorial 2: more realistic priors</a>
+      <a href="../articles/complex-priors.html">Tutorial 2: more realistic models</a>
     </li>
     <li>
       <a href="../articles/tutorial-multiallelic.html">Tutorial 3: multi-allelic data</a>
+    </li>
+    <li>
+      <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
     </li>
   </ul>
 </li>
@@ -165,12 +168,12 @@ value specifying the number of alleles at all loci</p></td>
     <tr>
       <th>lambda</th>
       <td><p>the shape parameter(s) of the prior on allele frequencies. This
-prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic
-case. <code>lambda</code> can be a list of length <code>L</code> containing vectors of
-length equal to the number of alleles at that locus, or it can be a single
-scalar value. If a list then <code>lambda</code> specifies all shape parameters
-of the prior at each locus separately, if a scalar value then the same
-shape parameter is used over all loci and all alleles</p></td>
+prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
+case. <code>lambda</code> can be a single scalar vaue or a list of length
+<code>L</code> containing vectors of length equal to the number of alleles at
+that locus. If a list then <code>lambda</code> specifies all shape parameters of
+the prior at each locus separately, if a scalar value then the same shape
+parameter is used over all loci and all alleles</p></td>
     </tr>
     <tr>
       <th>COI_model</th>

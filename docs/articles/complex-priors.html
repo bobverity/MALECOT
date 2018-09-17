@@ -49,10 +49,13 @@
       <a href="../articles/tutorial-biallelic.html">Tutorial 1: bi-allelic data</a>
     </li>
     <li>
-      <a href="../articles/complex-priors.html">Tutorial 2: more realistic priors</a>
+      <a href="../articles/complex-priors.html">Tutorial 2: more realistic models</a>
     </li>
     <li>
       <a href="../articles/tutorial-multiallelic.html">Tutorial 3: multi-allelic data</a>
+    </li>
+    <li>
+      <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
     </li>
   </ul>
 </li>
@@ -86,7 +89,7 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1>Tutorial 2: more realistic data and priors</h1>
-                        <h4 class="author">Vignette Author</h4>
+                        <h4 class="author">Bob Verity</h4>
             
             <h4 class="date">2018-09-17</h4>
       
@@ -145,8 +148,8 @@ myproj</code></pre></div>
 ##    e1 = 0
 ##    e2 = 0</code></pre>
 <p>As before, we run the MCMC using the <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> command:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>,
-                   <span class="dt">rungs =</span> <span class="dv">1</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
+                   <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 3
 ## Burn-in phase
 ## 
@@ -157,10 +160,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.356918 seconds
+##    completed in 0.364835 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 0.86 seconds</code></pre>
+<pre><code>## Total run-time: 0.87 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at GTI paths, trace plots, and any other useful diagnostics. Assuming everything looks OK, we can go ahead and produce the structure and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -177,7 +180,7 @@ posterior_m</code></pre></div>
 <p>Next we can look at the estimated mean COI for each of the subpopulations:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_COI_mean_quantiles.html">plot_COI_mean_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
-<p>Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go 3, then 1, then 2; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of <em>K</em>. If we read the mean COI estimates in this order (3,1,2) we can see that the model has indeed estimated the correct values.</p>
+<p>Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go 2, then 3, then 1; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of <em>K</em>. If we read the mean COI estimates in this order (2,3,1) we can see that the model has indeed estimated the correct values.</p>
 </div>
 <div id="more-realistic-priors-on-allele-frequencies" class="section level3">
 <h3 class="hasAnchor">
@@ -187,59 +190,10 @@ posterior_m</code></pre></div>
 <div id="missing-data-and-errors" class="section level3">
 <h3 class="hasAnchor">
 <a href="#missing-data-and-errors" class="anchor"></a>Missing data and errors</h3>
-<p>Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments <code>e1</code> and <code>e2</code>. We can either use fixed values, or these error probabilities can be estimated by setting <code>estimate_error = TRUE</code>, in which case a uniform prior is assumed ranging from 0 to <code>e1_max</code> for <code>e1</code>, and 0 to <code>e2_max</code> for <code>e2</code>. It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code> - for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">e1 =</span> <span class="fl">0.1</span>, <span class="dt">e2 =</span> <span class="fl">0.05</span>, <span class="dt">prop_missing =</span> <span class="fl">0.1</span>)</code></pre></div>
-<p>Extra output:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(mysim_errors)</code></pre></div>
-<pre><code>## [1] "data"             "n"                "L"               
-## [4] "data_uncorrupted" "true_group"       "true_m"          
-## [7] "true_p"           "call"</code></pre>
-<p>Compare uncorrupted and corrupted data:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(mysim_errors$data)</code></pre></div>
-<pre><code>##   sample_ID pop locus1 locus2 locus3 locus4 locus5 locus6 locus7 locus8
-## 1   samp001   1    1.0    1.0    1.0    1.0    0.5    0.5    0.0    0.5
-## 2   samp002   1    1.0    1.0    1.0    0.5    0.5    0.5    0.5    0.0
-## 3   samp003   1    0.5    1.0    0.5    1.0    0.0    0.0    1.0    1.0
-## 4   samp004   1    0.5    0.5    1.0    0.5    0.5    1.0   -9.0    0.5
-## 5   samp005   1    1.0    0.5    1.0    0.5   -9.0    1.0    0.5    0.0
-## 6   samp006   1    1.0    0.5    1.0    0.5    0.5    0.5    0.5   -9.0
-##   locus9 locus10 locus11 locus12 locus13 locus14 locus15 locus16 locus17
-## 1    0.5     1.0     0.0     0.5     1.0     0.0       1     0.5     0.0
-## 2    0.0    -9.0     0.0     0.0     1.0     0.5       1     0.0     0.5
-## 3    0.0     0.5     1.0     1.0     1.0     0.0       1     0.0     0.0
-## 4    0.5     0.5     0.5     0.5     0.5     0.5       1     0.5     0.5
-## 5    0.5     1.0     0.5     0.5     0.5     0.5       1     0.5     0.5
-## 6    0.5     1.0    -9.0    -9.0     1.0     0.0       1    -9.0     0.0
-##   locus18 locus19 locus20 locus21 locus22 locus23 locus24
-## 1     0.0     0.5     1.0       0     1.0     0.5     1.0
-## 2     0.5     0.5     1.0       0     1.0     1.0     0.0
-## 3     1.0     1.0     0.5      -9     1.0     1.0     0.0
-## 4     0.5     0.5     0.5       0     0.5     0.5     0.5
-## 5     0.0     0.0     0.5       0     0.5     0.0     0.5
-## 6     0.5     0.5     0.5       0     0.5     0.5     0.5</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(mysim_errors$data_uncorrupted)</code></pre></div>
-<pre><code>##   sample_ID pop locus1 locus2 locus3 locus4 locus5 locus6 locus7 locus8
-## 1   samp001   1    1.0    1.0      1    1.0    0.5    0.5    0.0    0.5
-## 2   samp002   1    1.0    0.5      1    0.5    0.5    0.5    0.5    0.0
-## 3   samp003   1    1.0    1.0      1    1.0    0.0    0.0    1.0    1.0
-## 4   samp004   1    0.5    0.5      1    0.5    0.5    1.0    0.5    0.5
-## 5   samp005   1    1.0    0.5      1    0.5    0.0    1.0    0.5    0.0
-## 6   samp006   1    1.0    0.5      1    0.5    0.5    0.5    0.5    0.5
-##   locus9 locus10 locus11 locus12 locus13 locus14 locus15 locus16 locus17
-## 1    0.5     1.0     0.0     0.5     1.0     0.0       1     0.5     0.0
-## 2    0.0     1.0     0.0     0.0     1.0     0.5       1     0.0     0.5
-## 3    0.0     0.0     1.0     1.0     1.0     0.0       1     0.0     0.0
-## 4    0.5     0.5     0.5     0.5     0.5     0.5       1     0.5     0.5
-## 5    0.5     1.0     0.5     0.5     0.5     0.5       1     0.5     1.0
-## 6    0.5     1.0     1.0     0.5     1.0     0.0       1     0.0     0.0
-##   locus18 locus19 locus20 locus21 locus22 locus23 locus24
-## 1     0.0     0.5     1.0       0     1.0     0.5     1.0
-## 2     0.5     0.5     1.0       0     1.0     1.0     0.0
-## 3     1.0     1.0     0.0       0     1.0     1.0     0.0
-## 4     0.5     0.5     0.5       0     0.5     0.5     0.5
-## 5     0.0     0.0     0.0       0     0.5     0.0     0.5
-## 6     0.5     0.5     0.5       0     0.5     0.0     0.5</code></pre>
-<p>Create new project and bind data</p>
+<p>We do not always want to assume that we have zero error in our data. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments <code>e1</code> and <code>e2</code>. We can either use fixed values, or these error probabilities can be estimated by setting <code>estimate_error = TRUE</code>, in which case a uniform prior is assumed ranging from 0 to <code>e1_max</code> for <code>e1</code>, and 0 to <code>e2_max</code> for <code>e2</code>. It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code> (for example values of <code>1.0</code> are usually inappropriate as we do not expect all of our data to be mistakes).</p>
+<p>Let us simulate some data with errors to test the model in a more challenging setting. We will assume that artificial heterozygotes occur with probability 0.1, and artificial homozygotes with probability 0.05. We will also assume that 20% of the data is missing, and hence encoded as <code>-9</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">e1 =</span> <span class="fl">0.1</span>, <span class="dt">e2 =</span> <span class="fl">0.05</span>, <span class="dt">prop_missing =</span> <span class="fl">0.2</span>)</code></pre></div>
+<p>Next we will create a new project and bind the new data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
 myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj_errors, mysim_errors$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)
 myproj_errors</code></pre></div>
@@ -248,35 +202,36 @@ myproj_errors</code></pre></div>
 ##    samples = 100
 ##    loci = 24
 ##    pops = 3
-##    missing data = 240 of 2400 gene copies (10%)
+##    missing data = 480 of 2400 gene copies (20%)
 ## 
 ## PARAMETER SETS:
 ##    (none defined)</code></pre>
-<p>Check that registered 10% missing data.</p>
+<p>Looking at this output we can see that the project has correctly registered 20% of the data as missing.</p>
+<p>For the model, we will assume a Poisson prior on the COI and a maximum value of 0.2 in both <code>e1</code> and <code>e2</code>. We then run the MCMC as usual:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create new parameter set</span>
 myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj_errors, <span class="dt">name =</span> <span class="st">"errors"</span>, <span class="dt">COI_model =</span> <span class="st">"poisson"</span>,
                          <span class="dt">COI_max =</span> <span class="dv">20</span>, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>,
                          <span class="dt">estimate_error =</span> <span class="ot">TRUE</span>, <span class="dt">e1_max =</span> <span class="fl">0.2</span>, <span class="dt">e2_max =</span> <span class="fl">0.2</span>)
 
-myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj_errors, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>,
-                          <span class="dt">rungs =</span> <span class="dv">1</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj_errors, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
+                          <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 100 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.381595 seconds
+##    completed in 0.408589 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 0.67 seconds</code></pre>
+<pre><code>## Total run-time: 0.71 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e_quantiles.html">plot_e_quantiles</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>
-<p><img src="complex-priors_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p><img src="complex-priors_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
   </div>
 

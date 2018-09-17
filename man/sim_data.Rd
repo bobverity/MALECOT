@@ -27,12 +27,12 @@ always set to 2}
 value specifying the number of alleles at all loci}
 
 \item{lambda}{the shape parameter(s) of the prior on allele frequencies. This
-prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic
-case. \code{lambda} can be a list of length \code{L} containing vectors of
-length equal to the number of alleles at that locus, or it can be a single
-scalar value. If a list then \code{lambda} specifies all shape parameters
-of the prior at each locus separately, if a scalar value then the same
-shape parameter is used over all loci and all alleles}
+prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
+case. \code{lambda} can be a single scalar vaue or a list of length
+\code{L} containing vectors of length equal to the number of alleles at
+that locus. If a list then \code{lambda} specifies all shape parameters of
+the prior at each locus separately, if a scalar value then the same shape
+parameter is used over all loci and all alleles}
 
 \item{COI_model}{TODO}
 
