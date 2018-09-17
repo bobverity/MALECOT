@@ -29,7 +29,7 @@ myproj <- malecot_file("tutorial1_myproj.rds")
 
 ### More complex priors on COI
 
-The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIS and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the Poisson distribution and the negative binomial distribution.
+The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIS and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) and the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution).
 
 The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed Poisson distribution (i.e. it allows for a greater spread of values around the mean). It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected and some only lightly infected. Note that whaterver prior we choose, COIs will still be truncated at `COI_max`.
 
@@ -81,7 +81,12 @@ Next we can look at the estimated mean COI for each of the subpopulations:
 plot_COI_mean_quantiles(myproj, K = 3)
 ```
 
-Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go 3, then 2, then 1; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of *K*. If we read the mean COI estimates in this order (3,2,1) we can see that the model has indeed estimated the correct values.
+
+```{r, echo=FALSE}
+group_order <- get_group_order(myproj, 3, mysim$true_group)
+```
+
+Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go `r group_order[1]`, then `r group_order[2]`, then `r group_order[3]`; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of *K*. If we read the mean COI estimates in this order (`r group_order[1]`,`r group_order[2]`,`r group_order[3]`) we can see that the model has indeed estimated the correct values.
 
 
 ### More realistic priors on allele frequencies
