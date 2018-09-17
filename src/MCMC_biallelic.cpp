@@ -306,8 +306,10 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
     }
     
     // store COI_mean
-    if (COI_model==2 || COI_model==3) {
-      COI_mean_store[rep] = particle_vec[cold_rung].COI_mean_vec;
+    if (COI_model == 2 || COI_model == 3) {
+      for (int k=0; k<K; k++) {
+        COI_mean_store[rep][k] = particle_vec[cold_rung].COI_mean_vec[label_order[k]];
+      }
     }
     
     // update progress bars

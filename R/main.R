@@ -1093,6 +1093,14 @@ align_qmatrix <- function(proj) {
       proj$output$single_set[[s]]$single_K[[i]]$raw$COI_mean <- COI_mean_raw
     }
     
+    COI_mean_quantiles <- x[[i]]$summary$COI_mean_quantiles
+    if (!is.null(COI_mean_quantiles)) {
+      COI_mean_quantiles <- COI_mean_quantiles[best_perm_order, , drop = FALSE]
+      rownames(COI_mean_quantiles) <- deme_names
+      class(COI_mean_quantiles) <- "malecot_COI_mean_quantiles"
+      proj$output$single_set[[s]]$single_K[[i]]$summary$COI_mean_quantiles <- COI_mean_quantiles
+    }
+    
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix
     

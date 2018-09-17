@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 2: more realistic priors"
+title: "Tutorial 2: more realistic data and priors"
 author: "Vignette Author"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -18,9 +18,9 @@ This vignette demonstrates the use of more complex priors, which can add realism
 
 * different types of prior on COI
 * more realistic priors on allele frequencies
-* estimating error rates
+* dealing with missing data and errors
 
-This vignette follows on from the previous tutorial - or you can pick up at this point by running these lines:
+This vignette follows on from the previous tutorial - or you can pick up here by running these lines:
 ```{r}
 # load output of previous tutorial
 mysim <- malecot_file("tutorial1_mysim.rds")
@@ -29,13 +29,13 @@ myproj <- malecot_file("tutorial1_myproj.rds")
 
 ### More complex priors on COI
 
-The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high values and can therefore lead to an over-estimation of COIs. There are two alternative options implemented in MALECOT - the Poisson distribution and the negative binomial distribution.
+The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIS and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the Poisson distribution and the negative binomial distribution.
 
 The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed Poisson distribution (i.e. it allows for a greater spread of values around the mean). It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected and some only lightly infected. Note that whaterver prior we choose, COIs will still be truncated at `COI_max`.
 
-The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter `COI_dispersion` to set the level of over-dispersion compared to the Poisson distribution - for example, a value of 2 means the prior variance will be twice that of the Poisson distribution. The argument `COI_mean = TRUE` tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value.
+The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter `COI_dispersion` to set the level of over-dispersion compared to the Poisson distribution - for example, a value of 2 means the prior variance will be twice that of the Poisson distribution. The argument `COI_mean = TRUE` tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value.
 
-In some cases we may want to specify the COI of certain samples manually - for example if we want to use other programs to estimate the COI and then use MALECOT to estimate the population structure. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.
+In some cases we may want to specify the COI of certain samples manually - for example if we have used other programs to estimate the COI using different methods. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.
 
 ```{r}
 # define some COIs manually
@@ -49,19 +49,21 @@ myproj <- new_set(myproj, name = "nb model", COI_model = "nb", COI_max = 20,
 myproj
 ```
 
-As before, we run the MCMC using the `run_mcmc()` command.
+As before, we run the MCMC using the `run_mcmc()` command:
 
 ```{r}
-myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e3,
-                   rungs = 10, pb_markdown =  TRUE)
+myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2, samples = 1e3,
+                   rungs = 1, pb_markdown =  TRUE)
 ```
 
-As before, we need to check that we are happy with the behaviour of our MCMC by looking at GTI paths and trace plots etc. Assuming everything looks OK, we can go ahead and produce the structure plot and posterior COIs against the true values:
+As before, we need to check that we are happy with the behaviour of our MCMC by looking at GTI paths, trace plots, and any other useful diagnostics. Assuming everything looks OK, we can go ahead and produce the structure and posterior COI plots:
 
-```{r}
+```{r, fig.height=2, fig.width=8}
 # structure plot
 plot_qmatrix(myproj, K = 3, divide_ind_on = TRUE)
+```
 
+```{r, fig.height=4, fig.width=8}
 # plot posterior COIs
 posterior_m <- plot_m_quantiles(myproj, K = 3)
 
@@ -71,19 +73,71 @@ posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = 
 posterior_m
 ```
 
-Notice that the 95% credible intervals in this plot are tighter than under the uniform prior of the previous tutorial. This is because a series of low COI samples in a subpopulation tells us something about the overall transmission intensity of that subpopulation, which in turn makes it less likely that we will see high COI samples in future samples. Notice also that the final 10 samples have their COI fixed at the correct value, as specified by the `COI_manual` argument.
+Notice that the 95% credible intervals in this plot are tighter than in the previous tutorial. This is because our prior now assumes that COIs are clustered around a mean value for each subpopulation. Notice also that the final 10 samples have their COI fixed at the correct value, as specified by the `COI_manual` argument.
 
-Next we can look at the estimated mean COI for each of the 
+Next we can look at the estimated mean COI for each of the subpopulations:
 
 ```{r}
 plot_COI_mean_quantiles(myproj, K = 3)
 ```
 
+Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go 3, then 2, then 1; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of *K*. If we read the mean COI estimates in this order (3,2,1) we can see that the model has indeed estimated the correct values.
+
+
 ### More realistic priors on allele frequencies
+
+```{r, echo=FALSE}
+set.seed(1)
+```
 
 (TODO)
 
-### Estimating error rates
 
-Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be called as heterozygotes (error 1), and true heterozygotes will be called as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. Alternatively, these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max`, for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.
+### Missing data and errors
 
+```{r, echo=FALSE}
+set.seed(1)
+```
+
+Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments `e1` and `e2`. We can either use fixed values, or these error probabilities can be estimated by setting `estimate_error = TRUE`, in which case a uniform prior is assumed ranging from 0 to `e1_max` for `e1`, and 0 to `e2_max` for `e2`. It is recommended to use sensible values for `e1_max` and `e2_max` - for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.
+
+```{r}
+mysim_errors <- sim_data(n = 100, L = 24, K = 3, e1 = 0.1, e2 = 0.05, prop_missing = 0.1)
+```
+
+Extra output:
+
+```{r}
+names(mysim_errors)
+```
+
+Compare uncorrupted and corrupted data:
+
+```{r}
+head(mysim_errors$data)
+head(mysim_errors$data_uncorrupted)
+```
+
+Create new project and bind data
+
+```{r}
+myproj_errors <- malecot_project()
+myproj_errors <- bind_data_biallelic(myproj_errors, mysim_errors$data, ID_col = 1, pop_col = 2)
+myproj_errors
+```
+
+Check that registered 10% missing data.
+
+```{r}
+# create new parameter set
+myproj_errors <- new_set(myproj_errors, name = "errors", COI_model = "poisson",
+                         COI_max = 20, estimate_COI_mean = TRUE,
+                         estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
+
+myproj_errors <- run_mcmc(myproj_errors, K = 3, burnin = 1e4, converge_test = 1e2, samples = 1e3,
+                          rungs = 1, pb_markdown =  TRUE)
+```
+
+```{r}
+plot_e_quantiles(myproj_errors)
+```

@@ -139,7 +139,7 @@
 ## 4       0       0       0       1       0       1       1
 ## 5       0       1       0       0       0       1       1
 ## 6       0       0       0       1       0       0       1</code></pre>
-<p>Note that this is the required format <strong>for bi-allelic data only</strong> - multi-allelic data is dealt with in <a href="https://bobverity.github.io/MALECOT/articles/tutorial-multiallelic.html">this vignette</a>.</p>
+<p>Note that this is the required format <strong>for bi-allelic data only</strong> - multi-allelic data is dealt with in <a href="https://bobverity.github.io/MALECOT/articles/tutorial-multiallelic.html">another vignette</a>.</p>
 <p>Data must be in the form of a dataframe, with samples in rows and loci in columns. When using real data, functions such as <code>read.csv()</code> and <code>read.table()</code> can be used to import data in this format. There are several meta-data columns in the example above, including the sample ID and the population of origin. These meta-data columns are optional and can be turned on or off when loading the data into a project.</p>
 <p>The actual genetic data must be one of the following values</p>
 <ul>
@@ -148,7 +148,7 @@
 <li>0.5 = heterozygote (both alleles seen)</li>
 <li>-9 = missing data (this value can be specified, -9 is the default)</li>
 </ul>
-<p>MALECOT currently does not use within-sample allele frequency data - for example the raw read depth of REF vs. ALT alleles - and hence read depths should be converted to homozygote/heterozygote calls prior to analysis. MALECOT does, however, include error terms that allow for misclassification of homozygotes as heterozygotes and vice versa, which can account for some noise in the data.</p>
+<p>MALECOT currently does not use within-sample allele frequency data - for example the raw read depth of REF vs. ALT alleles - and hence read depths should be converted to homozygote/heterozygote calls prior to analysis. It does, however, include error terms that allow for misclassification of homozygotes as heterozygotes and vice versa, which can account for some noise in the data.</p>
 </div>
 <div id="create-a-project-and-read-in-data" class="section level3">
 <h3 class="hasAnchor">
@@ -195,7 +195,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ##    estimate error = FALSE
 ##    e1 = 0
 ##    e2 = 0</code></pre>
-<p>Now we are ready to run a basic MCMC. We will start by exploring values of <em>K</em> from 1 to 5, using 10,000 burn-in iterations and 1000 sampling iterations. By default the MCMC has <code>auto_converge</code> turned on, meaning it will test for convergence every <code>convergence_test</code> iterations and will exit if convergence is reached (<code>convergence_test = burnin/10</code> by default). Hence, it is generally a good idea to set <code>burnin</code> to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of “rungs”. MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a “temperature ladder”. The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with <code>pb_markdown = TRUE</code> to avoid printing large amounts of output, but you should omit this argument.</p>
+<p>Now we are ready to run a basic MCMC. We will start by exploring values of <em>K</em> from 1 to 5, using 10,000 burn-in iterations and 1000 sampling iterations. By default the MCMC has <code>auto_converge</code> turned on, meaning it will test for convergence every <code>convergence_test</code> iterations and will exit if convergence is reached. Hence, it is generally a good idea to set <code>burnin</code> to be higher than expected, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. The most unfamiliar parameter for most users will be the number of “rungs”. MALECOT runs multiple MCMC chains simultaneously, each at a different rung on a “temperature ladder”. The cold chain is our ordinary MCMC chain, and the hot chains serve two purposes: 1) they improve MCMC mixing, 2) they are central to the GTI method of estimating the evidence for different models. Finally, for the sake of this document we will run with <code>pb_markdown = TRUE</code> to avoid printing large amounts of output, but you should omit this argument.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>,
                    <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 1
@@ -208,7 +208,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.28065 seconds
+##    completed in 1.05436 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -220,7 +220,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.14488 seconds
+##    completed in 1.78358 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -232,7 +232,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.58735 seconds
+##    completed in 2.27436 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -244,7 +244,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.06348 seconds
+##    completed in 2.84695 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -256,10 +256,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.38136 seconds
+##    completed in 3.24119 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 14.16 seconds</code></pre>
+<pre><code>## Total run-time: 12.84 seconds</code></pre>
 <p>If any values of K failed to converge then we can use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:</p>
 </div>
 <div id="comparing-values-of-k" class="section level3">
@@ -268,7 +268,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <p>The GTI method estimates the evidence for a given model by combining information across multiple temperature rungs. These rungs provide a series of point estimates that together make a “path”, and the final evidence estimate is computed from the area between this path and the zero-line. We can visualise this path using the <code><a href="../reference/plot_GTI_path.html">plot_GTI_path()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-<p>Note that all plots produced by MALECOT are produced as <a href="https://ggplot2.tidyverse.org/">ggplot</a> objects, meaning they can be stored and modified later - for example by adding titles, legends etc.</p>
+<p>Note that all plots produced by MALECOT are produced as <a href="https://ggplot2.tidyverse.org/">ggplot</a> objects, meaning they can be stored and modified later - for example by adding titles and legends.</p>
 <p>In order for our evidence estimate to be unbiased it is important that the GTI path is relatively smooth. We can modify the smoothness of the path in two ways: 1) by increasing the number of <code>rungs</code> used in the MCMC, 2) by changing the value of <code>GTI_pow</code> which controls the curvature of the path (higher values lead to more steep curvature). Ideally we want a straight path, i.e. we want as little curvature as possible. In the example above we have a good number of rungs and the path is relatively straight, so there is no need to re-run the MCMC. <strong>This check should be performed on every value of K</strong>.</p>
 <p>Once we are happy with our GTI paths we can look at our evidence estimates, first of all in log space:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
@@ -287,7 +287,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-13-1.png" width="768"></p>
 <p>We can see that for <em>K</em>=3 (the most highly supported value of <em>K</em>) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at <code>mysim$true_group</code>, although obviously this is not possible for real data.</p>
 <p>When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of <em>K</em> so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - <strong>the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world</strong>. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of <em>K</em> that fit the data well, it is just a guide and should be taken alongside other biological considerations.</p>
-<p>Alongside the posterior allocation plot, we can plot the posterior COI of all samples. The example below uses the <code>ggplot2</code> package to add the true (simulated) COIs to the plot in the form of red crosses.</p>
+<p>Next we will plot the posterior COI of all samples. The example below uses the <code>ggplot2</code> package to add the true (i.e. simulated) COIs to the plot in the form of red crosses.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot posterior COIs</span>
 posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
 
@@ -296,7 +296,7 @@ posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 posterior_m &lt;-<span class="st"> </span>posterior_m +<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(<span class="dt">x =</span> <span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">y =</span> mysim$true_m), <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">shape =</span> <span class="dv">4</span>)
 posterior_m</code></pre></div>
 <p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
-<p>Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We will address this issue, along with some other weaknesses of the model, in the <a href="https://bobverity.github.io/MALECOT/articles/complex-priors.html">next tutorial</a>.</p>
+<p>Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gives equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central value, and so the uniform prior gives too much flexibility in this example. We will address this issue, along with some other weaknesses of the model, in the <a href="https://bobverity.github.io/MALECOT/articles/complex-priors.html">next tutorial</a>.</p>
 </div>
   </div>
 
