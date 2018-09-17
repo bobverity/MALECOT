@@ -9,15 +9,20 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette demonstrates the complete MALECOT analysis pipeline for *bi-allelic* data, i.e. data for which there are two alleles at every locus (the classic example being SNP data).
-
-* item1
-* item2
-
 ```{r, echo=FALSE}
 set.seed(1)
 library(MALECOT)
 ```
+
+This vignette demonstrates a very basic MALECOT analysis for *bi-allelic* data, i.e. data for which there are two alleles at every locus. It covers:
+
+* simulating/loading data into R
+* creating a project and binding data to the project
+* defining a simple parameter set
+* running the MCMC
+* checking MCMC behaviour
+* plotting results
+
 
 ### Simulate some data
 
@@ -79,7 +84,7 @@ We can define different models by using different parameter sets. Our first para
 
 ```{r}
 myproj <- new_set(myproj, name = "uniform model", COI_model = "uniform", COI_max = 20,
-                  estimate_error = FALSE, e1 = 0, e2 = 0)
+                  estimate_error = FALSE, e1 = 0.0, e2 = 0.0)
 ```
 
 Viewing the project we can now see additional properties, including the current active set and the parameters of this set.
@@ -141,12 +146,20 @@ When reporting and publishing results it is a good idea to produce posterior all
 Alongside the posterior allocation plot, we can plot the posterior COI of all samples. The example below uses the `ggplot2` package to add the true (simulated) COIs to the plot in the form of red crosses.
 
 ```{r, fig.height=5, fig.width=8}
+# plot posterior COIs
 posterior_m <- plot_m_quantiles(myproj, K = 3)
 
+# overlay true values
 library(ggplot2)
 posterior_m <- posterior_m + geom_point(aes(x = 1:100, y = mysim$true_m), col = "red", shape = 4)
 posterior_m
 ```
 
 Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We will address this issue, along with some other weaknesses of the model, in the [next tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html).
+
+```{r, echo=FALSE}
+# save output of this tutorial to inst/extdata folder
+#saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
+#saveRDS(myproj, file = "../inst/extdata/tutorial1_myproj.rds")
+```
 

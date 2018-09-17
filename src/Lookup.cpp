@@ -15,16 +15,13 @@ vector<double> Lookup::lookup_lgamma;
 // initialise homo/het lookup tables
 void Lookup::init_homohet(){
   
-  // no need for lookup if using zero precision
-  if (precision == 0) {
-    return;
-  }
-  
   // initialise tables
   lookup_homo = vector<vector<double>>(precision_size + 1, vector<double>(COI_max));
   lookup_het = vector<vector<double>>(precision_size + 1, vector<double>(COI_max));
   
   // populate tables
+  int index = 0;
+  double tmp = 0;
   for (int i=0; i<(precision_size + 1); i++) {
     
     // this allele frequency
@@ -39,20 +36,22 @@ void Lookup::init_homohet(){
       if (!estimate_error) {
         
         // homo lookup
-        lookup_homo[i][m] = log( (1.0-e1)*((double)pow(p,m+1)) + 0.5*e2*(1.0-(double)pow(p,m+1)-(double)pow(1.0-p,m+1)) );
-        lookup_homo[i][m] = (lookup_homo[i][m]<(-OVERFLO)) ? -OVERFLO : lookup_homo[i][m];
+        tmp = log( (1.0-e1)*((double)pow(p,m+1)) + 0.5*e2*(1.0-(double)pow(p,m+1)-(double)pow(1.0-p,m+1)) );
+        lookup_homo[i][m] = (tmp < (-OVERFLO)) ? -OVERFLO : tmp;
         
         // het lookup
-        lookup_het[i][m] = log( e1*((double)pow(p,m+1)) + e1*((double)pow(1.0-p,m+1)) + (1.0-e2)*(1.0-pow(p,m+1)-pow(1.0-p,m+1)) );
-        lookup_het[i][m] = (lookup_het[i][m]<(-OVERFLO)) ? -OVERFLO : lookup_het[i][m];
+        tmp = log( e1*((double)pow(p,m+1)) + e1*((double)pow(1.0-p,m+1)) + (1.0-e2)*(1.0-pow(p,m+1)-pow(1.0-p,m+1)) );
+        lookup_het[i][m] = (tmp < (-OVERFLO)) ? -OVERFLO : tmp;
         
       } else {
+        
         // homo lookup
         lookup_homo[i][m] = (double)pow(p,m+1);
         
         // het lookup
         lookup_het[i][m] = (1.0-(double)pow(p,m+1)-(double)pow(1.0-p,m+1));
       }
+      index++;
     }
   }
   

@@ -46,10 +46,13 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/tutorial-biallelic.html">Tutorial: bi-allelic data</a>
+      <a href="../articles/tutorial-biallelic.html">Tutorial 1: bi-allelic data</a>
     </li>
     <li>
-      <a href="../articles/tutorial-multiallelic.html">Tutorial: multi-allelic data</a>
+      <a href="../articles/complex-priors.html">Tutorial 2: more realistic priors</a>
+    </li>
+    <li>
+      <a href="../articles/tutorial-multiallelic.html">Tutorial 3: multi-allelic data</a>
     </li>
   </ul>
 </li>
@@ -85,7 +88,7 @@
       <h1>Tutorial: bi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-14</h4>
+            <h4 class="date">2018-09-17</h4>
       
       
       <div class="hidden name"><code>tutorial-biallelic.Rmd</code></div>
@@ -94,7 +97,15 @@
 
     
     
-<p>This vignette demonstrates the complete MALECOT analysis pipeline for <em>bi-allelic</em> data, i.e. data for which there are two alleles at every locus (the classic example being SNP data).</p>
+<p>This vignette demonstrates a very basic MALECOT analysis for <em>bi-allelic</em> data, i.e. data for which there are two alleles at every locus. It covers:</p>
+<ul>
+<li>simulating/loading data into R</li>
+<li>creating a project and binding data to the project</li>
+<li>defining a simple parameter set</li>
+<li>running the MCMC</li>
+<li>checking MCMC behaviour</li>
+<li>plotting results</li>
+</ul>
 <div id="simulate-some-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#simulate-some-data" class="anchor"></a>Simulate some data</h3>
@@ -164,7 +175,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <a href="#define-parameters-and-run-basic-mcmc" class="anchor"></a>Define parameters and run basic MCMC</h3>
 <p>We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and <code>COI_max</code> is equally likely <em>a priori</em>. We also assume zero error in genotype calls:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"uniform model"</span>, <span class="dt">COI_model =</span> <span class="st">"uniform"</span>, <span class="dt">COI_max =</span> <span class="dv">20</span>,
-                  <span class="dt">estimate_error =</span> <span class="ot">FALSE</span>, <span class="dt">e1 =</span> <span class="dv">0</span>, <span class="dt">e2 =</span> <span class="dv">0</span>)</code></pre></div>
+                  <span class="dt">estimate_error =</span> <span class="ot">FALSE</span>, <span class="dt">e1 =</span> <span class="fl">0.0</span>, <span class="dt">e2 =</span> <span class="fl">0.0</span>)</code></pre></div>
 <p>Viewing the project we can now see additional properties, including the current active set and the parameters of this set.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj</code></pre></div>
 <pre><code>## DATA:
@@ -192,63 +203,63 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 3000 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.22439 seconds
+##    completed in 1.28065 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 2400 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.26375 seconds
+##    completed in 2.14488 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 2000 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 4.09284 seconds
+##    completed in 2.58735 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 1600 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 5.04793 seconds
+##    completed in 3.06348 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 2000 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 5.82267 seconds
+##    completed in 3.38136 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 22.17 seconds</code></pre>
+<pre><code>## Total run-time: 14.16 seconds</code></pre>
 <p>If any values of K failed to converge then we can use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of K and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of K, but will leave all other values untouched:</p>
 </div>
 <div id="comparing-values-of-k" class="section level3">
@@ -277,128 +288,15 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <p>We can see that for <em>K</em>=3 (the most highly supported value of <em>K</em>) there is a clear split into three distinct subpopulations. The advantage of simulated data is that we can verify that this is the correct grouping by looking at <code>mysim$true_group</code>, although obviously this is not possible for real data.</p>
 <p>When reporting and publishing results it is a good idea to produce posterior allocation and COI plots for a range of values of <em>K</em> so that the reader has the option of visualising structure at multiple levels, and ideally this should also be backed up by a plot of the model evidence to give some idea of the model fit at each level. At this stage it is worth stressing the point made by many previous authors - <strong>the model used by MALECOT and similar programs is just a cartoon of reality, and there is no strict K in the real world</strong>. Instead, each K captures a different level of population structure, and while the evidence can help guide us towards values of <em>K</em> that fit the data well, it is just a guide and should be taken alongside other biological considerations.</p>
 <p>Alongside the posterior allocation plot, we can plot the posterior COI of all samples. The example below uses the <code>ggplot2</code> package to add the true (simulated) COIs to the plot in the form of red crosses.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot posterior COIs</span>
+posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
 
+<span class="co"># overlay true values</span>
 <span class="kw">library</span>(ggplot2)
 posterior_m &lt;-<span class="st"> </span>posterior_m +<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(<span class="dt">x =</span> <span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">y =</span> mysim$true_m), <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">shape =</span> <span class="dv">4</span>)
 posterior_m</code></pre></div>
 <p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
-<p>Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We can address this issue, along with some other weaknesses of the model, in another model run.</p>
-</div>
-<div id="more-realistic-priors" class="section level3">
-<h3 class="hasAnchor">
-<a href="#more-realistic-priors" class="anchor"></a>More realistic priors</h3>
-<p>In order for our posterior estimates to be accurate it is important that we use sensible priors. As well as the uniform prior on COI there are two other options implemented in MALECOT - the Poisson distribution (<code>COI_mean = "poisson"</code>) and the negative binomial distribution (<code>COI_mean = "nb"</code>). The Poisson distribution assumes that values are clustered around a mean value, and the negative binomial distribution can be thought of as an over-dispersed Poisson distribution, i.e. it allows for a greater spread of values around the mean.</p>
-<p>The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter <code>COI_dispersion = 2</code> to set the level of over-dispersion compared to the Poisson distribution - in this example the prior variance will be twice that of the Poisson distribution. The argument <code>COI_mean = TRUE</code> tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value. Note that values will still be truncated at <code>COI_max</code>.</p>
-<p>In some cases we may want to specify the COI of certain samples manually. This can be accommodated using the <code>COI_manual</code> argument, which takes a vector of length equal to the number of samples, with values of -1 indicating that the COI should be estimated, and positive values indicate that the COI should be fixed at this value. In this example we will assume that we know the COI of sample 100 to be 5.</p>
-<p>Finally, we do not always want to assume that we have zero error in our data. Often true homozygotes will be called as heterozygotes (error 1), and true heterozygotes will be called as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments <code>e1</code> and <code>e2</code>. Alternatively, these error probabilities can be estimated by setting <code>estimate_error = TRUE</code>, in which case a uniform prior is assumed ranging from 0 to <code>e1_max</code> for <code>e1</code>, and 0 to <code>e2_max</code> for <code>e2</code>. It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code>, for example values of 1 are usually inappropriate as we do not expect all of our data to be mistakes.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># define some COIs manually</span>
-known_COI &lt;-<span class="st"> </span><span class="kw">rep</span>(-<span class="dv">1</span>,<span class="dv">100</span>)
-known_COI[<span class="dv">100</span>] &lt;-<span class="st"> </span><span class="dv">5</span>
-
-<span class="co"># create new parameter set</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"nb model"</span>, <span class="dt">COI_model =</span> <span class="st">"nb"</span>, <span class="dt">COI_max =</span> <span class="dv">20</span>,
-                  <span class="dt">COI_manual =</span> known_COI, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>, <span class="dt">COI_dispersion =</span> <span class="dv">2</span>,
-                  <span class="dt">estimate_error =</span> <span class="ot">TRUE</span>, <span class="dt">e1_max =</span> <span class="fl">0.1</span>, <span class="dt">e2_max =</span> <span class="fl">0.1</span>)
-myproj</code></pre></div>
-<pre><code>## DATA:
-##    data format = biallelic
-##    samples = 100
-##    loci = 24
-##    pops = 3
-##    missing data = 0 of 2400 gene copies (0%)
-## 
-## PARAMETER SETS:
-##    SET1: uniform model
-##  * SET2: nb model
-## 
-## ACTIVE SET: SET2
-##    lambda = 1
-##    COI model = nb
-##    COI max = 20
-##    COI specified manually for 1 samples
-##    estimate COI mean = TRUE
-##    COI dispersion = 2
-##    estimate error = TRUE
-##    e1_max = 0.1
-##    e2_max = 0.1</code></pre>
-<p>As before, we run the MCMC using the <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> command.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>, <span class="dt">samples =</span> <span class="fl">1e3</span>,
-                   <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Running MCMC for K = 1
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 400 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 4.01352 seconds
-## 
-## Running MCMC for K = 2
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 8000 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 13.3848 seconds
-## 
-## Running MCMC for K = 3
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 6100 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 24.8529 seconds
-## 
-## Running MCMC for K = 4
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 7800 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 24.9145 seconds
-## 
-## Running MCMC for K = 5
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 6800 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 25.1451 seconds
-## 
-## Processing results</code></pre>
-<pre><code>## Total run-time: 1.57 minutes</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
-<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-17-2.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>:<span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-17-3.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
-
-<span class="kw">library</span>(ggplot2)
-posterior_m &lt;-<span class="st"> </span>posterior_m +<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(<span class="dt">x =</span> <span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">y =</span> mysim$true_m), <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">shape =</span> <span class="dv">4</span>)
-posterior_m</code></pre></div>
-<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-17-4.png" width="700"></p>
+<p>Comparing the posterior 95% credible intervals (black) with the true COIs (red), we can see that the model has done well in some cases and poorly in others. COI estimates are most precise when the COI is very low (1 or 2), but are highly imprecise when COI is large. The model has also picked up the general trend in the simulated data, with the mean COI being lowest in the first subpopulation and highest in the last, but unfortunately it has systematically overestimated the COI as a whole. This is down to our choice of uniform prior on COI, which gave equal weight to any COI from 1 to 20. In fact, the simulated data are drawn from a more realistic Poisson distribution, in which COIs tend to be clustered around a central, and so the uniform prior gives too much flexibility in this example. We will address this issue, along with some other weaknesses of the model, in the <a href="https://bobverity.github.io/MALECOT/articles/complex-priors.html">next tutorial</a>.</p>
 </div>
   </div>
 

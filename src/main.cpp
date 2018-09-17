@@ -31,7 +31,9 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   
   // define look-up tables
   Lookup lookup;
-  lookup.init_homohet();
+  if (parameters.precision != 0) {
+    lookup.init_homohet();
+  }
   
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();

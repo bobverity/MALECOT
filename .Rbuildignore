@@ -1,3 +1,4 @@
+^index.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ignore/

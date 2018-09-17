@@ -4,12 +4,11 @@
 #include <Rcpp.h>
 #include "Data.h"
 #include "Lookup.h"
-#include "Data_counts.h"
 
 //------------------------------------------------
 // class defining particle for biallelic case
 class Particle_biallelic : public Data_biallelic, public Lookup {
-
+  
 public:
   // PUBLIC OBJECTS
   
@@ -17,18 +16,16 @@ public:
   // power GTI_pow
   double beta_raised;
   
-  // store of data frequencies
-  Data_counts data_counts;
-  
   // proposal standard deviations
   double e_propSD;
   std::vector< std::vector<double> > p_propSD;
+  std::vector<double> m_prop_mean;
+  std::vector<double> COI_mean_propSD;
   
   // COI objects
   std::vector<double> COI_mean_vec;
   std::vector<double> COI_mean_shape;
   std::vector<double> COI_mean_rate;
-  std::vector<double> COI_mean_propSD;
   
   // grouping
   std::vector<int> group;
@@ -50,7 +47,7 @@ public:
   // probability vectors and matrices used when updating draws
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
-  double p_prop;
+  std::vector<std::vector<double>> p_prop;
   std::vector<double> COI_mean_prop;
   
   // initialise ordering of labels
@@ -83,7 +80,7 @@ public:
   void reset();
   double get_lambda(int i, int j);
   void update_p(bool robbins_monro_on, int iteration);
-  void update_m();
+  void update_m(bool robbins_monro_on, int iteration);
   void update_group();
   void update_e(bool robbins_monro_on, int iteration);
   void update_COI_mean(bool robbins_monro_on, int iteration);
@@ -93,6 +90,6 @@ public:
   double logprob_genotype(int S, double p, int m, double e1, double e2);
   double logprob_genotype_exact(int S, double p, int m, double e1, double e2);
   double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_lookup_varE(int S, double p, int m, double e1, double e2);
+  double logprob_genotype_lookup_error(int S, double p, int m, double e1, double e2);
   
 };

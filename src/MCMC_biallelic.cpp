@@ -102,7 +102,7 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
       }
       
       // update m
-      particle_vec[rung].update_m();
+      particle_vec[rung].update_m(true, rep+1);
       
       // update COI_means
       if (COI_model == 2 || COI_model == 3) {
@@ -215,7 +215,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   // reset acceptance rates
   for (int r=0; r<rungs; r++) {
     particle_vec[r].p_accept = vector<vector<int>>(K, vector<int>(L));
-    particle_vec[r].e_accept = 0;
+    //particle_vec[r].e_accept = 0;
   }
   coupling_accept = vector<int>(rungs-1);
   
@@ -227,20 +227,20 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
       int rung = rung_order[r];
       
       // update p
-      particle_vec[rung].update_p(false, rep+1);
+      particle_vec[rung].update_p(false, 1);
       
       // update error estimates
       if (estimate_error) {
-        particle_vec[rung].update_e(false, rep+1);
+        particle_vec[rung].update_e(false, 1);
       }
       
       // update m
-      particle_vec[rung].update_m();
+      particle_vec[rung].update_m(false, 1);
       
       // update COI_means
       if (COI_model == 2 || COI_model == 3) {
         if (estimate_COI_mean) {
-          particle_vec[rung].update_COI_mean(false, rep+1);
+          particle_vec[rung].update_COI_mean(false, 1);
         }
       }
       

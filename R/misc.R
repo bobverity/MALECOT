@@ -11,7 +11,7 @@
 malecot_file <- function(name) {
   
   # load file from inst/extdata folder
-  name_full <- system.file("extdata/", name, package = 'malecot', mustWork = TRUE)
+  name_full <- system.file("extdata", name, package = 'MALECOT', mustWork = TRUE)
   ret <- readRDS(name_full)
   
   # return

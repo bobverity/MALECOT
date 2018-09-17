@@ -26,6 +26,12 @@ bool rbernoulli1(double p) {
 }
 
 //------------------------------------------------
+// draw from geometric(p) distribution with mean (1-p)/p
+int rgeom1(double p) {
+  return R::rgeom(p);
+}
+
+//------------------------------------------------
 // draw from univariate normal distribution
 double rnorm1(double mean, double sd) {
   return R::rnorm(mean, sd);
