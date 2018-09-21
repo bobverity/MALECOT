@@ -28,31 +28,48 @@ value specifying the number of alleles at all loci}
 
 \item{lambda}{the shape parameter(s) of the prior on allele frequencies. This
 prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
-case. \code{lambda} can be a single scalar vaue or a list of length
-\code{L} containing vectors of length equal to the number of alleles at
-that locus. If a list then \code{lambda} specifies all shape parameters of
-the prior at each locus separately, if a scalar value then the same shape
-parameter is used over all loci and all alleles}
+case. \code{lambda} can be:
+\itemize{
+  \item{a single scalar value, in which case the same value is used for 
+  every allele and every locus (i.e. the prior is symmetric)}
+  \item{a vector of values, in which case the same vector is used for every
+  locus. Only works if the same number of alleles applies at every locus}
+  \item{a list of vectors specifying the shape parameter separately for
+  each allele of each locus. The list must of length \code{L}, and must
+  contain vectors of length equal to the number of alleles at that locus}
+}}
 
-\item{COI_model}{TODO}
+\item{COI_model}{the distribution from which COIs are drawn. Options include
+a uniform distribution (\code{"uniform"}), a Poisson distribution
+(\code{"poisson"}), or a negative binomial distribution (\code{"nb"})}
 
-\item{COI_max}{TODO}
+\item{COI_max}{the maximum allowed COI. Any COIs that are initially drawn
+larger than this value are set down to this value}
 
 \item{COI_manual}{option to override the MCMC and set the COI of one or more
 samples manually, in which case they are not updated. Vector of length
 \code{n} specifing the integer valued COI of each sample, with -1
-indicating that all samples should be estimated}
+indicating that a sample should be estimated}
 
-\item{COI_mean}{TODO}
+\item{COI_mean}{the mean of the distribution from which COIs are drawn. Only
+applies under the Poisson and negative binomial models (under the uniform
+model the mean is \code{(COI_max+1)/2} by definition)}
 
-\item{COI_dispersion}{must be > 1. Only used under the negative binomial
-model}
+\item{COI_dispersion}{Only used under the negative binomial model. Defines
+how much larger the variance is than the mean. Must be > 1, otherwise
+should opt for Poisson distribution where the mean and variance are the
+same}
 
-\item{e1}{TODO}
+\item{e1}{the probability of a true homozygote being incorrectly called as a
+heterozygote}
 
-\item{e2}{TODO}
+\item{e2}{the probability of a true heterozygote being incorrectly called as a
+homozygote}
 
-\item{prop_missing}{TODO}
+\item{prop_missing}{the proportion of the data that is missing. Note that
+data are masked out at random, meaning in some rare cases (and when the
+proportion of missing data is large) an entire sample or locus can end up
+being masked out, which will throw an error when loaded into a project}
 }
 \description{
 Simulate genetic data from the same model used in the MALECOT inference step.

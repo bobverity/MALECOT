@@ -2,7 +2,7 @@ Package: MALECOT
 Type: Package
 Title: Joint estimation of COI and population structure for malaria genetic data
 Version: 0.1.0
-Authors@R: person("Bob", "Verity", role = c("aut", "cre"), email = "r.verity@imperial.ac.uk.com")
+Authors@R: person("Bob", "Verity", role = c("aut", "cre"), email = "r.verity@imperial.ac.uk")
 Maintainer: Bob Verity <r.verity@imperial.ac.uk>
 Description: Carries out joint estimation of complexity of infection (COI) and
     population structure on malaria genetic data. Assumes a simple model in which

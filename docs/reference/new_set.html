@@ -148,16 +148,17 @@
     </tr>
     <tr>
       <th>lambda</th>
-      <td><p>shape parameter(s) governing the prior on allele frequencies. 
-This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-distribution for the multi-allelic case. In the b-allelic case, 
-<code>lambda</code> can be either a single scalar value, in which case the same 
-shape paremeter is applied to all loci and all alleles (i.e. a symmetric 
-Beta prior), or <code>lambda</code> can be a list of length <code>L</code> of vectors
-of length 2, allowing different shape parameters to be specified for each
-allele at each locus individually. In the multi-allelic case, <code>lambda</code>
-must be a single scalar value that applies to all loci and all alleles
-(i.e. a symmetric Dirichlet prior)</p></td>
+      <td><p>the shape parameter(s) of the prior on allele frequencies. This
+prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
+case. <code>lambda</code> can be:</p><ul>
+<li><p>a single scalar value, in which case the same value is used for 
+  every allele and every locus (i.e. the prior is symmetric)</p></li>
+<li><p>a vector of values, in which case the same vector is used for every
+  locus. Only works if the same number of alleles applies at every locus</p></li>
+<li><p>a list of vectors specifying the shape parameter separately for
+  each allele of each locus. The list must of length <code>L</code>, and must
+  contain vectors of length equal to the number of alleles at that locus</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>COI_model</th>

@@ -5,7 +5,7 @@
 \title{Bind multi-allelic format data to project}
 \usage{
 bind_data_multiallelic(project, df, pop = NULL, missing_data = -9,
-  name = NULL, check_delete_output = TRUE)
+  alleles = NULL, name = NULL, check_delete_output = TRUE)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
@@ -17,6 +17,11 @@ bind_data_multiallelic(project, df, pop = NULL, missing_data = -9,
 
 \item{missing_data}{what value represents missing data. Defaults to -9. Must
 be a positive or negative integer}
+
+\item{alleles}{the number of alleles at each locus. If scalar then the same 
+number of alleles is assumed at all loci. If NULL then the number of
+alleles is inferred directly from data as the maximum observed value per
+locus}
 
 \item{name}{optional name of the data set to aid in record keeping}
 

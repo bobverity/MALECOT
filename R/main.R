@@ -18,6 +18,18 @@
 NULL
 
 #------------------------------------------------
+#' @title Check that MALECOT package has loaded successfully
+#'
+#' @description Simple function to check that MALECOT package has loaded 
+#'   successfully. Prints "MALECOT loaded successfully!" if so.
+#'
+#' @export
+
+check_MALECOT_loaded <- function() {
+  message("MALECOT loaded successfully!")
+}
+
+#------------------------------------------------
 #' @title Bind bi-allelic data to project
 #'
 #' @description Bind data in bi-allelic format to MALECOT project. Data should
@@ -155,6 +167,10 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
 #' @param pop ostensible populations of the samples
 #' @param missing_data what value represents missing data. Defaults to -9. Must
 #'   be a positive or negative integer
+#' @param alleles the number of alleles at each locus. If scalar then the same 
+#'   number of alleles is assumed at all loci. If NULL then the number of
+#'   alleles is inferred directly from data as the maximum observed value per
+#'   locus
 #' @param name optional name of the data set to aid in record keeping
 #' @param check_delete_output whether to prompt the user before overwriting 
 #'   existing data
@@ -163,7 +179,7 @@ bind_data_biallelic <- function(project, df, ID_col = 1, pop_col = NULL, data_co
 #' @examples
 #' # TODO
 
-bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, name = NULL, check_delete_output = TRUE) {
+bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, alleles = NULL, name = NULL, check_delete_output = TRUE) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -172,6 +188,9 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
   assert_pos_int(pop)
   assert_length(pop,n)
   assert_single_int(missing_data)
+  if (!is.null(alleles)) {
+    assert_pos_int(alleles, zero_allowed = FALSE)
+  }
   if (!is.null(name)) {
     assert_single_string(name)
   }
@@ -190,7 +209,6 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
   }
   
   # check data format
-  assert_dataframe(df)
   assert_ncol(df, 3)
   assert_eq(names(df), c("sample_ID", "locus", "haplotype"))
   
@@ -206,21 +224,37 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
                         return(isTRUE(all.equal(unique(x), locus_names)))
                       }, split(df$locus, f = df$sample_ID))
   if (!all(good_loci)) {
-    stop(sprintf("all samples must contain loci in the range 1:%s", L))
+    stop(sprintf("all samples must contain loci in the same range, i.e. 1:%s", L))
+  }
+  
+  # expand alleles to vector if specified as scalar
+  if (!is.null(alleles)) {
+    if (length(alleles) == 1) {
+      alleles <- rep(alleles, L)
+    }
   }
   
   # check haplotype column
-  if (any(df$haplotype <= 0 && df$haplotype != missing_data)) {
-    stop("for the multi-allelic format haplotypes must be coded as positive integers (or as missing data)")
+  if (any(df$haplotype <= 0 & df$haplotype != missing_data)) {
+    stop("for the multi-allelic format haplotypes must be coded as positive integers or as missing data")
   }
-  alleles <- mapply(function(x) {
-                      length(unique(x[!is.na(x)]))
-                    }, split(df$haplotype, f = df$locus))
-  if (any(alleles == 1)) {
+  observed_n_alleles <- mapply(function(x) {
+                                  length(unique(x[!is.na(x)]))
+                                }, split(df$haplotype, f = df$locus))
+  if (any(observed_n_alleles == 1)) {
     stop("data cannot contain invariant loci (i.e. loci for which the same single haplotype is observed in every sample)")
   }
-  if (all(alleles == 2)) {
+  if (all(observed_n_alleles == 2)) {
     message("Note: data contains two alleles at every locus. Consider reformatting in bi-allelic format to speed up MCMC")
+  }
+  observed_max_alleles <- mapply(function(x) {
+                                    max(x[!is.na(x)])
+                                  }, split(df$haplotype, f = df$locus))
+  if (is.null(alleles)) {
+    alleles <- observed_max_alleles
+  }
+  if (any(observed_max_alleles > alleles)) {
+    stop("observed number of alleles exceeds 'alleles' argument at some loci")
   }
   
   # process genetic data. Re-factor loci as increasing integers, and haplotypes
@@ -270,16 +304,18 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
 #' @param name the name of the parameter set
-#' @param lambda shape parameter(s) governing the prior on allele frequencies. 
-#'   This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-#'   distribution for the multi-allelic case. In the b-allelic case, 
-#'   \code{lambda} can be either a single scalar value, in which case the same 
-#'   shape paremeter is applied to all loci and all alleles (i.e. a symmetric 
-#'   Beta prior), or \code{lambda} can be a list of length \code{L} of vectors
-#'   of length 2, allowing different shape parameters to be specified for each
-#'   allele at each locus individually. In the multi-allelic case, \code{lambda}
-#'   must be a single scalar value that applies to all loci and all alleles
-#'   (i.e. a symmetric Dirichlet prior)
+#' @param lambda the shape parameter(s) of the prior on allele frequencies. This
+#'   prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
+#'   case. \code{lambda} can be:
+#'   \itemize{
+#'     \item{a single scalar value, in which case the same value is used for 
+#'     every allele and every locus (i.e. the prior is symmetric)}
+#'     \item{a vector of values, in which case the same vector is used for every
+#'     locus. Only works if the same number of alleles applies at every locus}
+#'     \item{a list of vectors specifying the shape parameter separately for
+#'     each allele of each locus. The list must of length \code{L}, and must
+#'     contain vectors of length equal to the number of alleles at that locus}
+#'   }
 #' @param COI_model the type of prior on COI. Must be one of "uniform",
 #'   "poisson", or "nb" (negative binomial)
 #' @param COI_max the maximum COI allowed for any given sample
@@ -290,13 +326,16 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #'   meaning all COIs will be esimated
 #' @param estimate_COI_mean whether the mean COI should be estimated for each 
 #'   subpopulation as part of the MCMC, otherwise the value \code{COI_mean} is 
-#'   used for all subpopulations. Defaults to \code{TRUE}. Note that mean COI
-#'   estimation is only possible under the "poisson" and "nb" models (see
-#'   \code{COI_model})
+#'   used for all subpopulations. Defaults to \code{TRUE}. Note that mean COI 
+#'   estimation is only possible under the Poisson and negative binomial models
+#'   (see \code{COI_model})
 #' @param COI_mean single scalar value specifying the mean COI for all
 #'   subpopulations (see \code{estimate_COI_mean} above)
-#' @param COI_dispersion  must be > 1
-#' @param estimate_error TODO
+#' @param COI_dispersion  the ratio of the variance to the mean of the prior on
+#'   COI. Only applies under the negative binomial model. Must be >1, as a ratio
+#'   of 1 can be achieved by using the Poisson distribution
+#' @param estimate_error whether to estimate error probabilities \code{e1} and
+#'   \code{e2}
 #' @param e1 the probability of a true homozygote being incorrectly called as a
 #'   heterozygote
 #' @param e2 the probability of a true heterozygote being incorrectly called as a
@@ -308,7 +347,7 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, n
 #' @examples
 #' # TODO
 
-new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_manual = NULL, estimate_COI_mean = TRUE, COI_mean = 3, COI_dispersion = 2, estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2, e2_max = 0.2) {
+new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_manual = NULL, estimate_COI_mean = TRUE, COI_mean = 3.0, COI_dispersion = 2.0, estimate_error = FALSE, e1 = 0.0, e2 = 0.0, e1_max = 0.2, e2_max = 0.2) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -316,12 +355,29 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
   L <- project$data_processed$L
   data_format <- project$data_processed$data_format
   assert_single_string(name)
+  
+  assert_pos(unlist(lambda), zero_allowed = FALSE)
+  if (is.list(lambda)) {
+    assert_length(lambda, L)
+    lambda_nalleles <- mapply(length, lambda)
+    if (!all(lambda_nalleles == alleles)) {
+      stop("when lambda is a list it must contain one entry per allele at every locus")
+    }
+  } else {
+    if (length(lambda) > 1) {
+      if (!all(alleles == length(lambda))) {
+        stop("when lambda is a vector its length must equal the number of alleles at every locus")
+      }
+    }
+  }
+  
   if (is.list(lambda)) {
     assert_length(lambda,L)
     assert_pos(unlist(lambda), zero_allowed = FALSE)
   } else {
     assert_single_pos(lambda, zero_allowed = FALSE)
   }
+  
   assert_single_string(COI_model)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   assert_single_pos_int(COI_max, zero_allowed = FALSE)
@@ -334,7 +390,7 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
   if (estimate_COI_mean) {
     if (COI_model != "uniform") {
       assert_single_pos(COI_mean)
-      assert_bounded(COI_mean, left = 1, right = COI_max, inclusive_left = TRUE, inclusive_right = TRUE)
+      assert_gr(COI_mean, 1)
       if (COI_model == "nb") {
         assert_single_pos(COI_dispersion)
         assert_gr(COI_dispersion, 1)
@@ -661,9 +717,9 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
     loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
     
-    # get full m trace in coda::mcmc format
-    full_m <- mcmc(rcpp_to_mat(output_raw[[i]]$m_store))
-    colnames(full_m) <- sample_names
+    # get full COI trace in coda::mcmc format
+    full_COI <- mcmc(rcpp_to_mat(output_raw[[i]]$m_store))
+    colnames(full_COI) <- sample_names
     
     # get full p trace in coda::mcmc format
     full_p <- list()
@@ -695,47 +751,47 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     
     # ---------- summary results ----------
     
-    # get quantiles over sampling loglikelihoods
-    loglike_quantiles <- t(apply(loglike_sampling, 2, quantile_95))
-    rownames(loglike_quantiles) <- rung_names
-    class(loglike_quantiles) <- "malecot_loglike_quantiles"
+    # get 95% credible intervals over sampling loglikelihoods
+    loglike_intervals <- t(apply(loglike_sampling, 2, quantile_95))
+    rownames(loglike_intervals) <- rung_names
+    class(loglike_intervals) <- "malecot_loglike_intervals"
     
-    # get quantiles over m
-    m_quantiles <- t(apply(full_m, 2, quantile_95))
-    class(m_quantiles) <- "malecot_m_quantiles"
+    # get 95% credible intervals over COI
+    COI_intervals <- t(apply(full_COI, 2, quantile_95))
+    class(COI_intervals) <- "malecot_COI_intervals"
     
-    # get quantiles over p
-    p_quantiles <- list()
+    # get 95% credible intervals over p
+    p_intervals <- list()
     for (k in 1:K[i]) {
-      p_quantiles[[k]] <- list()
+      p_intervals[[k]] <- list()
       for (j in 1:L) {
-        p_quantiles[[k]][[j]] <- t(apply(full_p[[k]][[j]], 2, quantile_95))
+        p_intervals[[k]][[j]] <- t(apply(full_p[[k]][[j]], 2, quantile_95))
       }
-      names(p_quantiles[[k]]) <- locus_names
-      class(p_quantiles[[k]]) <- "malecot_p_quantiles"
+      names(p_intervals[[k]]) <- locus_names
+      class(p_intervals[[k]]) <- "malecot_p_intervals"
     }
-    names(p_quantiles) <- deme_names
+    names(p_intervals) <- deme_names
     
-    # get quantiles over COI_mean
+    # get 95% credible intervals over COI_mean
     if (is.null(full_COI_mean)) {
       fake_COI_mean <- matrix((args_model$COI_max + 1)/2, ncol = K[i])
       colnames(fake_COI_mean) <- deme_names
-      COI_mean_quantiles <- t(apply(fake_COI_mean, 2, quantile_95))
+      COI_mean_intervals <- t(apply(fake_COI_mean, 2, quantile_95))
     } else {
-      COI_mean_quantiles <- t(apply(full_COI_mean, 2, quantile_95))
+      COI_mean_intervals <- t(apply(full_COI_mean, 2, quantile_95))
     }
-    class(COI_mean_quantiles) <- "malecot_COI_mean_quantiles"
+    class(COI_mean_intervals) <- "malecot_COI_mean_intervals"
     
-    # get quantiles over e1 and e2
-    e_quantiles <- NULL
+    # get 95% credible intervals over e1 and e2
+    e_intervals <- NULL
     if (data_format == "biallelic") {
       if (args_model$estimate_error) {
-        e_quantiles <- rbind(quantile_95(full_e1), quantile_95(full_e2))
+        e_intervals <- rbind(quantile_95(full_e1), quantile_95(full_e2))
       } else {
-        e_quantiles <- rbind(quantile_95(args_model$e1), quantile_95(args_model$e2))
+        e_intervals <- rbind(quantile_95(args_model$e1), quantile_95(args_model$e2))
       }
-      rownames(e_quantiles) <- c("e1", "e2")
-      class(e_quantiles) <- "malecot_e_quantiles"
+      rownames(e_intervals) <- c("e1", "e2")
+      class(e_intervals) <- "malecot_e_intervals"
     }
     
     # process Q-matrix
@@ -793,9 +849,6 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     p_accept <- rcpp_to_mat(output_raw[[i]]$p_accept)/samples
     e_accept <- output_raw[[i]]$e_accept/samples
     coupling_accept <- output_raw[[i]]$coupling_accept/samples
-    scaf_trials <- output_raw[[i]]$scaf_trials/samples
-    scaf_accept <- output_raw[[i]]$scaf_accept/samples
-    split_merge_accept <- output_raw[[i]]$split_merge_accept/samples
     
     # ---------- save arguments ----------
     
@@ -816,18 +869,18 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     project$output$single_set[[s]]$single_K[[K[i]]] <- list()
     
     project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(qmatrix = qmatrix,
-                                                                    loglike_quantiles = loglike_quantiles,
-                                                                    m_quantiles = m_quantiles,
-                                                                    p_quantiles = p_quantiles,
-                                                                    e_quantiles = e_quantiles,
-                                                                    COI_mean_quantiles = COI_mean_quantiles,
+                                                                    loglike_intervals = loglike_intervals,
+                                                                    COI_intervals = COI_intervals,
+                                                                    p_intervals = p_intervals,
+                                                                    e_intervals = e_intervals,
+                                                                    COI_mean_intervals = COI_mean_intervals,
                                                                     ESS = ESS,
                                                                     GTI_path = GTI_path,
                                                                     GTI_logevidence = GTI_logevidence)
     
     project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
                                                                 loglike_sampling = loglike_sampling,
-                                                                m = full_m,
+                                                                COI = full_COI,
                                                                 p = full_p,
                                                                 e1 = full_e1,
                                                                 e2 = full_e2,
@@ -1082,9 +1135,9 @@ align_qmatrix <- function(proj) {
     names(p_raw) <- deme_names
     proj$output$single_set[[s]]$single_K[[i]]$raw$p <- p_raw
     
-    p_quantiles <- x[[i]]$summary$p_quantiles[best_perm_order]
-    names(p_quantiles) <- deme_names
-    proj$output$single_set[[s]]$single_K[[i]]$summary$p_quantiles <- p_quantiles
+    p_intervals <- x[[i]]$summary$p_intervals[best_perm_order]
+    names(p_intervals) <- deme_names
+    proj$output$single_set[[s]]$single_K[[i]]$summary$p_intervals <- p_intervals
     
     COI_mean_raw <- x[[i]]$raw$COI_mean
     if (!is.null(COI_mean_raw)) {

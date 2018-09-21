@@ -15,16 +15,18 @@ new_set(project, name = "(no name)", lambda = 1, COI_model = "poisson",
 
 \item{name}{the name of the parameter set}
 
-\item{lambda}{shape parameter(s) governing the prior on allele frequencies. 
-This prior is a Beta distribution for the bi-allelic case or a Dirichlet 
-distribution for the multi-allelic case. In the b-allelic case, 
-\code{lambda} can be either a single scalar value, in which case the same 
-shape paremeter is applied to all loci and all alleles (i.e. a symmetric 
-Beta prior), or \code{lambda} can be a list of length \code{L} of vectors
-of length 2, allowing different shape parameters to be specified for each
-allele at each locus individually. In the multi-allelic case, \code{lambda}
-must be a single scalar value that applies to all loci and all alleles
-(i.e. a symmetric Dirichlet prior)}
+\item{lambda}{the shape parameter(s) of the prior on allele frequencies. This
+prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
+case. \code{lambda} can be:
+\itemize{
+  \item{a single scalar value, in which case the same value is used for 
+  every allele and every locus (i.e. the prior is symmetric)}
+  \item{a vector of values, in which case the same vector is used for every
+  locus. Only works if the same number of alleles applies at every locus}
+  \item{a list of vectors specifying the shape parameter separately for
+  each allele of each locus. The list must of length \code{L}, and must
+  contain vectors of length equal to the number of alleles at that locus}
+}}
 
 \item{COI_model}{the type of prior on COI. Must be one of "uniform",
 "poisson", or "nb" (negative binomial)}
@@ -39,16 +41,19 @@ meaning all COIs will be esimated}
 
 \item{estimate_COI_mean}{whether the mean COI should be estimated for each 
 subpopulation as part of the MCMC, otherwise the value \code{COI_mean} is 
-used for all subpopulations. Defaults to \code{TRUE}. Note that mean COI
-estimation is only possible under the "poisson" and "nb" models (see
-\code{COI_model})}
+used for all subpopulations. Defaults to \code{TRUE}. Note that mean COI 
+estimation is only possible under the Poisson and negative binomial models
+(see \code{COI_model})}
 
 \item{COI_mean}{single scalar value specifying the mean COI for all
 subpopulations (see \code{estimate_COI_mean} above)}
 
-\item{COI_dispersion}{must be > 1}
+\item{COI_dispersion}{the ratio of the variance to the mean of the prior on
+COI. Only applies under the negative binomial model. Must be >1, as a ratio
+of 1 can be achieved by using the Poisson distribution}
 
-\item{estimate_error}{TODO}
+\item{estimate_error}{whether to estimate error probabilities \code{e1} and
+\code{e2}}
 
 \item{e1}{the probability of a true homozygote being incorrectly called as a
 heterozygote}

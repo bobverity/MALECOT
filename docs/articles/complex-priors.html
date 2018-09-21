@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutorial 2: more realistic data and priors • MALECOT</title>
+<title>Tutorial 2: more realistic models • MALECOT</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 2: more realistic data and priors">
+<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 2: more realistic models">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -88,10 +88,10 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Tutorial 2: more realistic data and priors</h1>
+      <h1>Tutorial 2: more realistic models</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-17</h4>
+            <h4 class="date">2018-09-21</h4>
       
       
       <div class="hidden name"><code>complex-priors.Rmd</code></div>
@@ -101,30 +101,29 @@
     
     
 <p>This vignette demonstrates the use of more complex priors, which can add realism to the model but also tend to slow down the MCMC. It covers:</p>
-<ul>
+<ol style="list-style-type: decimal">
 <li>different types of prior on COI</li>
 <li>more realistic priors on allele frequencies</li>
-<li>dealing with missing data and errors</li>
-</ul>
-<p>This vignette follows on from the previous tutorial - or you can pick up here by running these lines:</p>
+<li>dealing with missing data and estimating error rates</li>
+</ol>
+<p>This vignette follows on from the previous tutorial - or you can pick up here by running these lines of code:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load output of previous tutorial</span>
 mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial1_mysim.rds"</span>)
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial1_myproj.rds"</span>)</code></pre></div>
 <div id="more-complex-priors-on-coi" class="section level3">
 <h3 class="hasAnchor">
 <a href="#more-complex-priors-on-coi" class="anchor"></a>More complex priors on COI</h3>
-<p>The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIS and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distribution</a> and the <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution">negative binomial distribution</a>.</p>
-<p>The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed Poisson distribution (i.e. it allows for a greater spread of values around the mean). It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected and some only lightly infected. Note that whaterver prior we choose, COIs will still be truncated at <code>COI_max</code>.</p>
-<p>The simulated data were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have this luxury, and so here we will use a negative binomial prior. We can use the parameter <code>COI_dispersion</code> to set the level of over-dispersion compared to the Poisson distribution - for example, a value of 2 means the prior variance will be twice that of the Poisson distribution. The argument <code>COI_mean = TRUE</code> tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value.</p>
-<p>In some cases we may want to specify the COI of certain samples manually - for example if we have used other programs to estimate the COI using different methods. This can be accommodated using the <code>COI_manual</code> argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.</p>
+<p>The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIs and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distribution</a> and the <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution">negative binomial distribution</a>.</p>
+<p>The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed form of Poisson distribution, i.e. it allows for a greater spread of values around the mean. It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected while some are only lightly infected. Note that whatever prior we choose, COIs will still be truncated at <code>COI_max</code>.</p>
+<p>The simulated data in the previous tutorial were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have the luxury of knowing the true COI distribution, and so here we will use a negative binomial prior. We can use the parameter <code>COI_dispersion</code> to set the level of over-dispersion compared to the Poisson distribution - for example, a value of 2 means the prior variance will be twice that of the Poisson distribution. The argument <code>COI_mean = TRUE</code> tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value.</p>
+<p>In some cases we may want to specify the COI of certain samples manually - for example if we have already used other programs to estimate the COI and we want to insert these results. This can be accommodated using the <code>COI_manual</code> argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># define some COIs manually</span>
 known_COI &lt;-<span class="st"> </span><span class="kw">rep</span>(-<span class="dv">1</span>,<span class="dv">100</span>)
 known_COI[<span class="dv">91</span>:<span class="dv">100</span>] &lt;-<span class="st"> </span>mysim$true_m[<span class="dv">91</span>:<span class="dv">100</span>]
 
 <span class="co"># create new parameter set</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"nb model"</span>, <span class="dt">COI_model =</span> <span class="st">"nb"</span>, <span class="dt">COI_max =</span> <span class="dv">20</span>,
-                  <span class="dt">COI_manual =</span> known_COI, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>, <span class="dt">COI_dispersion =</span> <span class="dv">2</span>,
-                  <span class="dt">estimate_error =</span> <span class="ot">FALSE</span>, <span class="dt">e1 =</span> <span class="fl">0.0</span>, <span class="dt">e2 =</span> <span class="fl">0.0</span>)
+                  <span class="dt">COI_manual =</span> known_COI, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>, <span class="dt">COI_dispersion =</span> <span class="dv">2</span>)
 myproj</code></pre></div>
 <pre><code>## DATA:
 ##    data format = biallelic
@@ -147,9 +146,9 @@ myproj</code></pre></div>
 ##    estimate error = FALSE
 ##    e1 = 0
 ##    e2 = 0</code></pre>
-<p>As before, we run the MCMC using the <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> command:</p>
+<p>As before, we run the MCMC using the <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> command. We will keep things simple here by only running for <em>K</em> = 3:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
-                   <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+                   <span class="dt">samples =</span> <span class="fl">1e4</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 3
 ## Burn-in phase
 ## 
@@ -160,38 +159,47 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.364835 seconds
+##    completed in 3.25608 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 0.87 seconds</code></pre>
-<p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at GTI paths, trace plots, and any other useful diagnostics. Assuming everything looks OK, we can go ahead and produce the structure and posterior COI plots:</p>
+<pre><code>## Total run-time: 3.94 seconds</code></pre>
+<p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
-<span class="kw"><a href="../reference/plot_qmatrix.html">plot_qmatrix</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<p><img src="complex-priors_files/figure-html/unnamed-chunk-5-1.png" width="768"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot posterior COIs</span>
-posterior_m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_m_quantiles.html">plot_m_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
-
-<span class="co"># overlay true values</span>
-<span class="kw">library</span>(ggplot2)
-posterior_m &lt;-<span class="st"> </span>posterior_m +<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(<span class="dt">x =</span> <span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">y =</span> mysim$true_m), <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">shape =</span> <span class="dv">4</span>)
-posterior_m</code></pre></div>
+<span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-6-1.png" width="768"></p>
-<p>Notice that the 95% credible intervals in this plot are tighter than in the previous tutorial. This is because our prior now assumes that COIs are clustered around a mean value for each subpopulation. Notice also that the final 10 samples have their COI fixed at the correct value, as specified by the <code>COI_manual</code> argument.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load ggplot2 package</span>
+<span class="kw">library</span>(ggplot2)
+
+<span class="co"># produce plot of posterior COIs</span>
+posterior_COI &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_COI.html">plot_COI</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)
+
+<span class="co"># overlay true COI values</span>
+posterior_COI &lt;-<span class="st"> </span>posterior_COI +<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/geom_point">geom_point</a></span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/ggplot2/topics/aes">aes</a></span>(<span class="dt">x =</span> <span class="dv">1</span>:<span class="dv">100</span>, <span class="dt">y =</span> mysim$true_m), <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">shape =</span> <span class="dv">4</span>)
+posterior_COI</code></pre></div>
+<p><img src="complex-priors_files/figure-html/unnamed-chunk-7-1.png" width="768"></p>
+<p>Notice that the 95% credible intervals in this plot are tighter than the equivalent plot of the previous tutorial. This is because our prior now assumes that COIs are clustered around a mean value, and so extreme high values become unlikely. Notice also that the final ten samples have their COI fixed at the correct value.</p>
 <p>Next we can look at the estimated mean COI for each of the subpopulations:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_COI_mean_quantiles.html">plot_COI_mean_quantiles</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="complex-priors_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
-<p>Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, although in a different order. We can understand the ordering issue by looking at the structure plot above. In the structure plot, groupings read from left to right go 2, then 3, then 1; the reason being that MALECOT chooses groupings to make outputs as similar as possible over different values of <em>K</em>. If we read the mean COI estimates in this order (2,3,1) we can see that the model has indeed estimated the correct values.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_COI_mean.html">plot_COI_mean</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<p><img src="complex-priors_files/figure-html/unnamed-chunk-8-1.png" width="480"></p>
+<p>Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, but in the wrong order. The seemingly incorrect order of these estimates goes back to the issue of labelling subpopulations mentioned in the previous tutorial. When lined up against the three groups in the structure plot above (which go group3 then group2 then group1) we can see that mean COI estimates do in fact go from lowest on the left to highest on the right.</p>
 </div>
 <div id="more-realistic-priors-on-allele-frequencies" class="section level3">
 <h3 class="hasAnchor">
 <a href="#more-realistic-priors-on-allele-frequencies" class="anchor"></a>More realistic priors on allele frequencies</h3>
-<p>(TODO)</p>
+<p>The distribution of allele frequencies can be an important factor in determining how much signal there is in the data. If allele frequencies have a narrow range then even subpopulations that are evolutionarily well separated might look similar, and so it becomes difficult to detect population structure. Similarly, if our model expects subpopulations to have very different allele frequencies then it might ignore more subtle differences, tending instead to lump subpopulations together.</p>
+<p>MALECOT assumes a <a href="https://en.wikipedia.org/wiki/Beta_distribution">beta prior</a> on allele frequencies with shape parameter <code>lambda</code>. We have three options when specifying <code>lambda</code>:</p>
+<ol style="list-style-type: decimal">
+<li><p><code>lambda</code> can be a single value. In this case the same shape parameter is assumed for all alleles, making the prior symmetric. The same prior is applied to all loci.</p></li>
+<li><p><code>lambda</code> can be a vector of shape parameters - one for each allele. In this case the prior will usually be asymmetric and skewed in favour of one allele. The same prior is still applied over all loci, meaning <em>this option can only be used if there are the same number of alleles at every locus</em> (for bi-allelic data this will always be true).</p></li>
+<li><p><code>lambda</code> can be a list with as many elements as there are loci, and each element consisting of a vector with as many elements as there are alleles at that locus. This makes it possible to specify a different prior at every locus.</p></li>
+</ol>
+<p>By default <code>lambda</code> is defined using the first method with a value of 1, which places equal weight on every allele frequency between 0 and 1 at every locus. Here we will instead use the second method to place a skewed prior on allele frequencies.</p>
 </div>
 <div id="missing-data-and-errors" class="section level3">
 <h3 class="hasAnchor">
 <a href="#missing-data-and-errors" class="anchor"></a>Missing data and errors</h3>
-<p>We do not always want to assume that we have zero error in our data. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments <code>e1</code> and <code>e2</code>. We can either use fixed values, or these error probabilities can be estimated by setting <code>estimate_error = TRUE</code>, in which case a uniform prior is assumed ranging from 0 to <code>e1_max</code> for <code>e1</code>, and 0 to <code>e2_max</code> for <code>e2</code>. It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code> (for example values of <code>1.0</code> are usually inappropriate as we do not expect all of our data to be mistakes).</p>
-<p>Let us simulate some data with errors to test the model in a more challenging setting. We will assume that artificial heterozygotes occur with probability 0.1, and artificial homozygotes with probability 0.05. We will also assume that 20% of the data is missing, and hence encoded as <code>-9</code>.</p>
+<p>Real data is rarely without errors. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in the model using the arguments <code>e1</code> and <code>e2</code>. We can either use fixed values, or these error probabilities can be estimated by setting <code>estimate_error = TRUE</code>, in which case a uniform prior is assumed ranging from 0 to <code>e1_max</code> for <code>e1</code>, and 0 to <code>e2_max</code> for <code>e2</code>.</p>
+<p>Let us simulate some new data containing errors to test the model in a more challenging setting. We will assume that artificial heterozygotes occur with probability 0.1, and artificial homozygotes with probability 0.05. We will also assume that 20% of the data is missing, and hence encoded as <code>-9</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">e1 =</span> <span class="fl">0.1</span>, <span class="dt">e2 =</span> <span class="fl">0.05</span>, <span class="dt">prop_missing =</span> <span class="fl">0.2</span>)</code></pre></div>
 <p>Next we will create a new project and bind the new data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
@@ -207,7 +215,9 @@ myproj_errors</code></pre></div>
 ## PARAMETER SETS:
 ##    (none defined)</code></pre>
 <p>Looking at this output we can see that the project has correctly registered 20% of the data as missing.</p>
-<p>For the model, we will assume a Poisson prior on the COI and a maximum value of 0.2 in both <code>e1</code> and <code>e2</code>. We then run the MCMC as usual:</p>
+<p>For the model, we will assume a Poisson prior on the COI and a maximum value of 0.2 in both <code>e1</code> and <code>e2</code>.</p>
+<p>It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code> (for example values of <code>1.0</code> are usually inappropriate as we do not expect all of our data to be mistakes).</p>
+<p>We then run the MCMC as usual:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create new parameter set</span>
 myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj_errors, <span class="dt">name =</span> <span class="st">"errors"</span>, <span class="dt">COI_model =</span> <span class="st">"poisson"</span>,
                          <span class="dt">COI_max =</span> <span class="dv">20</span>, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>,
@@ -225,13 +235,13 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.408589 seconds
+##    completed in 0.414147 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 0.71 seconds</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e_quantiles.html">plot_e_quantiles</a></span>(myproj_errors)</code></pre></div>
+<pre><code>## Total run-time: 0.66 seconds</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>
-<p><img src="complex-priors_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p><img src="complex-priors_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 </div>
   </div>
 

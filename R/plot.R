@@ -6,6 +6,7 @@ default_colours <- function(K) {
   
   # generate palette and colours
   raw_cols <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
+  #raw_cols <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999")
   my_palette <- colorRampPalette(raw_cols)
   
   # simple case if small K
@@ -138,9 +139,9 @@ plot.malecot_qmatrix <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot Q-matrix of current active set
+#' @title Posterior allocation plot
 #'
-#' @description Plot Q-matrix of current active set
+#' @description Produce posterior allocation plot of current active set.
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
@@ -149,7 +150,7 @@ plot.malecot_qmatrix <- function(x, y, ...) {
 #'
 #' @export
 
-plot_qmatrix <- function(project, K = NULL, divide_ind_on = FALSE) {
+plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -221,9 +222,9 @@ plot_qmatrix <- function(project, K = NULL, divide_ind_on = FALSE) {
 }
 
 #------------------------------------------------
-# Default plot for class malecot_loglike_quantiles
+# Default plot for class malecot_loglike_intervals
 #' @noRd
-plot.malecot_loglike_quantiles <- function(x, y, ...) {
+plot.malecot_loglike_intervals <- function(x, y, ...) {
   
   # get data into ggplot format
   df <- as.data.frame(unclass(x))
@@ -241,21 +242,21 @@ plot.malecot_loglike_quantiles <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot loglike quantiles of current active set
+#' @title Plot loglikelihood 95% credible intervals
 #'   
-#' @description Plot loglike quantiles of current active set
+#' @description Plot loglikelihood 95% credible intervals of current active set
 #'   
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
 #' @param K which value of K to produce the plot for
 #' @param axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
 #'   beta, 3 = values of beta raised to the GTI power
-#' @param connect_points whether to connect points in the middle of quantiles
+#' @param connect_points whether to connect points in the middle of intervals
 #' @param connect_whiskers whether to connect points at the ends of the whiskers
 #'
 #' @export
 
-plot_loglike_quantiles <- function(project, K = NULL, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
+plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -273,9 +274,9 @@ plot_loglike_quantiles <- function(project, K = NULL, axis_type = 1, connect_poi
   }
   
   # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$loglike_quantiles)}, project$output$single_set[[s]]$single_K)
+  null_output <- mapply(function(x) {is.null(x$summary$loglike_intervals)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
-    stop("no loglike_quantiles output for active parameter set")
+    stop("no loglike_intervals output for active parameter set")
   }
   if (is.null(K)) {
     K <- which(!null_output)[1]
@@ -283,40 +284,40 @@ plot_loglike_quantiles <- function(project, K = NULL, axis_type = 1, connect_poi
   }
   
   # check output exists for chosen K
-  loglike_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$loglike_quantiles
-  if (is.null(loglike_quantiles)) {
-    stop(sprintf("no loglike_quantiles output for K = %s of active set", K))
+  loglike_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$loglike_intervals
+  if (is.null(loglike_intervals)) {
+    stop(sprintf("no loglike_intervals output for K = %s of active set", K))
   }
   
   # produce plot with different axis options
-  rungs <- nrow(loglike_quantiles)
+  rungs <- nrow(loglike_intervals)
   if (axis_type==1) {
     x_vec <- 1:rungs
-    plot1 <- plot(loglike_quantiles, as.factor(x_vec))
+    plot1 <- plot(loglike_intervals, as.factor(x_vec))
     
   } else if (axis_type==2) {
     x_vec <- (1:rungs)/rungs
-    plot1 <- plot(loglike_quantiles, x_vec)
+    plot1 <- plot(loglike_intervals, x_vec)
     plot1 <- plot1 + xlab(parse(text = "beta"))
     plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
     
   } else {
     GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
     x_vec <- ((1:rungs)/rungs)^GTI_pow
-    plot1 <- plot(loglike_quantiles, x_vec)
+    plot1 <- plot(loglike_intervals, x_vec)
     plot1 <- plot1 + xlab(parse(text = "beta^gamma"))
     plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
   }
   
   # optionally add central line
   if (connect_points) {
-    df <- as.data.frame(unclass(loglike_quantiles))
+    df <- as.data.frame(unclass(loglike_intervals))
     plot1 <- plot1 + geom_line(aes(x = x_vec, y = df$Q50))
   }
   
   # optionally connect whiskers
   if (connect_whiskers) {
-    df <- as.data.frame(unclass(loglike_quantiles))
+    df <- as.data.frame(unclass(loglike_intervals))
     plot1 <- plot1 + geom_line(aes(x = x_vec, y = df$Q2.5), linetype = "dotted") + geom_line(aes(x = x_vec, y = df$Q97.5), linetype = "dotted")
   }
   
@@ -324,11 +325,10 @@ plot_loglike_quantiles <- function(project, K = NULL, axis_type = 1, connect_poi
   return(plot1)
 }
 
-
 #------------------------------------------------
-# Default plot for class malecot_m_quantiles
+# Default plot for class malecot_COI_intervals
 #' @noRd
-plot.malecot_m_quantiles <- function(x, y, ...) {
+plot.malecot_COI_intervals <- function(x, y, ...) {
   
   # get data into ggplot format
   df <- as.data.frame(unclass(x))
@@ -345,21 +345,22 @@ plot.malecot_m_quantiles <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot m quantiles of current active set
+#' @title Plot COI 95% credible intervals
 #'
-#' @description Plot m quantiles of current active set
+#' @description Plot COI 95% credible intervals of current active set
 #'
 #' @details TODO
 #'
-#' @param project TODO
-#' @param K TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param K which value of K to produce the plot for
 #' @param ... TODO
 #'
 #' @export
 #' @examples
 #' # TODO
 
-plot_m_quantiles <- function(project, K = NULL, ...) {
+plot_COI <- function(project, K = NULL, ...) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -374,9 +375,9 @@ plot_m_quantiles <- function(project, K = NULL, ...) {
   }
   
   # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$m_quantiles)}, project$output$single_set[[s]]$single_K)
+  null_output <- mapply(function(x) {is.null(x$summary$COI_intervals)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
-    stop("no m_quantiles output for active parameter set")
+    stop("no COI_intervals output for active parameter set")
   }
   if (is.null(K)) {
     K <- which(!null_output)[1]
@@ -384,22 +385,22 @@ plot_m_quantiles <- function(project, K = NULL, ...) {
   }
   
   # check output exists for chosen K
-  m_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$m_quantiles
-  if (is.null(m_quantiles)) {
-    stop(sprintf("no m_quantiles output for K = %s of active set", K))
+  COI_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$COI_intervals
+  if (is.null(COI_intervals)) {
+    stop(sprintf("no COI_intervals output for K = %s of active set", K))
   }
   
   # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$m_quantiles)
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$COI_intervals)
   
   # return plot object
   return(plot1)
 }
 
 #------------------------------------------------
-# Default plot for class malecot_p_quantiles
+# Default plot for class malecot_p_intervals
 #' @noRd
-plot.malecot_p_quantiles <- function(x, y, ...) {
+plot.malecot_p_intervals <- function(x, y, ...) {
   
   # get maximum number of alleles over all loci
   max_alleles <- max(mapply(nrow, x))
@@ -481,13 +482,14 @@ plot_p_multiallelic <- function(x) {
 }
 
 #------------------------------------------------
-#' @title Plot p quantiles of current active set
+#' @title Plot allele frequency 95% credible intervals
 #'
-#' @description Plot p quantiles of current active set
+#' @description Plot allele frequency 95% credible intervals of current active set
 #'
 #' @details TODO
 #'
-#' @param project TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
 #' @param K TODO
 #' @param deme TODO
 #' @param ... TODO
@@ -496,7 +498,7 @@ plot_p_multiallelic <- function(x) {
 #' @examples
 #' # TODO
 
-plot_p_quantiles <- function(project, K = NULL, deme = 1, ...) {
+plot_p <- function(project, K = NULL, deme = 1, ...) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -512,9 +514,9 @@ plot_p_quantiles <- function(project, K = NULL, deme = 1, ...) {
   }
   
   # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$p_quantiles)}, project$output$single_set[[s]]$single_K)
+  null_output <- mapply(function(x) {is.null(x$summary$p_intervals)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
-    stop("no p_quantiles output for active parameter set")
+    stop("no p_intervals output for active parameter set")
   }
   if (is.null(K)) {
     K <- which(!null_output)[1]
@@ -522,16 +524,16 @@ plot_p_quantiles <- function(project, K = NULL, deme = 1, ...) {
   }
   
   # check output exists for chosen K
-  p_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$p_quantiles
-  if (is.null(p_quantiles)) {
-    stop(sprintf("no p_quantiles output for K = %s of active set", K))
+  p_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$p_intervals
+  if (is.null(p_intervals)) {
+    stop(sprintf("no p_intervals output for K = %s of active set", K))
   }
   
   # check that selected deme is within limits
-  assert_leq(deme, length(p_quantiles))
+  assert_leq(deme, length(p_intervals))
   
   # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$p_quantiles[[deme]])
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$p_intervals[[deme]])
   
   # add deme title
   plot1 <- plot1 + ggtitle(sprintf("deme%s", deme))
@@ -541,13 +543,13 @@ plot_p_quantiles <- function(project, K = NULL, deme = 1, ...) {
 }
 
 #------------------------------------------------
-# Default plot for class malecot_e_quantiles
+# Default plot for class malecot_e_intervals
 #' @noRd
-plot.malecot_e_quantiles <- function(x, y, ...) {
+plot.malecot_e_intervals <- function(x, y, ...) {
   
   # check for NULL
   if (is.null(x)) {
-    message("no e_quantiles to plot")
+    message("no e_intervals to plot")
   }
   
   # get data into ggplot format
@@ -565,13 +567,14 @@ plot.malecot_e_quantiles <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot e quantiles of current active set
+#' @title Plot error rate 95% credible intervals
 #'
-#' @description Plot e quantiles of current active set
+#' @description Plot error rate 95% credible intervals of current active set
 #'
 #' @details TODO
 #'
-#' @param project TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
 #' @param K TODO
 #' @param ... TODO
 #'
@@ -579,7 +582,7 @@ plot.malecot_e_quantiles <- function(x, y, ...) {
 #' @examples
 #' # TODO
 
-plot_e_quantiles <- function(project, K = NULL, ...) {
+plot_e <- function(project, K = NULL, ...) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -594,9 +597,9 @@ plot_e_quantiles <- function(project, K = NULL, ...) {
   }
   
   # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$e_quantiles)}, project$output$single_set[[s]]$single_K)
+  null_output <- mapply(function(x) {is.null(x$summary$e_intervals)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
-    stop("no e_quantiles output for active parameter set")
+    stop("no e_intervals output for active parameter set")
   }
   if (is.null(K)) {
     K <- which(!null_output)[1]
@@ -604,26 +607,26 @@ plot_e_quantiles <- function(project, K = NULL, ...) {
   }
   
   # check output exists for chosen K
-  e_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$e_quantiles
-  if (is.null(e_quantiles)) {
-    stop(sprintf("no e_quantiles output for K = %s of active set", K))
+  e_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$e_intervals
+  if (is.null(e_intervals)) {
+    stop(sprintf("no e_intervals output for K = %s of active set", K))
   }
   
   # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$e_quantiles)
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$e_intervals)
   
   # return plot object
   return(plot1)
 }
 
 #------------------------------------------------
-# Default plot for class malecot_COI_mean_quantiles
+# Default plot for class malecot_COI_mean_intervals
 #' @noRd
-plot.malecot_COI_mean_quantiles <- function(x, y, ...) {
+plot.malecot_COI_mean_intervals <- function(x, y, ...) {
   
   # check for NULL
   if (is.null(x)) {
-    message("no COI_mean_quantiles to plot")
+    message("no COI_mean_intervals to plot")
   }
   
   # get data into ggplot format
@@ -641,13 +644,14 @@ plot.malecot_COI_mean_quantiles <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot COI_mean quantiles of current active set
+#' @title Plot COI_mean 95% credible intervals
 #'
-#' @description Plot COI_mean quantiles of current active set
+#' @description Plot COI_mean 95% credible intervals of current active set
 #'
 #' @details TODO
 #'
-#' @param project TODO
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
 #' @param K TODO
 #' @param ... TODO
 #'
@@ -655,7 +659,7 @@ plot.malecot_COI_mean_quantiles <- function(x, y, ...) {
 #' @examples
 #' # TODO
 
-plot_COI_mean_quantiles <- function(project, K = NULL, ...) {
+plot_COI_mean <- function(project, K = NULL, ...) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -670,9 +674,9 @@ plot_COI_mean_quantiles <- function(project, K = NULL, ...) {
   }
   
   # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$COI_mean_quantiles)}, project$output$single_set[[s]]$single_K)
+  null_output <- mapply(function(x) {is.null(x$summary$COI_mean_intervals)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
-    stop("no COI_mean_quantiles output for active parameter set")
+    stop("no COI_mean_intervals output for active parameter set")
   }
   if (is.null(K)) {
     K <- which(!null_output)[1]
@@ -680,13 +684,13 @@ plot_COI_mean_quantiles <- function(project, K = NULL, ...) {
   }
   
   # check output exists for chosen K
-  COI_mean_quantiles <- project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_quantiles
-  if (is.null(COI_mean_quantiles)) {
-    stop(sprintf("no COI_mean_quantiles output for K = %s of active set", K))
+  COI_mean_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_intervals
+  if (is.null(COI_mean_intervals)) {
+    stop(sprintf("no COI_mean_intervals output for K = %s of active set", K))
   }
   
   # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_quantiles)
+  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_intervals)
   
   # return plot object
   return(plot1)
@@ -1183,7 +1187,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @description Produce MCMC density plot of the log-likelihood
 #'
 #' @param project a MALECOT project, as produced by the function 
-#'   \code{mavproject()}
+#'   \code{malecot_project()}
 #' @param K which value of K to produce the plot for
 #' @param rung which value of K to produce the plot for. Defaults to the cold rung
 #' @param col colour of the trace
@@ -1257,7 +1261,7 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @export
 
-plot_loglike <- function(project, K = NULL, col = "black") {
+plot_loglike_dignostic <- function(project, K = NULL, col = "black") {
   
   # produce individual diagnostic plots and add features
   plot1 <- plot_trace(project, K = K, col = col)
@@ -1271,4 +1275,91 @@ plot_loglike <- function(project, K = NULL, col = "black") {
   
   # produce grid of plots
   ret <- grid.arrange(plot1, plot2, plot3, layout_matrix = rbind(c(1,1), c(2,3)))
+}
+
+#------------------------------------------------
+#' @title Plot prior on COI
+#'
+#' @description Produce plot of the prior on COI for given parameters. Options
+#'   include the uniform distribution, and a modified form of Poisson and
+#'   negative binomial distribution (see details).
+#'
+#' @details  The prior on COI can be uniform, Poisson, or negative binomial. In
+#'   the uniform case there is an equal chance of any given sample having a COI 
+#'   between 1 and \code{COI_max} (inclusive). In the Poisson and negative 
+#'   binomial cases it is important to note that the distribution is over 
+#'   (COI-1), rather than over COI. This is because both Poisson and negative 
+#'   binomial distributions allow for 0 values, which cannot be the case here 
+#'   because observed samples must contain at least 1 genotype.
+#'
+#'   The full probability mass distribution for the Poisson case with 
+#'   \code{COI_mean}\eqn{ = \mu} and \code{COI_max}\eqn{ = M} can be written
+#'   \deqn{ Pr(COI=n) = z (\mu-1)^(n-1) exp(-(\mu-1)) / (n-1)! } where \eqn{z}
+#'   is a normalising constant that ensures the distribution sums to unity, and
+#'   is defined as: \deqn{1/z = \sum_{i=1}^M (\mu-1)^(i-1) exp(-(\mu-1)) /
+#'   (i-1)! }
+#'
+#'   The mean of this distribution will generally be very close to \eqn{\mu},
+#'   and the variance will be close to \eqn{\mu-1} (strictly it will approach
+#'   these values as \eqn{M} tends to infinity).
+#'
+#'   The full probability mass distribution for the negative binomial case with 
+#'   \code{COI_mean}\eqn{ = \mu}, \code{COI_dispersion}\eqn{ = v/\mu} and 
+#'   \code{COI_max}\eqn{ = M} can be written \deqn{ Pr(COI=n) = z 
+#'   \Gamma(n-1+N)/( \Gamma(N)(n-1)! ) p^N (1-p)^(n-1) } where \eqn{N =
+#'   (\mu-1)^2/(v-\mu+1)}, \eqn{p = (\mu-1)/v}, and \eqn{z} is a normalising 
+#'   constant that ensures the distribution sums to unity, and is defined as: 
+#'   \deqn{1/z = \sum_{i=1}^M \Gamma(i-1+N)/( \Gamma(N)(i-1)! ) p^N (1-p)^(i-1) 
+#'   }
+#'
+#'   The mean of this distribution will generally be very close to \eqn{\mu} and
+#'   the variance will be close to \eqn{v} (strictly it will approach these 
+#'   values as \eqn{M} tends to infinity).
+#'
+#' @param COI_model the type of prior on COI. Must be one of "uniform", 
+#'   "poisson", or "nb" (negative binomial)
+#' @param COI_mean the prior mean (before truncating at \code{COI_max}). Note 
+#'   that this parameter only applies under the "poisson" and "nb" models
+#' @param COI_dispersion  the ratio of the variance to the mean of the prior on
+#'   COI. Only applies under the negative binomial model. Must be >1, as a ratio
+#'   of 1 can be achieved by using the Poisson distribution
+#' @param COI_max the maximum COI allowed. Distributions are truncated at this
+#'   value
+#'
+#' @export
+
+plot_prior_COI <- function(COI_model = "poisson", COI_mean = 3, COI_dispersion = 2, COI_max = 20) {
+  
+  # check inputs
+  assert_single_string(COI_model)
+  assert_in(COI_model, c("uniform", "poisson", "nb"))
+  assert_single_pos(COI_mean)
+  assert_gr(COI_mean, 1)
+  assert_single_pos(COI_dispersion)
+  assert_gr(COI_dispersion, 1)
+  assert_single_pos_int(COI_max, zero_allowed = FALSE)
+  
+  # create prior distribution
+  COI <- 1:COI_max
+  y <- switch(COI_model,
+              "uniform" = {
+                rep(1/COI_max, COI_max)
+              },
+              "poisson" = {
+                ret <- dpois(COI-1, COI_mean-1)
+                ret/sum(ret)
+              },
+              "nb" = {
+                mu <- COI_mean
+                v <- mu*COI_dispersion
+                ret <- dnbinom(COI-1, size = (mu-1)^2/(v-mu+1), prob = (mu-1)/v)
+                ret/sum(ret)
+              })
+  
+  # produce plot
+  plot1 <- ggplot(data.frame(COI = COI, probability = y)) + theme_bw()
+  plot1 <- plot1 + geom_bar(aes_(x = ~COI, y = ~probability), width = 0.9, stat = "identity")
+  plot1 <- plot1 + scale_x_continuous(limits = c(0, COI_max+1), expand = c(0,0))
+  
+  return(plot1)
 }

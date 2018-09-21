@@ -166,9 +166,9 @@ summary.malecot_qmatrix <- function(object, ...) {
 }
 
 #------------------------------------------------
-# Overload print function for malecot_loglike_quantiles
+# Overload print function for malecot_loglike_intervals
 #' @noRd
-print.malecot_loglike_quantiles <- function(x, ...) {
+print.malecot_loglike_intervals <- function(x, ...) {
   
   # print raw list
   print(unclass(x))
@@ -178,9 +178,9 @@ print.malecot_loglike_quantiles <- function(x, ...) {
 }
 
 #------------------------------------------------
-# Overload summary function for malecot_loglike_quantiles
+# Overload summary function for malecot_loglike_intervals
 #' @noRd
-summary.malecot_loglike_quantiles <- function(object, ...) {
+summary.malecot_loglike_intervals <- function(object, ...) {
   
   # print raw summary
   summary(unclass(object))
@@ -190,9 +190,9 @@ summary.malecot_loglike_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-# Overload print function for malecot_m_quantiles
+# Overload print function for malecot_COI_intervals
 #' @noRd
-print.malecot_m_quantiles <- function(x, ...) {
+print.malecot_COI_intervals <- function(x, ...) {
   
   # print raw list
   print(unclass(x))
@@ -202,9 +202,9 @@ print.malecot_m_quantiles <- function(x, ...) {
 }
 
 #------------------------------------------------
-# Overload summary function for malecot_m_quantiles
+# Overload summary function for malecot_COI_intervals
 #' @noRd
-summary.malecot_m_quantiles <- function(object, ...) {
+summary.malecot_COI_intervals <- function(object, ...) {
   
   # print raw summary
   summary(unclass(object))
@@ -214,9 +214,9 @@ summary.malecot_m_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-# Overload print function for malecot_p_quantiles
+# Overload print function for malecot_p_intervals
 #' @noRd
-print.malecot_p_quantiles <- function(x, ...) {
+print.malecot_p_intervals <- function(x, ...) {
   
   # print raw list
   print(unclass(x))
@@ -226,9 +226,9 @@ print.malecot_p_quantiles <- function(x, ...) {
 }
 
 #------------------------------------------------
-# Overload summary function for malecot_p_quantiles
+# Overload summary function for malecot_p_intervals
 #' @noRd
-summary.malecot_p_quantiles <- function(object, ...) {
+summary.malecot_p_intervals <- function(object, ...) {
   
   # print raw summary
   summary(unclass(object))
@@ -238,9 +238,9 @@ summary.malecot_p_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-# Overload print function for malecot_e_quantiles
+# Overload print function for malecot_e_intervals
 #' @noRd
-print.malecot_e_quantiles <- function(x, ...) {
+print.malecot_e_intervals <- function(x, ...) {
   
   # print raw list
   print(unclass(x))
@@ -250,9 +250,9 @@ print.malecot_e_quantiles <- function(x, ...) {
 }
 
 #------------------------------------------------
-# Overload summary function for malecot_e_quantiles
+# Overload summary function for malecot_e_intervals
 #' @noRd
-summary.malecot_e_quantiles <- function(object, ...) {
+summary.malecot_e_intervals <- function(object, ...) {
   
   # print raw summary
   summary(unclass(object))
@@ -262,9 +262,9 @@ summary.malecot_e_quantiles <- function(object, ...) {
 }
 
 #------------------------------------------------
-# Overload print function for malecot_COI_mean_quantiles
+# Overload print function for malecot_COI_mean_intervals
 #' @noRd
-print.malecot_COI_mean_quantiles <- function(x, ...) {
+print.malecot_COI_mean_intervals <- function(x, ...) {
   
   # print raw list
   print(unclass(x))
@@ -274,9 +274,9 @@ print.malecot_COI_mean_quantiles <- function(x, ...) {
 }
 
 #------------------------------------------------
-# Overload summary function for malecot_COI_mean_quantiles
+# Overload summary function for malecot_COI_mean_intervals
 #' @noRd
-summary.malecot_COI_mean_quantiles <- function(object, ...) {
+summary.malecot_COI_mean_intervals <- function(object, ...) {
   
   # print raw summary
   summary(unclass(object))

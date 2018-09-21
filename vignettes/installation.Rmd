@@ -4,7 +4,7 @@ author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Installing MALECOT}
+  %\VignetteIndexEntry{"Installing MALECOT"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -50,7 +50,6 @@ library(MALECOT)
 You can test that the package is loaded and working by running the following command, which should produce this output:
 
 ```{r}
-myproj <- malecot_project()
-myproj
+check_MALECOT_loaded()
 ```
 

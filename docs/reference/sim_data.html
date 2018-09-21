@@ -169,47 +169,63 @@ value specifying the number of alleles at all loci</p></td>
       <th>lambda</th>
       <td><p>the shape parameter(s) of the prior on allele frequencies. This
 prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
-case. <code>lambda</code> can be a single scalar vaue or a list of length
-<code>L</code> containing vectors of length equal to the number of alleles at
-that locus. If a list then <code>lambda</code> specifies all shape parameters of
-the prior at each locus separately, if a scalar value then the same shape
-parameter is used over all loci and all alleles</p></td>
+case. <code>lambda</code> can be:</p><ul>
+<li><p>a single scalar value, in which case the same value is used for 
+  every allele and every locus (i.e. the prior is symmetric)</p></li>
+<li><p>a vector of values, in which case the same vector is used for every
+  locus. Only works if the same number of alleles applies at every locus</p></li>
+<li><p>a list of vectors specifying the shape parameter separately for
+  each allele of each locus. The list must of length <code>L</code>, and must
+  contain vectors of length equal to the number of alleles at that locus</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>COI_model</th>
-      <td><p>TODO</p></td>
+      <td><p>the distribution from which COIs are drawn. Options include
+a uniform distribution (<code>"uniform"</code>), a Poisson distribution
+(<code>"poisson"</code>), or a negative binomial distribution (<code>"nb"</code>)</p></td>
     </tr>
     <tr>
       <th>COI_max</th>
-      <td><p>TODO</p></td>
+      <td><p>the maximum allowed COI. Any COIs that are initially drawn
+larger than this value are set down to this value</p></td>
     </tr>
     <tr>
       <th>COI_manual</th>
       <td><p>option to override the MCMC and set the COI of one or more
 samples manually, in which case they are not updated. Vector of length
 <code>n</code> specifing the integer valued COI of each sample, with -1
-indicating that all samples should be estimated</p></td>
+indicating that a sample should be estimated</p></td>
     </tr>
     <tr>
       <th>COI_mean</th>
-      <td><p>TODO</p></td>
+      <td><p>the mean of the distribution from which COIs are drawn. Only
+applies under the Poisson and negative binomial models (under the uniform
+model the mean is <code>(COI_max+1)/2</code> by definition)</p></td>
     </tr>
     <tr>
       <th>COI_dispersion</th>
-      <td><p>must be &gt; 1. Only used under the negative binomial
-model</p></td>
+      <td><p>Only used under the negative binomial model. Defines
+how much larger the variance is than the mean. Must be &gt; 1, otherwise
+should opt for Poisson distribution where the mean and variance are the
+same</p></td>
     </tr>
     <tr>
       <th>e1</th>
-      <td><p>TODO</p></td>
+      <td><p>the probability of a true homozygote being incorrectly called as a
+heterozygote</p></td>
     </tr>
     <tr>
       <th>e2</th>
-      <td><p>TODO</p></td>
+      <td><p>the probability of a true heterozygote being incorrectly called as a
+homozygote</p></td>
     </tr>
     <tr>
       <th>prop_missing</th>
-      <td><p>TODO</p></td>
+      <td><p>the proportion of the data that is missing. Note that
+data are masked out at random, meaning in some rare cases (and when the
+proportion of missing data is large) an entire sample or locus can end up
+being masked out, which will throw an error when loaded into a project</p></td>
     </tr>
     </table>
     

@@ -18,29 +18,46 @@
 #'   value specifying the number of alleles at all loci
 #' @param lambda the shape parameter(s) of the prior on allele frequencies. This
 #'   prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic 
-#'   case. \code{lambda} can be a single scalar vaue or a list of length
-#'   \code{L} containing vectors of length equal to the number of alleles at
-#'   that locus. If a list then \code{lambda} specifies all shape parameters of
-#'   the prior at each locus separately, if a scalar value then the same shape
-#'   parameter is used over all loci and all alleles
-#' @param COI_model TODO
-#' @param COI_max TODO
+#'   case. \code{lambda} can be:
+#'   \itemize{
+#'     \item{a single scalar value, in which case the same value is used for 
+#'     every allele and every locus (i.e. the prior is symmetric)}
+#'     \item{a vector of values, in which case the same vector is used for every
+#'     locus. Only works if the same number of alleles applies at every locus}
+#'     \item{a list of vectors specifying the shape parameter separately for
+#'     each allele of each locus. The list must of length \code{L}, and must
+#'     contain vectors of length equal to the number of alleles at that locus}
+#'   }
+#' @param COI_model the distribution from which COIs are drawn. Options include
+#'   a uniform distribution (\code{"uniform"}), a Poisson distribution
+#'   (\code{"poisson"}), or a negative binomial distribution (\code{"nb"})
+#' @param COI_max the maximum allowed COI. Any COIs that are initially drawn
+#'   larger than this value are set down to this value
 #' @param COI_manual option to override the MCMC and set the COI of one or more
 #'   samples manually, in which case they are not updated. Vector of length
 #'   \code{n} specifing the integer valued COI of each sample, with -1
-#'   indicating that all samples should be estimated
-#' @param COI_mean TODO
-#' @param COI_dispersion must be > 1. Only used under the negative binomial
-#'   model
-#' @param e1 TODO
-#' @param e2 TODO
-#' @param prop_missing TODO
+#'   indicating that a sample should be estimated
+#' @param COI_mean the mean of the distribution from which COIs are drawn. Only
+#'   applies under the Poisson and negative binomial models (under the uniform
+#'   model the mean is \code{(COI_max+1)/2} by definition)
+#' @param COI_dispersion Only used under the negative binomial model. Defines
+#'   how much larger the variance is than the mean. Must be > 1, otherwise
+#'   should opt for Poisson distribution where the mean and variance are the
+#'   same
+#' @param e1 the probability of a true homozygote being incorrectly called as a
+#'   heterozygote
+#' @param e2 the probability of a true heterozygote being incorrectly called as a
+#'   homozygote
+#' @param prop_missing the proportion of the data that is missing. Note that
+#'   data are masked out at random, meaning in some rare cases (and when the
+#'   proportion of missing data is large) an entire sample or locus can end up
+#'   being masked out, which will throw an error when loaded into a project
 #'
 #' @export
 #' @examples
 #' # TODO
 
-sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_on = TRUE, alleles = 2, lambda = 1, COI_model = "poisson", COI_max = 20, COI_manual = rep(-1,n), COI_mean = 3, COI_dispersion = 2, e1 = 0, e2 = 0, prop_missing = 0) {
+sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_on = TRUE, alleles = 2, lambda = 1.0, COI_model = "poisson", COI_max = 20, COI_manual = rep(-1,n), COI_mean = 3.0, COI_dispersion = 2.0, e1 = 0.0, e2 = 0.0, prop_missing = 0.0) {
   
   ##### CHECK INPUTS #####
   
@@ -48,6 +65,15 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_
   assert_single_pos_int(L, zero_allowed = FALSE)
   assert_single_pos_int(K, zero_allowed = FALSE)
   assert_in(data_format, c("biallelic", "multiallelic"))
+  
+  # force alleles = 2 if biallelic format selected
+  if (data_format == "biallelic") {
+    if (!all(alleles == 2)) {
+      message("Note: biallelic format specified, therefore overriding alleles argument with alleles = 2")
+    }
+    alleles <- 2
+  }
+  
   if (data_format != "biallelic") {
     assert_vector(alleles)
     assert_pos_int(alleles, zero_allowed = FALSE)
@@ -55,6 +81,19 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_
     assert_in(length(alleles), c(1, L))
   }
   assert_pos(unlist(lambda), zero_allowed = FALSE)
+  if (is.list(lambda)) {
+    assert_length(lambda, L)
+    lambda_nalleles <- mapply(length, lambda)
+    if (!all(lambda_nalleles == alleles)) {
+      stop("when lambda is a list it must contain one entry per allele at every locus")
+    }
+  } else {
+    if (length(lambda) > 1) {
+      if (!all(alleles == length(lambda))) {
+        stop("when lambda is a vector its length must equal the number of alleles at every locus")
+      }
+    }
+  }
   assert_single_string(COI_model)
   assert_in(COI_model, c("uniform", "poisson", "nb"))
   assert_single_pos_int(COI_max, zero_allowed = FALSE)
@@ -79,14 +118,6 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_
   assert_single_numeric(prop_missing)
   assert_bounded(prop_missing, left = 0.0, right = 1.0, inclusive_left = TRUE, inclusive_right = TRUE)
   
-  # force alleles = 2 if biallelic format selected
-  if (data_format == "biallelic") {
-    if (!all(alleles == 2)) {
-      message(sprintf("Note: biallelic format specified, therefore overriding argument 'alleles = %s'", alleles))
-    }
-    alleles <- 2
-  }
-  
   # force alleles to vector over loci
   if (length(alleles) == 1) {
     alleles <- rep(alleles, L)
@@ -94,12 +125,16 @@ sim_data <- function(n = 100, L = 24, K = 3, data_format = "biallelic", pop_col_
   
   # force lambda to list
   if (!is.list(lambda)) {
-    lambda <- lapply(alleles, function(x) {rep(lambda,x)})
+    if (length(lambda) == 1) {
+      lambda <- lapply(alleles, function(x) {rep(lambda,x)})
+    } else {
+      lambda <- replicate(L, lambda, simplify = FALSE)
+    }
   }
   
   # check that lambda compatible with number of alleles
-  if (!all(mapply(length, lambda)==alleles)) {
-    stop("lambda not compatible with number of alleles")
+  if (!all(mapply(length, lambda) == alleles)) {
+    stop("lambda not compatible with number of alleles at every locus")
   }
   
   # define COI mean and dispersion under uniform and Poisson priors

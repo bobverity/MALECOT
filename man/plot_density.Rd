@@ -8,7 +8,7 @@ plot_density(project, K = NULL, rung = NULL, col = "black")
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
-\code{mavproject()}}
+\code{malecot_project()}}
 
 \item{K}{which value of K to produce the plot for}
 
