@@ -91,7 +91,7 @@
       <h1>Tutorial: bi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-21</h4>
+            <h4 class="date">2018-09-22</h4>
       
       
       <div class="hidden name"><code>tutorial-biallelic.Rmd</code></div>
@@ -112,7 +112,7 @@
 <div id="simulate-some-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#simulate-some-data" class="anchor"></a>Simulate some data</h3>
-<p>MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations (or “demes”). We will assume that the mean complexity of infection (COI) in these three subpopulation varies from 1.2 to 3:</p>
+<p>MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations or <a href="https://en.wikipedia.org/wiki/Deme_(biology)">demes</a>. We will assume that the mean complexity of infection (COI) in these three subpopulation varies from 1.2 to 3:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">data_format =</span> <span class="st">"biallelic"</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">COI_mean =</span> <span class="kw">c</span>(<span class="fl">1.2</span>,<span class="dv">2</span>,<span class="dv">3</span>))</code></pre></div>
 <p>Running <code>names(mysim)</code> we can see that the simulated data contains several elements:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(mysim)</code></pre></div>
@@ -159,7 +159,7 @@
 <p>MALCOT works with projects, which are essentially just simple lists containing all the inputs and outputs of a given analysis. We start by creating a project and loading in our data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
-<p>Notice the general format of the <code>bind_data()</code> function, which takes the same project as both input and output. This is the format that most MALECOT functions will take, as it allows a function to modify the project before overwriting the original version. In the input arguments we have specified which columns are meta-data, and all other columns are assumed to contain genetic data.</p>
+<p>Notice the general format of the <code>bind_data()</code> function, which takes the same project as both input and output. This is the format that most MALECOT functions will take, as it allows a function to modify the project before overwriting the original version. In the input arguments we have specified which columns are meta-data, and all other columns are assumed to contain genetic data unless otherwise specified.</p>
 <p>We can view the project to check that the data have been loaded in correctly:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj</code></pre></div>
 <pre><code>## DATA:
@@ -210,7 +210,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.794389 seconds
+##    completed in 0.849815 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -222,7 +222,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.51864 seconds
+##    completed in 1.61937 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -234,7 +234,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.02046 seconds
+##    completed in 2.05575 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -246,7 +246,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.49369 seconds
+##    completed in 2.57553 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -258,40 +258,40 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.99674 seconds
+##    completed in 3.18436 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 12.24 seconds</code></pre>
+<pre><code>## Total run-time: 12.75 seconds</code></pre>
 <p>If any values of <em>K</em> failed to converge then we could use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of <em>K</em> and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of <em>K</em>, but will leave all other values untouched:</p>
 </div>
 <div id="checking-mcmc-behaviour" class="section level3">
 <h3 class="hasAnchor">
 <a href="#checking-mcmc-behaviour" class="anchor"></a>Checking MCMC behaviour</h3>
 <p>Before diving into results, it is important to check that our MCMC has behaved as expected. There are many ways of checking MCMC performace, and here we will focus on only the most simple checks.</p>
-<p>We can explore the estimated log-likelihood values through a series of plots:</p>
+<p>We can explore the estimated log-likelihood values through a series of diagnostic plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
-<p>The top panel shows a trace plot of the log-likelihood, in other words the value of the log-likelihood at each sampling iteration of the MCMC, and the bottom right panel shows a histogram of these same values. We can see that the log-likelihood has fluctuated around a single stable value, and has bounced around freely enough to cover the same range of values many times over. This indicates that the MCMC has <em>probably</em> explored the space well, although we can never rule out that there might be another “level” of log-likelihood that the MCMC has not found yet. This is one of the many paradoxes of MCMC - we can never be 100% sure that an MCMC has completely explored the space, we can only diagnose if it definitly <em>hasn’t</em> explored the space well. In other words, when looking at these pots we are looking for tell-tale signs of <em>bad</em> MCMC behaviour, such as jumping sporadically between levels or moving very slowly through a range of values.</p>
-<p>The bottom left panel shows the level of autocorrelation in the trace plot for different degrees of separation between points. When autocorrelation approaches zero it means that values are approximately independent - this occurs at around 20 lags here, meaning every 20th draw is approximately independent. The number of independent samples is therefore much smaller than the raw number of samples. We can use the <code><a href="../reference/get_ESS.html">get_ESS()</a></code> function to get at exactly how many effectively independent samples we have:</p>
+<p>The top panel shows a trace plot of the log-likelihood, in other words it shows the value of the log-likelihood at each sampling iteration of the MCMC, and the bottom right panel shows a histogram of these same values. We can see that the log-likelihood has fluctuated around a single stable value, and has bounced around freely enough to cover the same range of values many times over. This indicates that the MCMC has <em>probably</em> explored the space well, although we can never rule out that there might be another “level” of log-likelihood that the MCMC has not found yet. This is one of the many paradoxes of MCMC - we can never be 100% sure that an MCMC has completely explored the space, we can only diagnose if it definitly <em>hasn’t</em> explored the space well. In other words, when looking at these plots we are looking for tell-tale signs of <em>bad</em> MCMC behaviour, such as jumping sporadically between levels or moving very slowly through a range of values.</p>
+<p>The bottom left panel shows the level of autocorrelation in the trace plot for different degrees of separation between points. When autocorrelation approaches zero it means that values are approximately independent - this occurs at around 20 lags here, meaning every 20th draw is approximately independent. The number of <em>independent</em> samples is therefore much smaller than the raw number of samples. We can use the <code><a href="../reference/get_ESS.html">get_ESS()</a></code> function to get at exactly how many effectively independent samples we have:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <pre><code>##    rung1 
 ## 1342.089</code></pre>
 <p>It is worth keeping this value in mind when looking at trace plots so we are not fooled by large numbers of iterations. If our ESS is very small (tens to hundreds) then we are extremely unlikely to have explored the full model space, even if the raw number of sampling iterations is in the millions.</p>
-<p>These checks should be carried out on each value of <em>K</em>, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or <a href="todo">other more sophisticated techniques</a> should be used to improve mixing.</p>
+<p>These checks should be carried out on each value of <em>K</em>, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using <a href="todo">other more sophisticated techniques</a> to improve mixing.</p>
 </div>
 <div id="structure-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#structure-plots" class="anchor"></a>Structure plots</h3>
-<p>One of the main results of interest from this sort of analysis is the posterior allocation or “structure” plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the <em>K</em> subpopulations. We can use the <code><a href="../reference/plot_structure.html">plot_structure()</a></code> function to produce posterior allocation plots for different values of <em>K</em>. The <code>divide_ind_on</code> argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.</p>
+<p>Usually the main result of interest from this sort of analysis is the posterior allocation or “structure” plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the <em>K</em> subpopulations. We can use the <code><a href="../reference/plot_structure.html">plot_structure()</a></code> function to produce posterior allocation plots for different values of <em>K</em>. The <code>divide_ind_on</code> argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">2</span>:<span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
-<p>The advantage of simulated data is that we know the true value of <em>K</em> used when generating the data (<em>K</em> = 3 in this case), and also which samples belong to which groups, meaning we can verify whether the model has in fact found the correct grouping. In this example almost all samples are allocated correctly for <em>K</em> = 3. The issue of deciding between different values of <em>K</em> is a big one, and will be dealt with in <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">a later vignette</a>.</p>
+<p>The advantage of simulated data is that we know the true value of <em>K</em> used when generating the data (<em>K</em> = 3 in this case) and which samples belong to which groups, meaning we can verify whether the model has arrived at the correct answer. In this example almost all samples are allocated correctly for <em>K</em> = 3. The issue of deciding between different values of <em>K</em> is a big one, and will be dealt with in <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">a later vignette</a>.</p>
 </div>
 <div id="posterior-coi-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#posterior-coi-plots" class="anchor"></a>Posterior COI plots</h3>
 <p>Next we can plot the posterior COI of our samples. All plots produced by MALECOT are produced as <a href="https://ggplot2.tidyverse.org/">ggplot</a> objects, meaning they can be stored and modified later. For example, here we overlay the true (i.e. simulated) COIs on top of the posterior estimates:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load ggplot2 package</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load ggplot2 package (which must be already installed)</span>
 <span class="kw">library</span>(ggplot2)
 
 <span class="co"># produce plot of posterior COIs</span>
@@ -307,9 +307,9 @@ posterior_COI</code></pre></div>
 <div id="posterior-allele-frequency-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#posterior-allele-frequency-plots" class="anchor"></a>Posterior allele frequency plots</h3>
-<p>The third parameter of interest is the posterior allele frequency at each locus and in each subpopulation. Again, we have a record of the true values used when generating the data, so we can check that the model output matches the true values.</p>
+<p>The third parameter of interest is the posterior allele frequency at each locus and in each subpopulation. Again, we have a record of the true values, so we can check that the model output matches these values.</p>
 <p>Before doing so, however, we need to revisit structure plots. One thing to note when looking at structure plots is that the group labelling is arbitrary, and labels can be swapped around without undermining results. For example, we could swap around what we call group1 and group2 in the plots above and the overall estimated structure would be the same. In fact, the group labels used in MALECOT are simply chosen to minimise the visual differences between plots - for example, in the structure plots above the colours are chosen to align most closely between different values of <em>K</em>.</p>
-<p>However, when comparing true allele frequencies against MCMC output we need to make sure our labels match up. We can do this using the <code><a href="../reference/get_group_order.html">get_group_order()</a></code> function, which takes a project and value of <em>K</em> as input, along with a “target group”. The target group will be matched against the MCMC output and re-ordered as needed to get the best possible matching. For example, using <code>mysim$true_group</code> as the target group we see:</p>
+<p>However, when comparing true allele frequencies against MCMC output we need to make sure our labels match up. We can do this using the <code><a href="../reference/get_group_order.html">get_group_order()</a></code> function, which takes a project and value of <em>K</em> as input, along with a “target group”. The target group will be matched against the MCMC output and re-ordered as needed to get the best possible matching. For example, using <code>mysim$true_group</code> as the target group we obtain:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">group_order_k3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_group_order.html">get_group_order</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">target_group =</span> mysim$true_group)
 group_order_k3</code></pre></div>
 <pre><code>## [1] 3 1 2</code></pre>

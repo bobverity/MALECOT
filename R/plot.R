@@ -242,9 +242,9 @@ plot.malecot_loglike_intervals <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot loglikelihood 95% credible intervals
+#' @title Plot loglikelihood 95\% credible intervals
 #'   
-#' @description Plot loglikelihood 95% credible intervals of current active set
+#' @description Plot loglikelihood 95\% credible intervals of current active set
 #'   
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
@@ -345,9 +345,9 @@ plot.malecot_COI_intervals <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot COI 95% credible intervals
+#' @title Plot COI 95\% credible intervals
 #'
-#' @description Plot COI 95% credible intervals of current active set
+#' @description Plot COI 95\% credible intervals of current active set
 #'
 #' @details TODO
 #'
@@ -482,9 +482,9 @@ plot_p_multiallelic <- function(x) {
 }
 
 #------------------------------------------------
-#' @title Plot allele frequency 95% credible intervals
+#' @title Plot allele frequency 95\% credible intervals
 #'
-#' @description Plot allele frequency 95% credible intervals of current active set
+#' @description Plot allele frequency 95\% credible intervals of current active set
 #'
 #' @details TODO
 #'
@@ -567,9 +567,9 @@ plot.malecot_e_intervals <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot error rate 95% credible intervals
+#' @title Plot error rate 95\% credible intervals
 #'
-#' @description Plot error rate 95% credible intervals of current active set
+#' @description Plot error rate 95\% credible intervals of current active set
 #'
 #' @details TODO
 #'
@@ -644,9 +644,9 @@ plot.malecot_COI_mean_intervals <- function(x, y, ...) {
 }
 
 #------------------------------------------------
-#' @title Plot COI_mean 95% credible intervals
+#' @title Plot COI_mean 95\% credible intervals
 #'
-#' @description Plot COI_mean 95% credible intervals of current active set
+#' @description Plot COI_mean 95\% credible intervals of current active set
 #'
 #' @details TODO
 #'
@@ -1284,17 +1284,18 @@ plot_loglike_dignostic <- function(project, K = NULL, col = "black") {
 #'   include the uniform distribution, and a modified form of Poisson and
 #'   negative binomial distribution (see details).
 #'
-#' @details  The prior on COI can be uniform, Poisson, or negative binomial. In
+#' @details  The prior on COI can be uniform, Poisson, or negative binomial. In 
 #'   the uniform case there is an equal chance of any given sample having a COI 
 #'   between 1 and \code{COI_max} (inclusive). In the Poisson and negative 
 #'   binomial cases it is important to note that the distribution is over 
 #'   (COI-1), rather than over COI. This is because both Poisson and negative 
 #'   binomial distributions allow for 0 values, which cannot be the case here 
-#'   because observed samples must contain at least 1 genotype.
+#'   because observed samples must contain at least 1 genotype. Poisson and
+#'   negative binomial distributions are also truncated at \code{COI_max}.
 #'
 #'   The full probability mass distribution for the Poisson case with 
 #'   \code{COI_mean}\eqn{ = \mu} and \code{COI_max}\eqn{ = M} can be written
-#'   \deqn{ Pr(COI=n) = z (\mu-1)^(n-1) exp(-(\mu-1)) / (n-1)! } where \eqn{z}
+#'   \deqn{ Pr(COI = n) = z (\mu-1)^(n-1) exp(-(\mu-1)) / (n-1)! } where \eqn{z}
 #'   is a normalising constant that ensures the distribution sums to unity, and
 #'   is defined as: \deqn{1/z = \sum_{i=1}^M (\mu-1)^(i-1) exp(-(\mu-1)) /
 #'   (i-1)! }
@@ -1305,7 +1306,7 @@ plot_loglike_dignostic <- function(project, K = NULL, col = "black") {
 #'
 #'   The full probability mass distribution for the negative binomial case with 
 #'   \code{COI_mean}\eqn{ = \mu}, \code{COI_dispersion}\eqn{ = v/\mu} and 
-#'   \code{COI_max}\eqn{ = M} can be written \deqn{ Pr(COI=n) = z 
+#'   \code{COI_max}\eqn{ = M} can be written \deqn{ Pr(COI = n) = z 
 #'   \Gamma(n-1+N)/( \Gamma(N)(n-1)! ) p^N (1-p)^(n-1) } where \eqn{N =
 #'   (\mu-1)^2/(v-\mu+1)}, \eqn{p = (\mu-1)/v}, and \eqn{z} is a normalising 
 #'   constant that ensures the distribution sums to unity, and is defined as: 
@@ -1321,8 +1322,7 @@ plot_loglike_dignostic <- function(project, K = NULL, col = "black") {
 #' @param COI_mean the prior mean (before truncating at \code{COI_max}). Note 
 #'   that this parameter only applies under the "poisson" and "nb" models
 #' @param COI_dispersion  the ratio of the variance to the mean of the prior on
-#'   COI. Only applies under the negative binomial model. Must be >1, as a ratio
-#'   of 1 can be achieved by using the Poisson distribution
+#'   COI. Only applies under the negative binomial model. Must be >1
 #' @param COI_max the maximum COI allowed. Distributions are truncated at this
 #'   value
 #'
@@ -1359,7 +1359,73 @@ plot_prior_COI <- function(COI_model = "poisson", COI_mean = 3, COI_dispersion =
   # produce plot
   plot1 <- ggplot(data.frame(COI = COI, probability = y)) + theme_bw()
   plot1 <- plot1 + geom_bar(aes_(x = ~COI, y = ~probability), width = 0.9, stat = "identity")
-  plot1 <- plot1 + scale_x_continuous(limits = c(0, COI_max+1), expand = c(0,0))
+  plot1 <- plot1 + scale_x_continuous(limits = c(0, COI_max+1), expand = c(0,0)) + scale_y_continuous(limits = c(0, max(y)*1.1), expand = c(0,0))
   
   return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot prior on allele frequencies
+#'
+#' @description Produce plot of the prior on COI for given parameters. This
+#'   prior is Beta in the bi-allelic case, and Dirichlet in the multi-allelic
+#'   case.
+#'
+#' @param lambda shape parameter(s) of the Beta or Dirichlet distribution. Can
+#'   be a single scalar value, in which case the dimensionality is given by the
+#'   number of \code{alleles}, or a vector of values specifying the shape
+#'   parameter for each allele
+#' @param alleles the dimensionality of the prior. Defaults to the length of
+#'   \code{lambda}, or to 2 of \code{lambda} is a scalar
+#'
+#' @export
+
+plot_prior_p <- function(lambda = 1, alleles = NULL) {
+  
+  # check inputs
+  assert_pos(lambda)
+  if (length(lambda) == 1) {
+    if (is.null(alleles)) {
+      alleles <- 2
+    }
+    assert_single_pos_int(alleles)
+    lambda <- rep(lambda, alleles)
+  }
+  alleles <- length(lambda)
+  
+  # split between Beta and Dirichlet plots
+  if (alleles == 2) {
+    
+    # create distribution
+    x <- seq(0,1,l=1001)
+    y <- dbeta(x, lambda[1], lambda[2])
+    
+    #produce plot
+    plot1 <- ggplot(data.frame(x = x, y = y)) + theme_bw()
+    plot1 <- plot1 + geom_area(aes_(x = ~x, y = ~y), colour = "black", fill = "dodgerblue3", alpha = 0.5)
+    plot1 <- plot1 + scale_x_continuous(limits = c(0, 1), expand = c(0,0)) + scale_y_continuous(limits = c(0, max(y[is.finite(y)])*1.1), expand = c(0,0))
+    plot1 <- plot1 + xlab("reference allele frequency") + ylab("probability density")
+    return(plot1)
+    
+  } else {
+    
+    # random Dirichlet draws
+    n <- 1e3
+    dirichlet_draws <- mapply(function(x) {
+                                rdirichlet(lambda)
+                              }, x = rep(1,n), SIMPLIFY = FALSE)
+    df <- data.frame(p = unlist(dirichlet_draws),
+                     allele = rep(1:alleles, times = n),
+                     sim = rep(1:n, each = alleles))
+    
+    #produce plot
+    plot1 <- ggplot(df) + theme_bw()
+    plot1 <- plot1 + geom_line(aes_(x = ~as.factor(allele), y = ~p, group = ~sim),
+                               colour = "dodgerblue3", alpha = 0.1)
+    plot1 <- plot1 + geom_vline(xintercept = 1:alleles, col = grey(0.6))
+    plot1 <- plot1 + scale_y_continuous(limits = c(0, 1), expand = c(0,0))
+    plot1 <- plot1 + xlab("allele") + ylab("probability density")
+    return(plot1)
+    
+  }
 }

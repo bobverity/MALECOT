@@ -360,12 +360,12 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
   if (is.list(lambda)) {
     assert_length(lambda, L)
     lambda_nalleles <- mapply(length, lambda)
-    if (!all(lambda_nalleles == alleles)) {
+    if (!all(lambda_nalleles == project$data_processed$alleles)) {
       stop("when lambda is a list it must contain one entry per allele at every locus")
     }
   } else {
     if (length(lambda) > 1) {
-      if (!all(alleles == length(lambda))) {
+      if (!all(project$data_processed$alleles == length(lambda))) {
         stop("when lambda is a vector its length must equal the number of alleles at every locus")
       }
     }
@@ -375,7 +375,7 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
     assert_length(lambda,L)
     assert_pos(unlist(lambda), zero_allowed = FALSE)
   } else {
-    assert_single_pos(lambda, zero_allowed = FALSE)
+    assert_pos(lambda, zero_allowed = FALSE)
   }
   
   assert_single_string(COI_model)
@@ -647,8 +647,16 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   # get COI_model in numeric form
   args_model$COI_model_numeric <- match(args_model$COI_model, c("uniform", "poisson" ,"nb"))
   
-  # record whether lambda defined as scalar value
-  args_model$lambda_scalar <- (length(args_model$lambda) == 1)
+  # record type of lambda (scalar, vector, list)
+  lambda_type <- 1
+  if (!is.list(args_model$lambda)) {
+    if (length(args_model$lambda) != 1) {
+      lambda_type <- 2
+    }
+  } else {
+    lambda_type <- 3
+  }
+  args_model$lambda_type <- lambda_type
   
   # R functions to pass to Rcpp
   args_functions <- list(test_convergence = test_convergence,

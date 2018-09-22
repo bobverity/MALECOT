@@ -31,9 +31,17 @@ myproj <- malecot_file("tutorial1_myproj.rds")
 
 The previous model assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIs and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) and the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution).
 
-The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed form of Poisson distribution, i.e. it allows for a greater spread of values around the mean. It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected while some are only lightly infected. Note that whatever prior we choose, COIs will still be truncated at `COI_max`.
+The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed form of Poisson distribution, i.e. it allows for a greater spread of values around the mean, and more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected while some are only lightly infected. We can use the parameter `COI_dispersion` to set the level of over-dispersion - for example, a value of 2 means the prior variance will be twice as large as the prior mean. Note that whatever prior we choose, COIs will still be truncated at `COI_max`.
 
-The simulated data in the previous tutorial were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have the luxury of knowing the true COI distribution, and so here we will use a negative binomial prior. We can use the parameter `COI_dispersion` to set the level of over-dispersion compared to the Poisson distribution - for example, a value of 2 means the prior variance will be twice that of the Poisson distribution. The argument `COI_mean = TRUE` tells the model that we want to estimate the mean COI for each subpopulation, rather than using a set value.
+We can explore different shapes of prior using the `plot_prior_COI()` function:
+
+```{r, fig.height=3, fig.width=4}
+plot_prior_COI(COI_model = "uniform")
+plot_prior_COI(COI_model = "poisson", COI_mean = 3)
+plot_prior_COI(COI_model = "nb", COI_mean = 3, COI_dispersion = 2)
+```
+
+The simulated data in the previous tutorial were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have the luxury of knowing the true COI distribution, and so for this example we will use a negative binomial prior. Rather than using a set value for the prior mean we will use the argument `COI_mean = TRUE` to tell the model that we want to estimate the mean COI for each subpopulation.
 
 In some cases we may want to specify the COI of certain samples manually - for example if we have already used other programs to estimate the COI and we want to insert these results. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.
 
@@ -97,7 +105,6 @@ so <- order(get_group_order(myproj, 3, mysim$true_group))
 Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly the same values, but in the wrong order. The seemingly incorrect order of these estimates goes back to the issue of labelling subpopulations mentioned in the previous tutorial. When lined up against the three groups in the structure plot above (which go group`r so[1]` then group`r so[2]` then group`r so[3]`) we can see that mean COI estimates do in fact go from lowest on the left to highest on the right. 
 
 
-
 ### More realistic priors on allele frequencies
 
 ```{r, echo=FALSE}
@@ -108,13 +115,74 @@ The distribution of allele frequencies can be an important factor in determining
 
 MALECOT assumes a [beta prior](https://en.wikipedia.org/wiki/Beta_distribution) on allele frequencies with shape parameter `lambda`. We have three options when specifying `lambda`:
 
-1. `lambda` can be a single value. In this case the same shape parameter is assumed for all alleles, making the prior symmetric. The same prior is applied to all loci.
+1. `lambda` can be a single value. In this case the same shape parameter is used for all alleles and all loci, making the prior symmetric and identical over all loci.
 
 2. `lambda` can be a vector of shape parameters - one for each allele. In this case the prior will usually be asymmetric and skewed in favour of one allele. The same prior is still applied over all loci, meaning *this option can only be used if there are the same number of alleles at every locus* (for bi-allelic data this will always be true).
 
 3. `lambda` can be a list with as many elements as there are loci, and each element consisting of a vector with as many elements as there are alleles at that locus. This makes it possible to specify a different prior at every locus.
 
-By default `lambda` is defined using the first method with a value of 1, which places equal weight on every allele frequency between 0 and 1 at every locus. Here we will instead use the second method to place a skewed prior on allele frequencies.
+By default, `lambda` is defined using the first method with a value of 1. This places equal weight on every allele frequency between 0 and 1 at every locus, i.e. the Beta distribution simplifies to the uniform distribution. Here we will instead use the second method to place a skewed prior on allele frequencies. We can visualise different priors using the `plot_prior_p()` function:
+
+```{r, fig.height=4, fig.width=5}
+plot_prior_p(lambda = 1)
+plot_prior_p(lambda = 0.5)
+plot_prior_p(lambda = c(7,1))
+```
+
+We will use the last of these priors, which makes it more likely *a priori* that the reference allele will be common and the alternative allele will be rare. We can simulate some new data under this prior and load it into a new project:
+
+```{r}
+# simulate new data with skewed allele frequency distribution
+mysim_skew <- sim_data(n = 100, L = 24, K = 3, lambda = c(7,1))
+
+# load data into a new project
+myproj_skew <- malecot_project()
+myproj_skew <- bind_data_biallelic(myproj_skew, df = mysim_skew$data, ID_col = 1, pop_col = 2)
+```
+
+Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution, so our model will be appropriate for the data. Then we can run the MCMC as normal:
+
+```{r}
+# define parameter set with skewed prior
+myproj_skew <- new_set(myproj_skew, name = "skew allele freqs", COI_model = "poisson",
+                       COI_max = 20, estimate_COI_mean = TRUE, lambda = c(7,1))
+
+# run the MCMC
+myproj_skew <- run_mcmc(myproj_skew, K = 3, burnin = 1e4, converge_test = 1e2,
+                          samples = 1e4, pb_markdown =  TRUE)
+```
+
+After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:
+
+```{r, fig.height=2, fig.width=8}
+# structure plot
+plot_structure(myproj_skew, K = 3, divide_ind_on = TRUE)
+```
+
+We can see immediately that the model has struggled to pull apart the population structure. This is due to there being less information in 24 loci with skewed allele frequencies than in 24 loci with evenly spread allele frequencies.
+
+Plotting credible intervals of posterior allele frequencies and overlaying the true simulated values (as demonstrated in the previous tutorial) we see that the model has estimated the allele frequencies well:
+
+```{r, fig.height=3, fig.width=6}
+# get group order
+group_order_k3 <- get_group_order(myproj_skew, K = 3, target_group = mysim_skew$true_group)
+
+# loop through subpopulations
+for (i in 1:3) {
+  
+  # produce plot of posterior allele frequencies for this subpopulation
+  posterior_p <- plot_p(myproj_skew, K = 3, deme = i)
+  
+  # get true simulated allele frequencies for this subpopulation
+  sim_p <- mapply(function(x){x[group_order_k3[i],1]}, mysim_skew$true_p)
+  
+  # overlay true allele frequencies onto plot
+  posterior_p <- posterior_p + geom_point(aes(x = 1:24, y = sim_p), col = "red", shape = 4)
+  print(posterior_p)
+}
+```
+
+If we had used a uniform prior then the posterior allele frequencies would have been slightly biased towards the middle, although the overall inferred population structure would probably have been similar.
 
 
 ### Missing data and errors

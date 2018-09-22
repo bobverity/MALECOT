@@ -24,7 +24,7 @@ bool Parameters::silent;
 
 // model parameters
 std::vector<std::vector<double>> Parameters::lambda;
-bool Parameters::lambda_scalar;
+int Parameters::lambda_type;
 int Parameters::COI_model;
 int Parameters::COI_max;
 std::vector<int> Parameters::COI_manual;
@@ -57,10 +57,13 @@ Parameters::Parameters(const Rcpp::List &args) {
   silent = rcpp_to_bool(args["silent"]);
   
   // model parameters
-  lambda_scalar = rcpp_to_bool(args["lambda_scalar"]);
-  if (lambda_scalar) {
+  lambda_type = rcpp_to_int(args["lambda_type"]);
+  if (lambda_type == 1) {
     lambda = vector<vector<double>>(1, vector<double>(1));
     lambda[0][0] = rcpp_to_double(args["lambda"]);
+  } else if (lambda_type == 2) {
+    lambda = vector<vector<double>>(1, rcpp_to_vector_double(args["lambda"]));
+    //lambda[0][0] = rcpp_to_double(args["lambda"]);
   } else {
     lambda = rcpp_to_mat_double(args["lambda"]);
   }

@@ -15,8 +15,7 @@ plot_prior_COI(COI_model = "poisson", COI_mean = 3, COI_dispersion = 2,
 that this parameter only applies under the "poisson" and "nb" models}
 
 \item{COI_dispersion}{the ratio of the variance to the mean of the prior on
-COI. Only applies under the negative binomial model. Must be >1, as a ratio
-of 1 can be achieved by using the Poisson distribution}
+COI. Only applies under the negative binomial model. Must be >1}
 
 \item{COI_max}{the maximum COI allowed. Distributions are truncated at this
 value}
@@ -27,17 +26,18 @@ Produce plot of the prior on COI for given parameters. Options
   negative binomial distribution (see details).
 }
 \details{
-The prior on COI can be uniform, Poisson, or negative binomial. In
+The prior on COI can be uniform, Poisson, or negative binomial. In 
   the uniform case there is an equal chance of any given sample having a COI 
   between 1 and \code{COI_max} (inclusive). In the Poisson and negative 
   binomial cases it is important to note that the distribution is over 
   (COI-1), rather than over COI. This is because both Poisson and negative 
   binomial distributions allow for 0 values, which cannot be the case here 
-  because observed samples must contain at least 1 genotype.
+  because observed samples must contain at least 1 genotype. Poisson and
+  negative binomial distributions are also truncated at \code{COI_max}.
 
   The full probability mass distribution for the Poisson case with 
   \code{COI_mean}\eqn{ = \mu} and \code{COI_max}\eqn{ = M} can be written
-  \deqn{ Pr(COI=n) = z (\mu-1)^(n-1) exp(-(\mu-1)) / (n-1)! } where \eqn{z}
+  \deqn{ Pr(COI = n) = z (\mu-1)^(n-1) exp(-(\mu-1)) / (n-1)! } where \eqn{z}
   is a normalising constant that ensures the distribution sums to unity, and
   is defined as: \deqn{1/z = \sum_{i=1}^M (\mu-1)^(i-1) exp(-(\mu-1)) /
   (i-1)! }
@@ -48,7 +48,7 @@ The prior on COI can be uniform, Poisson, or negative binomial. In
 
   The full probability mass distribution for the negative binomial case with 
   \code{COI_mean}\eqn{ = \mu}, \code{COI_dispersion}\eqn{ = v/\mu} and 
-  \code{COI_max}\eqn{ = M} can be written \deqn{ Pr(COI=n) = z 
+  \code{COI_max}\eqn{ = M} can be written \deqn{ Pr(COI = n) = z 
   \Gamma(n-1+N)/( \Gamma(N)(n-1)! ) p^N (1-p)^(n-1) } where \eqn{N =
   (\mu-1)^2/(v-\mu+1)}, \eqn{p = (\mu-1)/v}, and \eqn{z} is a normalising 
   constant that ensures the distribution sums to unity, and is defined as: 

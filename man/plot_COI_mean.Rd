@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_COI_mean}
 \alias{plot_COI_mean}
-\title{Plot COI_mean 95% credible intervals}
+\title{Plot COI_mean 95\% credible intervals}
 \usage{
 plot_COI_mean(project, K = NULL, ...)
 }
@@ -15,7 +15,7 @@ plot_COI_mean(project, K = NULL, ...)
 \item{...}{TODO}
 }
 \description{
-Plot COI_mean 95% credible intervals of current active set
+Plot COI_mean 95\% credible intervals of current active set
 }
 \details{
 TODO

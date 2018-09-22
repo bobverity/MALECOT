@@ -181,9 +181,9 @@ meaning all COIs will be esimated</p></td>
       <th>estimate_COI_mean</th>
       <td><p>whether the mean COI should be estimated for each 
 subpopulation as part of the MCMC, otherwise the value <code>COI_mean</code> is 
-used for all subpopulations. Defaults to <code>TRUE</code>. Note that mean COI
-estimation is only possible under the "poisson" and "nb" models (see
-<code>COI_model</code>)</p></td>
+used for all subpopulations. Defaults to <code>TRUE</code>. Note that mean COI 
+estimation is only possible under the Poisson and negative binomial models
+(see <code>COI_model</code>)</p></td>
     </tr>
     <tr>
       <th>COI_mean</th>
@@ -192,11 +192,14 @@ subpopulations (see <code>estimate_COI_mean</code> above)</p></td>
     </tr>
     <tr>
       <th>COI_dispersion</th>
-      <td><p>must be &gt; 1</p></td>
+      <td><p>the ratio of the variance to the mean of the prior on
+COI. Only applies under the negative binomial model. Must be &gt;1, as a ratio
+of 1 can be achieved by using the Poisson distribution</p></td>
     </tr>
     <tr>
       <th>estimate_error</th>
-      <td><p>TODO</p></td>
+      <td><p>whether to estimate error probabilities <code>e1</code> and
+<code>e2</code></p></td>
     </tr>
     <tr>
       <th>e1</th>

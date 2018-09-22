@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_loglike}
 \alias{plot_loglike}
-\title{Plot loglikelihood 95% credible intervals}
+\title{Plot loglikelihood 95\% credible intervals}
 \usage{
 plot_loglike(project, K = NULL, axis_type = 1, connect_points = FALSE,
   connect_whiskers = FALSE)
@@ -21,5 +21,5 @@ beta, 3 = values of beta raised to the GTI power}
 \item{connect_whiskers}{whether to connect points at the ends of the whiskers}
 }
 \description{
-Plot loglikelihood 95% credible intervals of current active set
+Plot loglikelihood 95\% credible intervals of current active set
 }

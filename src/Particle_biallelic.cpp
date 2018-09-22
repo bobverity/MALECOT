@@ -185,8 +185,10 @@ void Particle_biallelic::reset() {
 //------------------------------------------------
 // get lambda value for locus i, allele j
 double Particle_biallelic::get_lambda(int i, int j) {
-  if (lambda_scalar) {
+  if (lambda_type == 1) {
     return lambda[0][0];
+  } else if (lambda_type == 2) {
+    return lambda[0][j];
   } else {
     return lambda[i][j];
   }

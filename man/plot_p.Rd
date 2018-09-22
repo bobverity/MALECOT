@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_p}
 \alias{plot_p}
-\title{Plot allele frequency 95% credible intervals}
+\title{Plot allele frequency 95\% credible intervals}
 \usage{
 plot_p(project, K = NULL, deme = 1, ...)
 }
@@ -17,7 +17,7 @@ plot_p(project, K = NULL, deme = 1, ...)
 \item{...}{TODO}
 }
 \description{
-Plot allele frequency 95% credible intervals of current active set
+Plot allele frequency 95\% credible intervals of current active set
 }
 \details{
 TODO

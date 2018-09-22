@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Plot COI_mean 95% credible intervals — plot_COI_mean • MALECOT</title>
+<title>Plot prior on COI — plot_prior_COI • MALECOT</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -28,9 +28,11 @@
 
 
 
-<meta property="og:title" content="Plot COI_mean 95% credible intervals — plot_COI_mean" />
+<meta property="og:title" content="Plot prior on COI — plot_prior_COI" />
 
-<meta property="og:description" content="Plot COI_mean 95% credible intervals of current active set" />
+<meta property="og:description" content="Produce plot of the prior on COI for given parameters. Options
+  include the uniform distribution, and a modified form of Poisson and
+  negative binomial distribution (see details)." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -118,45 +120,79 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Plot COI_mean 95% credible intervals</h1>
+    <h1>Plot prior on COI</h1>
     
-    <div class="hidden name"><code>plot_COI_mean.Rd</code></div>
+    <div class="hidden name"><code>plot_prior_COI.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Plot COI_mean 95% credible intervals of current active set</p>
+    <p>Produce plot of the prior on COI for given parameters. Options
+  include the uniform distribution, and a modified form of Poisson and
+  negative binomial distribution (see details).</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>plot_COI_mean</span>(<span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>plot_prior_COI</span>(<span class='kw'>COI_model</span> <span class='kw'>=</span> <span class='st'>"poisson"</span>, <span class='kw'>COI_mean</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>COI_dispersion</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>COI_max</span> <span class='kw'>=</span> <span class='fl'>20</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>project</th>
-      <td><p>a MALECOT project, as produced by the function 
-<code><a href='malecot_project.html'>malecot_project()</a></code></p></td>
+      <th>COI_model</th>
+      <td><p>the type of prior on COI. Must be one of "uniform", 
+"poisson", or "nb" (negative binomial)</p></td>
     </tr>
     <tr>
-      <th>K</th>
-      <td><p>TODO</p></td>
+      <th>COI_mean</th>
+      <td><p>the prior mean (before truncating at <code>COI_max</code>). Note 
+that this parameter only applies under the "poisson" and "nb" models</p></td>
     </tr>
     <tr>
-      <th>...</th>
-      <td><p>TODO</p></td>
+      <th>COI_dispersion</th>
+      <td><p>the ratio of the variance to the mean of the prior on
+COI. Only applies under the negative binomial model. Must be &gt;1</p></td>
+    </tr>
+    <tr>
+      <th>COI_max</th>
+      <td><p>the maximum COI allowed. Distributions are truncated at this
+value</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>TODO</p>
+    <p>The prior on COI can be uniform, Poisson, or negative binomial. In 
+  the uniform case there is an equal chance of any given sample having a COI 
+  between 1 and <code>COI_max</code> (inclusive). In the Poisson and negative 
+  binomial cases it is important to note that the distribution is over 
+  (COI-1), rather than over COI. This is because both Poisson and negative 
+  binomial distributions allow for 0 values, which cannot be the case here 
+  because observed samples must contain at least 1 genotype. Poisson and
+  negative binomial distributions are also truncated at <code>COI_max</code>.</p>
+<p>The full probability mass distribution for the Poisson case with 
+  <code>COI_mean</code>\( = \mu\) and <code>COI_max</code>\( = M\) can be written
+  $$ Pr(COI = n) = z (\mu-1)^(n-1) exp(-(\mu-1)) / (n-1)! $$ where \(z\)
+  is a normalising constant that ensures the distribution sums to unity, and
+  is defined as: $$1/z = \sum_{i=1}^M (\mu-1)^(i-1) exp(-(\mu-1)) /
+  (i-1)! $$</p>
+<p>The mean of this distribution will generally be very close to \(\mu\),
+  and the variance will be close to \(\mu-1\) (strictly it will approach
+  these values as \(M\) tends to infinity).</p>
+<p>The full probability mass distribution for the negative binomial case with 
+  <code>COI_mean</code>\( = \mu\), <code>COI_dispersion</code>\( = v/\mu\) and 
+  <code>COI_max</code>\( = M\) can be written $$ Pr(COI = n) = z 
+  \Gamma(n-1+N)/( \Gamma(N)(n-1)! ) p^N (1-p)^(n-1) $$ where \(N =
+  (\mu-1)^2/(v-\mu+1)\), \(p = (\mu-1)/v\), and \(z\) is a normalising 
+  constant that ensures the distribution sums to unity, and is defined as: 
+  $$1/z = \sum_{i=1}^M \Gamma(i-1+N)/( \Gamma(N)(i-1)! ) p^N (1-p)^(i-1) 
+  $$</p>
+<p>The mean of this distribution will generally be very close to \(\mu\) and
+  the variance will be close to \(v\) (strictly it will approach these 
+  values as \(M\) tends to infinity).</p>
     
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'># TODO
-</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -164,9 +200,7 @@
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#details">Details</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+          </ul>
 
   </div>
 </div>

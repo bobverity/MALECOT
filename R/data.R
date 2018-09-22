@@ -41,9 +41,7 @@
 #'   applies under the Poisson and negative binomial models (under the uniform
 #'   model the mean is \code{(COI_max+1)/2} by definition)
 #' @param COI_dispersion Only used under the negative binomial model. Defines
-#'   how much larger the variance is than the mean. Must be > 1, otherwise
-#'   should opt for Poisson distribution where the mean and variance are the
-#'   same
+#'   how much larger the variance is than the mean. Must be > 1
 #' @param e1 the probability of a true homozygote being incorrectly called as a
 #'   heterozygote
 #' @param e2 the probability of a true heterozygote being incorrectly called as a

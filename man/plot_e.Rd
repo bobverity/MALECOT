@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_e}
 \alias{plot_e}
-\title{Plot error rate 95% credible intervals}
+\title{Plot error rate 95\% credible intervals}
 \usage{
 plot_e(project, K = NULL, ...)
 }
@@ -15,7 +15,7 @@ plot_e(project, K = NULL, ...)
 \item{...}{TODO}
 }
 \description{
-Plot error rate 95% credible intervals of current active set
+Plot error rate 95\% credible intervals of current active set
 }
 \details{
 TODO
