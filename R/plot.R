@@ -615,6 +615,11 @@ plot_e <- function(project, K = NULL, ...) {
   # produce quantile plot
   plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$e_intervals)
   
+  # set limits based on e1_max and e2_max
+  e1_max <- project$parameter_sets[[s]]$e1_max
+  e2_max <- project$parameter_sets[[s]]$e2_max
+  plot1 <- plot1 + scale_y_continuous(limits = c(0,max(e1_max, e2_max)), expand = c(0,0))
+  
   # return plot object
   return(plot1)
 }
