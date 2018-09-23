@@ -9,4 +9,101 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-(In development)
+```{r, echo=FALSE}
+set.seed(1)
+library(MALECOT)
+```
+
+## Heading 2
+
+### Heading 3
+
+Simulate some data
+
+```{r}
+mysim <- sim_data(n = 100, L = 10, K = 5, data_format = "multiallelic", alleles = 5)
+head(mysim$data)
+```
+
+Bind data to a project. Note - good idea to specify number of alleles here
+
+```{r}
+myproj <- malecot_project()
+myproj <- bind_data_multiallelic(myproj, df = mysim$data, alleles = 5)
+```
+
+Create parameter set
+
+```{r}
+myproj <- new_set(myproj, name = "tutorial multiallelic", COI_model = "nb", COI_max = 20,
+                  estimate_COI_mean = TRUE, COI_dispersion = 2, lambda = 1,
+                  estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
+```
+
+Run mcmc
+
+```{r}
+myproj <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e4, pb_markdown =  TRUE)
+```
+
+Check behaviour
+
+```{r, fig.height=5, fig.width=8}
+plot_loglike_dignostic(myproj, K = NULL)
+get_ESS(myproj, K = NULL)
+```
+
+This is one the edge of OK.
+
+
+## Plot results
+
+```{r, fig.height=2, fig.width=8}
+# structure plot
+plot_structure(myproj, K = NULL, divide_ind_on = TRUE)
+```
+
+```{r, fig.height=4, fig.width=8}
+# load ggplot2 package
+library(ggplot2)
+
+# produce plot of posterior COIs
+posterior_COI <- plot_COI(myproj, K = NULL)
+
+# overlay true COI values
+posterior_COI <- posterior_COI + geom_point(aes(x = 1:100, y = mysim$true_m), col = "red", shape = 4)
+posterior_COI
+```
+
+Posterior allele frequencies
+
+```{r, fig.height=4, fig.width=8}
+# get group order
+group_order_k3 <- get_group_order(myproj, K = 5, target_group = mysim$true_group)
+
+# produce plot of posterior allele frequencies for this subpopulation
+posterior_p <- plot_p(myproj, K = NULL, deme = 1)
+
+# get true simulated allele frequencies for this subpopulation
+sim_p <- mapply(function(x){x[group_order_k3[1], ]}, mysim$true_p, SIMPLIFY = FALSE)
+
+# get plotting results into dataframe
+df <- data.frame(locus = rep(1:10, each = 5),
+                 p = unlist(sim_p),
+                 allele = rep(1:5, 10))
+
+# overlay true allele frequencies onto plot
+posterior_p <- posterior_p + geom_point(aes(x = locus, y = p, group = allele), data = df,
+                                        position = position_dodge(width = 0.9), col = "red", shape = 4)
+
+posterior_p
+```
+
+## Priors
+
+
+```{r, fig.height=4, fig.width=8}
+plot_prior_p(lambda = c(1,5,2,3,4))
+plot_prior_p(lambda = c(1,5,2,3,4)*10)
+```

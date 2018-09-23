@@ -184,6 +184,7 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, a
   # check inputs
   assert_custom_class(project, "malecot_project")
   assert_dataframe(df)
+  n <- nrow(df)
   pop <- define_default(pop, rep(1,n))
   assert_pos_int(pop)
   assert_length(pop,n)

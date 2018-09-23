@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tutorial 2: more realistic models • MALECOT</title>
-<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 2: more realistic models">
@@ -91,7 +91,7 @@
       <h1>Tutorial 2: more realistic models</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-22</h4>
+            <h4 class="date">2018-09-23</h4>
       
       
       <div class="hidden name"><code>complex-priors.Rmd</code></div>
@@ -166,10 +166,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.11998 seconds
+##    completed in 3.30109 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.69 seconds</code></pre>
+<pre><code>## Total run-time: 3.91 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -215,7 +215,7 @@ mysim_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference/
 <span class="co"># load data into a new project</span>
 myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
 myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj_skew, <span class="dt">df =</span> mysim_skew$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
-<p>Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution, so in this example our model will exactly match the data. Then we run the MCMC as normal:</p>
+<p>Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution, so in this example our model will exactly match the data. We run the MCMC as normal:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># define parameter set with skewed prior</span>
 myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj_skew, <span class="dt">name =</span> <span class="st">"skew allele freqs"</span>, <span class="dt">COI_model =</span> <span class="st">"poisson"</span>,
                        <span class="dt">COI_max =</span> <span class="dv">20</span>, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>, <span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">7</span>,<span class="dv">1</span>))
@@ -233,10 +233,10 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.14461 seconds
+##    completed in 2.23059 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.51 seconds</code></pre>
+<pre><code>## Total run-time: 2.62 seconds</code></pre>
 <p>After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj_skew, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -304,7 +304,7 @@ myproj_errors</code></pre></div>
 ## PARAMETER SETS:
 ##    (none defined)</code></pre>
 <p>Looking at this output we can see that the project has correctly registered 20% of the data as missing.</p>
-<p>For the model, we will assume a maximum value of 0.2 in both <code>e1</code> and <code>e2</code>. It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code>, for example values of <code>1.0</code> are usually inappropriate as we (hopefully) do not expect all of our data to be mistakes! We then run the MCMC as usual:</p>
+<p>For the model, we will assume a maximum value of 0.2 for both <code>e1</code> and <code>e2</code>. It is recommended to use sensible values for <code>e1_max</code> and <code>e2_max</code>, for example values of <code>1.0</code> are usually inappropriate as we (hopefully) do not expect all of our data to be mistakes! We then run the MCMC as usual:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create new parameter set</span>
 myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj_errors, <span class="dt">name =</span> <span class="st">"errors"</span>, <span class="dt">COI_model =</span> <span class="st">"poisson"</span>,
                          <span class="dt">COI_max =</span> <span class="dv">20</span>, <span class="dt">estimate_COI_mean =</span> <span class="ot">TRUE</span>,
@@ -322,14 +322,14 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.3395 seconds
+##    completed in 3.67714 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.69 seconds</code></pre>
+<pre><code>## Total run-time: 4.05 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>
-<p><img src="complex-priors_files/figure-html/unnamed-chunk-21-1.png" width="576"></p>
+<p><img src="complex-priors_files/figure-html/unnamed-chunk-21-1.png" width="384"></p>
 <p>In this example the model has been able to correctly infer the error rates from the data. To help get an intuition as to how the model is able to do this, imagine a situation in which every locus in a given sample is homozygous apart from one which is heterozygous. There are two possibilities here: 1) the heterozygous locus is due to that sample having COI of 2 and being homozygous everywhere else by chance, 2) the heterozygous call is an error and the sample actually has COI of 1. The probability of being homozygous at every other locus by pure chance may be very small if the allele frequencies are intermediate, in which case the weight of evidence is in favour of it being an error. The model considers all possibilities in proportion to their likelihood, and weighted by our prior beliefs, to arrive at the posterior distributions above.</p>
 <p>The <a href="https://bobverity.github.io/MALECOT/articles/tutorial-multiallelic.html">next tutorial</a> explores how the analysis pipeline differs when using multi-allelic data.</p>
 </div>

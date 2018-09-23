@@ -338,6 +338,7 @@ plot.malecot_COI_intervals <- function(x, y, ...) {
   plot1 <- ggplot(df) + theme_bw()
   plot1 <- plot1 + geom_segment(aes_(x = ~1:n, y = ~Q2.5, xend = ~1:n, yend = ~Q97.5))
   plot1 <- plot1 + geom_point(aes_(x = ~1:n, y = ~Q50))
+  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(df$Q97.5)*1.1), expand = c(0,0))
   plot1 <- plot1 + xlab("sample") + ylab("COI")
   
   # return plot object

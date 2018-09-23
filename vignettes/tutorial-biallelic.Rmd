@@ -121,7 +121,7 @@ Before diving into results, it is important to check that our MCMC has behaved a
 
 We can explore the estimated log-likelihood values through a series of diagnostic plots:
 
-```{r}
+```{r, fig.height=5, fig.width=8}
 plot_loglike_dignostic(myproj, K = 3)
 ```
 

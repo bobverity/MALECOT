@@ -143,7 +143,7 @@ myproj_skew <- malecot_project()
 myproj_skew <- bind_data_biallelic(myproj_skew, df = mysim_skew$data, ID_col = 1, pop_col = 2)
 ```
 
-Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution, so in this example our model will exactly match the data. Then we run the MCMC as normal:
+Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution, so in this example our model will exactly match the data. We run the MCMC as normal:
 
 ```{r}
 # define parameter set with skewed prior
@@ -213,7 +213,7 @@ myproj_errors
 
 Looking at this output we can see that the project has correctly registered 20% of the data as missing.
 
-For the model, we will assume a maximum value of 0.2 in both `e1` and `e2`. It is recommended to use sensible values for `e1_max` and `e2_max`, for example values of `1.0` are usually inappropriate as we (hopefully) do not expect all of our data to be mistakes! We then run the MCMC as usual:
+For the model, we will assume a maximum value of 0.2 for both `e1` and `e2`. It is recommended to use sensible values for `e1_max` and `e2_max`, for example values of `1.0` are usually inappropriate as we (hopefully) do not expect all of our data to be mistakes! We then run the MCMC as usual:
 
 ```{r}
 # create new parameter set
@@ -227,7 +227,7 @@ myproj_errors <- run_mcmc(myproj_errors, K = 3, burnin = 1e4, converge_test = 1e
 
 After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of `e1` and `e2`:
 
-```{r, fig.height=3, fig.width=6}
+```{r, fig.height=3, fig.width=4}
 plot_e(myproj_errors)
 ```
 

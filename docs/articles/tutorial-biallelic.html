@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tutorial: bi-allelic data • MALECOT</title>
-<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial: bi-allelic data">
@@ -91,7 +91,7 @@
       <h1>Tutorial: bi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-22</h4>
+            <h4 class="date">2018-09-23</h4>
       
       
       <div class="hidden name"><code>tutorial-biallelic.Rmd</code></div>
@@ -210,7 +210,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.785069 seconds
+##    completed in 0.844777 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -222,7 +222,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.50374 seconds
+##    completed in 1.65272 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -234,7 +234,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.99389 seconds
+##    completed in 2.07649 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -246,7 +246,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.4745 seconds
+##    completed in 2.64359 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -258,10 +258,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.94466 seconds
+##    completed in 3.11977 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 12.05 seconds</code></pre>
+<pre><code>## Total run-time: 12.9 seconds</code></pre>
 <p>If any values of <em>K</em> failed to converge then we could use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of <em>K</em> and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of <em>K</em>, but will leave all other values untouched:</p>
 </div>
 <div id="checking-mcmc-behaviour" class="section level3">
@@ -270,7 +270,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <p>Before diving into results, it is important to check that our MCMC has behaved as expected. There are many ways of checking MCMC performace, and here we will focus on only the most simple checks.</p>
 <p>We can explore the estimated log-likelihood values through a series of diagnostic plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="tutorial-biallelic_files/figure-html/unnamed-chunk-12-1.png" width="768"></p>
 <p>The top panel shows a trace plot of the log-likelihood, in other words it shows the value of the log-likelihood at each sampling iteration of the MCMC, and the bottom right panel shows a histogram of these same values. We can see that the log-likelihood has fluctuated around a single stable value, and has bounced around freely enough to cover the same range of values many times over. This indicates that the MCMC has <em>probably</em> explored the space well, although we can never rule out that there might be another “level” of log-likelihood that the MCMC has not found yet. This is one of the many paradoxes of MCMC - we can never be 100% sure that an MCMC has completely explored the space, we can only diagnose if it definitly <em>hasn’t</em> explored the space well. In other words, when looking at these plots we are looking for tell-tale signs of <em>bad</em> MCMC behaviour, such as jumping sporadically between levels or moving very slowly through a range of values.</p>
 <p>The bottom left panel shows the level of autocorrelation in the trace plot for different degrees of separation between points. When autocorrelation approaches zero it means that values are approximately independent - this occurs at around 20 lags here, meaning every 20th draw is approximately independent. The number of <em>independent</em> samples is therefore much smaller than the raw number of samples. We can use the <code><a href="../reference/get_ESS.html">get_ESS()</a></code> function to get at exactly how many effectively independent samples we have:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
