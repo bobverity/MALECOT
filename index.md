@@ -17,5 +17,4 @@ The first two parameters are estimated by programs like [STRUCTURE](https://web.
 
 To get started, take a look at the [installation instructions](https://bobverity.github.io/MALECOT/articles/installation.html), followed by a [basic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) on running the program.
 
-Note - webpage refreshed
 

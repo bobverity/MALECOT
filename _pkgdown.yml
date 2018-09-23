@@ -16,7 +16,7 @@ navbar:
         - text: "Tutorial 2: more realistic models"
           href: articles/complex-priors.html
         - text: "Tutorial 3: multi-allelic data"
-          href: articles/tutorial-multiallelic.html
+          href: articles/multiallelic-data.html
         - text: "Tutorial 4: comparing models"
           href: articles/comparing-models.html
     - text: "Functions"
