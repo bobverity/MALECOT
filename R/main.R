@@ -219,6 +219,7 @@ bind_data_multiallelic <- function(project, df, pop = NULL, missing_data = -9, a
   n <- length(ID)
   
   # check locus column
+  assert_pos_int(df$locus)
   locus_names <- unique(subset(df, df$sample_ID == df$sample_ID[1])$locus)
   L <- length(locus_names)
   good_loci <- mapply(function(x) {

@@ -1,10 +1,10 @@
 ---
-title: "Tutorial 2: more realistic models"
+title: "More realistic models"
 author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 2: more realistic models"}
+  %\VignetteIndexEntry{"More realistic models"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -27,7 +27,7 @@ mysim <- malecot_file("tutorial1_mysim.rds")
 myproj <- malecot_file("tutorial1_myproj.rds")
 ```
 
-### More complex priors on COI
+## More realistic priors on COI
 
 In the previous tutorial we assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIs and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) and the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution).
 
@@ -105,7 +105,7 @@ so <- order(get_group_order(myproj, 3, mysim$true_group))
 Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly these values, but in the wrong order. The seemingly incorrect order of these estimates goes back to the issue of labelling subpopulations mentioned in the previous tutorial. When lined up against the three groups in the structure plot above (which go group`r so[1]` then group`r so[2]` then group`r so[3]`) we can see that mean COI estimates do in fact go from lowest on the left to highest on the right. 
 
 
-### More realistic priors on allele frequencies
+## More realistic priors on allele frequencies
 
 ```{r, echo=FALSE}
 set.seed(1)
@@ -188,7 +188,7 @@ for (i in 1:3) {
 If we had used a uniform prior then the posterior allele frequencies would have been slightly biased towards the middle, although the overall inferred population structure would probably have been similar.
 
 
-### Missing data and errors
+## Missing data and errors
 
 ```{r, echo=FALSE}
 set.seed(1)

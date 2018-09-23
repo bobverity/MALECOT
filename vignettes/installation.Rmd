@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-### Installing Rcpp
+## Installing Rcpp
 
 MALECOT relies on the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) package, which requires the following OS-specific steps:
 
@@ -25,7 +25,7 @@ MALECOT relies on the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.
         sudo apt-get install r-base-dev texlive-full
         ```
 
-### Installing and loading MALECOT
+## Installing and loading MALECOT
 
 Next, in R, ensure that you have the [devtools](https://www.rstudio.com/products/rpackages/devtools/) package installed by running
 

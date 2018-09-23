@@ -19,6 +19,10 @@ navbar:
           href: articles/multiallelic-data.html
         - text: "Tutorial 4: comparing models"
           href: articles/comparing-models.html
+        - text: -------
+        - text: "Advanced topics"
+        - text: "Example article"
+          href: articles/installation.html
     - text: "Functions"
       href: reference/index.html
     - text: "FAQ"

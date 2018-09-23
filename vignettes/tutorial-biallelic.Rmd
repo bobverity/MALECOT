@@ -1,10 +1,10 @@
 ---
-title: "Tutorial: bi-allelic data"
+title: "Bi-allelic data"
 author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Tutorial: bi-allelic data"}
+  %\VignetteIndexEntry{"Bi-allelic data"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -24,7 +24,7 @@ This vignette demonstrates a very basic MALECOT analysis for bi-allelic data, i.
 6. plotting results
 
 
-### Simulate some data
+## Simulate some data
 
 MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations or [demes](https://en.wikipedia.org/wiki/Deme_(biology)). We will assume that the mean complexity of infection (COI) in these three subpopulation varies from 1.2 to 3:
 
@@ -66,7 +66,7 @@ The actual genetic data must be one of the following values
 MALECOT currently does not use within-sample allele frequency data, for example the raw read depth of REF vs. ALT alleles, and hence read depths should be converted to homozygote/heterozygote calls prior to analysis.
 
 
-### Create a project and read in data
+## Create a project and read in data
 
 MALCOT works with projects, which are essentially just simple lists containing all the inputs and outputs of a given analysis. We start by creating a project and loading in our data:
 
@@ -85,7 +85,7 @@ myproj
 
 If there have been mistakes in reading in the data, for example if meta-data columns have not been specified and so have been interpreted as genetic data (a common mistake), then this should be visible at this stage.
 
-### Define parameters and run basic MCMC
+## Define parameters and run basic MCMC
 
 We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and `COI_max` is equally likely *a priori*:
 
@@ -115,7 +115,7 @@ myproj <- readRDS("../inst/extdata/tutorial1_myproj.rds")
 If any values of *K* failed to converge then we could use the same `run_mcmc()` function to re-run the MCMC for just a single value of *K* and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of *K*, but will leave all other values untouched:
 
 
-### Checking MCMC behaviour
+## Checking MCMC behaviour
 
 Before diving into results, it is important to check that our MCMC has behaved as expected. There are many ways of checking MCMC performace, and here we will focus on only the most simple checks.
 
@@ -137,6 +137,8 @@ It is worth keeping this value in mind when looking at trace plots so we are not
 
 These checks should be carried out on each value of *K*, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using [other more sophisticated techniques](todo) to improve mixing.
 
+
+## Plot results
 
 ### Structure plots
 

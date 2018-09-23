@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutorial 2: more realistic models • MALECOT</title>
+<title>More realistic models • MALECOT</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 2: more realistic models">
+<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="More realistic models">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -57,6 +57,11 @@
     <li>
       <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
     </li>
+    <li class="divider">
+    <li class="dropdown-header">Advanced topics</li>
+    <li>
+      <a href="../articles/installation.html">Example article</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -88,7 +93,7 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Tutorial 2: more realistic models</h1>
+      <h1>More realistic models</h1>
                         <h4 class="author">Bob Verity</h4>
             
             <h4 class="date">2018-09-23</h4>
@@ -110,9 +115,9 @@
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load output of previous tutorial</span>
 mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial1_mysim.rds"</span>)
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial1_myproj.rds"</span>)</code></pre></div>
-<div id="more-complex-priors-on-coi" class="section level3">
-<h3 class="hasAnchor">
-<a href="#more-complex-priors-on-coi" class="anchor"></a>More complex priors on COI</h3>
+<div id="more-realistic-priors-on-coi" class="section level2">
+<h2 class="hasAnchor">
+<a href="#more-realistic-priors-on-coi" class="anchor"></a>More realistic priors on COI</h2>
 <p>In the previous tutorial we assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIs and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distribution</a> and the <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution">negative binomial distribution</a>.</p>
 <p>The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed form of Poisson distribution, i.e. it allows for a greater spread of values around the mean. It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected while some are only lightly infected. We can use the parameter <code>COI_dispersion</code> to set the level of over-dispersion - for example, a value of 2 means the prior variance will be twice as large as the prior mean. Note that whatever prior we choose, COIs will still be truncated at <code>COI_max</code>.</p>
 <p>We can explore different shapes of prior using the <code>plot_prior_COI()</code> function:</p>
@@ -166,10 +171,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.13535 seconds
+##    completed in 3.12482 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.73 seconds</code></pre>
+<pre><code>## Total run-time: 3.71 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -190,9 +195,9 @@ posterior_COI</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-9-1.png" width="480"></p>
 <p>Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly these values, but in the wrong order. The seemingly incorrect order of these estimates goes back to the issue of labelling subpopulations mentioned in the previous tutorial. When lined up against the three groups in the structure plot above (which go group3 then group2 then group1) we can see that mean COI estimates do in fact go from lowest on the left to highest on the right.</p>
 </div>
-<div id="more-realistic-priors-on-allele-frequencies" class="section level3">
-<h3 class="hasAnchor">
-<a href="#more-realistic-priors-on-allele-frequencies" class="anchor"></a>More realistic priors on allele frequencies</h3>
+<div id="more-realistic-priors-on-allele-frequencies" class="section level2">
+<h2 class="hasAnchor">
+<a href="#more-realistic-priors-on-allele-frequencies" class="anchor"></a>More realistic priors on allele frequencies</h2>
 <p>The distribution of allele frequencies can be an important factor in determining how much signal there is in the data. If allele frequencies have a narrow range then even subpopulations that are evolutionarily well separated might look similar, and so it becomes difficult to detect population structure. Similarly, if our model expects subpopulations to have very different allele frequencies then it might ignore more subtle differences, tending instead to lump subpopulations together.</p>
 <p>MALECOT assumes a <a href="https://en.wikipedia.org/wiki/Beta_distribution">beta prior</a> on allele frequencies with shape parameter <code>lambda</code>. We have three options when specifying <code>lambda</code>:</p>
 <ol style="list-style-type: decimal">
@@ -233,10 +238,10 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.1546 seconds
+##    completed in 2.12428 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.55 seconds</code></pre>
+<pre><code>## Total run-time: 2.49 seconds</code></pre>
 <p>After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj_skew, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -262,9 +267,9 @@ for (i in <span class="dv">1</span>:<span class="dv">3</span>) {
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-16-1.png" width="576"><img src="complex-priors_files/figure-html/unnamed-chunk-16-2.png" width="576"><img src="complex-priors_files/figure-html/unnamed-chunk-16-3.png" width="576"></p>
 <p>If we had used a uniform prior then the posterior allele frequencies would have been slightly biased towards the middle, although the overall inferred population structure would probably have been similar.</p>
 </div>
-<div id="missing-data-and-errors" class="section level3">
-<h3 class="hasAnchor">
-<a href="#missing-data-and-errors" class="anchor"></a>Missing data and errors</h3>
+<div id="missing-data-and-errors" class="section level2">
+<h2 class="hasAnchor">
+<a href="#missing-data-and-errors" class="anchor"></a>Missing data and errors</h2>
 <p>Real data is rarely without errors. Often true homozygotes will be miscalled as heterozygotes (error 1), and true heterozygotes will be miscalled as homozygotes (error 2). The probabilities of these two types of error can be specified in MALECOT using the arguments <code>e1</code> and <code>e2</code>. We can either use fixed values, or these error probabilities can be estimated by setting <code>estimate_error = TRUE</code>, in which case a uniform prior is assumed ranging from 0 to <code>e1_max</code> for <code>e1</code>, and 0 to <code>e2_max</code> for <code>e2</code>.</p>
 <p>Let us simulate some new data containing errors to test the model in a more challenging setting. We will assume that artificial heterozygotes occur with probability 0.1, and artificial homozygotes with probability 0.05. We will also assume that 20% of the data is missing, and hence encoded as <code>-9</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim_errors &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">e1 =</span> <span class="fl">0.1</span>, <span class="dt">e2 =</span> <span class="fl">0.05</span>, <span class="dt">prop_missing =</span> <span class="fl">0.2</span>)
@@ -322,10 +327,10 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.77549 seconds
+##    completed in 3.45723 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 4.16 seconds</code></pre>
+<pre><code>## Total run-time: 3.81 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>
@@ -336,6 +341,15 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#more-realistic-priors-on-coi">More realistic priors on COI</a></li>
+      <li><a href="#more-realistic-priors-on-allele-frequencies">More realistic priors on allele frequencies</a></li>
+      <li><a href="#missing-data-and-errors">Missing data and errors</a></li>
+      </ul>
+</div>
       </div>
 
 </div>

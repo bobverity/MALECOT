@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutorial: bi-allelic data • MALECOT</title>
+<title>Bi-allelic data • MALECOT</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial: bi-allelic data">
+<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Bi-allelic data">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -57,6 +57,11 @@
     <li>
       <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
     </li>
+    <li class="divider">
+    <li class="dropdown-header">Advanced topics</li>
+    <li>
+      <a href="../articles/installation.html">Example article</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -88,7 +93,7 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Tutorial: bi-allelic data</h1>
+      <h1>Bi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
             <h4 class="date">2018-09-23</h4>
@@ -109,9 +114,9 @@
 <li>checking MCMC behaviour</li>
 <li>plotting results</li>
 </ol>
-<div id="simulate-some-data" class="section level3">
-<h3 class="hasAnchor">
-<a href="#simulate-some-data" class="anchor"></a>Simulate some data</h3>
+<div id="simulate-some-data" class="section level2">
+<h2 class="hasAnchor">
+<a href="#simulate-some-data" class="anchor"></a>Simulate some data</h2>
 <p>MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations or <a href="https://en.wikipedia.org/wiki/Deme_(biology)">demes</a>. We will assume that the mean complexity of infection (COI) in these three subpopulation varies from 1.2 to 3:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">data_format =</span> <span class="st">"biallelic"</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">COI_mean =</span> <span class="kw">c</span>(<span class="fl">1.2</span>,<span class="dv">2</span>,<span class="dv">3</span>))</code></pre></div>
 <p>Running <code>names(mysim)</code> we can see that the simulated data contains several elements:</p>
@@ -153,9 +158,9 @@
 </ul>
 <p>MALECOT currently does not use within-sample allele frequency data, for example the raw read depth of REF vs. ALT alleles, and hence read depths should be converted to homozygote/heterozygote calls prior to analysis.</p>
 </div>
-<div id="create-a-project-and-read-in-data" class="section level3">
-<h3 class="hasAnchor">
-<a href="#create-a-project-and-read-in-data" class="anchor"></a>Create a project and read in data</h3>
+<div id="create-a-project-and-read-in-data" class="section level2">
+<h2 class="hasAnchor">
+<a href="#create-a-project-and-read-in-data" class="anchor"></a>Create a project and read in data</h2>
 <p>MALCOT works with projects, which are essentially just simple lists containing all the inputs and outputs of a given analysis. We start by creating a project and loading in our data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
@@ -173,9 +178,9 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ##    (none defined)</code></pre>
 <p>If there have been mistakes in reading in the data, for example if meta-data columns have not been specified and so have been interpreted as genetic data (a common mistake), then this should be visible at this stage.</p>
 </div>
-<div id="define-parameters-and-run-basic-mcmc" class="section level3">
-<h3 class="hasAnchor">
-<a href="#define-parameters-and-run-basic-mcmc" class="anchor"></a>Define parameters and run basic MCMC</h3>
+<div id="define-parameters-and-run-basic-mcmc" class="section level2">
+<h2 class="hasAnchor">
+<a href="#define-parameters-and-run-basic-mcmc" class="anchor"></a>Define parameters and run basic MCMC</h2>
 <p>We can define different models by using different parameter sets. Our first parameter set will represent a simple model in which any COI between 1 and <code>COI_max</code> is equally likely <em>a priori</em>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"uniform model"</span>, <span class="dt">COI_model =</span> <span class="st">"uniform"</span>, <span class="dt">COI_max =</span> <span class="dv">20</span>)</code></pre></div>
 <p>Viewing the project we can now see additional properties, including the current active set and the parameters of this set:</p>
@@ -210,7 +215,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.897841 seconds
+##    completed in 0.796394 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -222,7 +227,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.62033 seconds
+##    completed in 1.52451 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -234,7 +239,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.19111 seconds
+##    completed in 2.02567 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -246,7 +251,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.70807 seconds
+##    completed in 2.65087 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -258,15 +263,15 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.24913 seconds
+##    completed in 3.16741 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 13.18 seconds</code></pre>
+<pre><code>## Total run-time: 12.66 seconds</code></pre>
 <p>If any values of <em>K</em> failed to converge then we could use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of <em>K</em> and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of <em>K</em>, but will leave all other values untouched:</p>
 </div>
-<div id="checking-mcmc-behaviour" class="section level3">
-<h3 class="hasAnchor">
-<a href="#checking-mcmc-behaviour" class="anchor"></a>Checking MCMC behaviour</h3>
+<div id="checking-mcmc-behaviour" class="section level2">
+<h2 class="hasAnchor">
+<a href="#checking-mcmc-behaviour" class="anchor"></a>Checking MCMC behaviour</h2>
 <p>Before diving into results, it is important to check that our MCMC has behaved as expected. There are many ways of checking MCMC performace, and here we will focus on only the most simple checks.</p>
 <p>We can explore the estimated log-likelihood values through a series of diagnostic plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
@@ -279,6 +284,9 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 <p>It is worth keeping this value in mind when looking at trace plots so we are not fooled by large numbers of iterations. If our ESS is very small (tens to hundreds) then we are extremely unlikely to have explored the full model space, even if the raw number of sampling iterations is in the millions.</p>
 <p>These checks should be carried out on each value of <em>K</em>, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using <a href="todo">other more sophisticated techniques</a> to improve mixing.</p>
 </div>
+<div id="plot-results" class="section level2">
+<h2 class="hasAnchor">
+<a href="#plot-results" class="anchor"></a>Plot results</h2>
 <div id="structure-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#structure-plots" class="anchor"></a>Structure plots</h3>
@@ -331,9 +339,21 @@ for (i in <span class="dv">1</span>:<span class="dv">3</span>) {
 <p>We can see that the MCMC has done a good job of estimating allele frequencies in all three subpopulations.</p>
 <p>In the <a href="https://bobverity.github.io/MALECOT/articles/complex-priors.html">next tutorial</a> we will look at ways of adding realism to the model through more complex priors.</p>
 </div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#simulate-some-data">Simulate some data</a></li>
+      <li><a href="#create-a-project-and-read-in-data">Create a project and read in data</a></li>
+      <li><a href="#define-parameters-and-run-basic-mcmc">Define parameters and run basic MCMC</a></li>
+      <li><a href="#checking-mcmc-behaviour">Checking MCMC behaviour</a></li>
+      <li><a href="#plot-results">Plot results</a></li>
+      </ul>
+</div>
       </div>
 
 </div>
