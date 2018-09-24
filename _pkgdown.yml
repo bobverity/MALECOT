@@ -17,7 +17,7 @@ navbar:
           href: articles/complex-priors.html
         - text: "Tutorial 3: multi-allelic data"
           href: articles/multiallelic-data.html
-        - text: "Tutorial 4: comparing models"
+        - text: "Tutorial 4: comparing models (estimating K)"
           href: articles/comparing-models.html
         - text: -------
         - text: "Advanced topics"
