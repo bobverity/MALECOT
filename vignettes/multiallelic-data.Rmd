@@ -14,7 +14,7 @@ set.seed(3)
 library(MALECOT)
 ```
 
-This vignette demonstrates how MALECOT analysis differs for multi-allelic data, i.e. data for which there are more than two alleles at some loci. It covers:
+This vignette demonstrates the MALECOT analysis pipeline for multi-allelic data, i.e. data for which there are more than two alleles at a locus. It covers:
 
 1. how multi-allelic format differs from bi-allelic format
 2. binding multi-allelic data to a project and running a basic MCMC
@@ -22,61 +22,86 @@ This vignette demonstrates how MALECOT analysis differs for multi-allelic data, 
 4. plotting results
 5. more realistic priors on multi-allelic allele frequencies
 
-This tutorial assumes some prior knowledge about MALECOT - if you are new to the program we recommend working through the simpler [bi-allelic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) first.
+This tutorial assumes some prior knowledge about MALECOT, so if you are completely new to the program we recommend working through the simpler [bi-allelic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) first.
 
 ## Loading and running multi-allelic data
 
-The data format that we used previously for the bi-allelic case cannot be used for multi-allelic data, because now we can observe more than just homozygous and heterozygous calls at a locus. Instead, if there are *J* alleles at a locus then we can observe any subset of these alleles, ranging from just a single allele to all *J* alleles. MALECOT accommodates this by reading in data in long format.
+The bi-allelic data format used in previous tutorials cannot be used for multi-allelic data because now we can observe more than just homozygous and heterozygous calls at a locus. Instead, if there are *J* alleles at a locus then we can observe any subset of these alleles, ranging from just a single allele to all *J* alleles. MALECOT accommodates this by reading in data in long format.
 
-The easiest way to understand long format is to simulate some multi-allelic data. This can be done using the standard `sim_data()` function but with the argument `data_format = "multiallelic"`. As before, there are many elements that make up this simulated data including records of the true values used in simulation, but here we are only interested in the "data" element. Here we will draw data from 5 subpopulations covering a range of mean COIs from 1 to 5. We will assume that we have sequenced the samples at 10 loci, with each locus having 5 possible alleles. Finally, we will assume 10% missing data so we can see what this looks like:
+The easiest way to understand long format is to simulate some multi-allelic data. This can be done using the standard `sim_data()` function but with the argument `data_format = "multiallelic"`. As before, there are many elements that make up this simulated data including records of the true values used in simulation, but here we are only interested in the "data" element. Here we will draw data from 5 subpopulations covering a range of mean COIs from 1 to 5. We will assume that we have sequenced the samples at 10 loci, with each locus having 5 possible alleles. Finally, we will assume 10% missing data so we can see what missing data looks like in long format:
 
 ```{r}
 mysim <- sim_data(data_format = "multiallelic", n = 100, L = 10, K = 5, COI_mean = 1:5,
                   alleles = 5, prop_missing = 0.1)
 ```
+
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(mysim, file = "../inst/extdata/tutorial3_mysim.rds")
 mysim <- readRDS("../inst/extdata/tutorial3_mysim.rds")
 ```
+
 ```{r}
 head(mysim$data)
 ```
 
-We can see that long format data has three columns consisting of the sample ID, the locus, and the observed haplotype (the column names must match those shown above). The locus column must contain positive integer values starting at 1, meaning if loci are encoded as character strings then they must be converted to integers first. The same is true for haplotypes, which must be encoded as positive integers starting at 1, or as missing data.
+We can see that multi-allelic data has three columns, consisting of the sample ID, the locus, and the observed haplotype - the column names must match those shown above. The locus column must contain positive integer values starting at 1, meaning if loci are encoded as character strings then they must be converted to integers first. The same is true for haplotypes, which must be encoded as positive integers starting at 1 or as missing data.
 
-Every locus must be represented in every sample, although but can be inserted using missing data. In the example above there was sequencing failure in sample001 at loci 2 and 3, but this sample still has entries for all 10 loci, we just use missing data instead of observed haplotypes.
+Every locus must be represented in every sample - there can be no missing loci. Instead we can use the missing data character (-9 by default) to insert gaps in the data as needed. For example, in the simulated data above there is missing data in sample001 at loci 2 and 3, but this sample still has entries for all 10 loci rather than leaving these rows out entirely.
 
-Next we need to create a new project and bind the data, this time using the `bind_data_multiallelic()` function. When binding the data we have the option of specifying the number of alleles at each locus, or if this option is unspecified then the program uses the maximum observed value at that locus. For example, imagine that we sequence 10 samples at a highly diverse locus which we know from previous work to have 8 possible alleles. With such a small sample it is quite possible that we will only observe the first 5 alleles by chance. If we bind the data without the `alleles` argument then the model will assume 5 alleles at this locus, whereas if we use the `alleles` argument we can tell the model that there are 8 alleles and some were simply missed. This option is perhaps not so important when using real data, as we rarely know the number of alleles *a priori*, but it becomes very important when testing the power of the program on simulated data.
+Once we have data in the correct format we need to create a new project and bind the data to the project using the `bind_data_multiallelic()` function. When binding data we have the option of specifying the number of alleles at each locus, or if this option is unspecified then the program uses the maximum observed value at that locus by default. This can give slightly different results, for example, imagine that we sequence 10 samples at a highly diverse locus which we know from previous work to have 8 possible alleles. With such a small sample it is quite possible that we will only observe the first 5 alleles by chance. If we bind the data without the `alleles` argument then the model will assume 5 alleles at this locus, whereas if we use the `alleles` argument we can tell the model that there are 8 alleles. This option is perhaps not so important when using real data, as we rarely know the number of alleles *a priori*, but it becomes very important when testing the power of the program on simulated data.
 
 ```{r}
+# create project and bind data, manually specifying the number of possible alleles
 myproj <- malecot_project()
 myproj <- bind_data_multiallelic(myproj, df = mysim$data, alleles = 5)
 ```
 
-Create parameter set
+We create parameter sets in the usual way, and with the same options for priors on COI. There is currently no error model implemented in the multi-allelic method, meaning arguments like `e1` and `e2` are ignored (this is something that may change in future versions of the program). We run the MCMC as before using the `run_mcmc()` function:
 
 ```{r}
+# create parameter set
 myproj <- new_set(myproj, name = "tutorial multiallelic", COI_model = "nb", COI_max = 20,
-                  estimate_COI_mean = TRUE, COI_dispersion = 2, lambda = 1,
-                  estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
-```
+                  estimate_COI_mean = TRUE, COI_dispersion = 2, lambda = 1)
 
-Run mcmc
-
-```{r}
+# run MCMC
 myproj <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2,
                    samples = 1e4, pb_markdown =  TRUE)
 ```
 
-Check behaviour
-
-```{r, fig.height=5, fig.width=8}
-plot_loglike_dignostic(myproj, K = NULL)
-get_ESS(myproj, K = NULL)
+```{r, echo=FALSE}
+# secretly save/load results from file so results are consistent
+#saveRDS(myproj, file = "../inst/extdata/tutorial3_myproj.rds")
+myproj <- readRDS("../inst/extdata/tutorial3_myproj.rds")
 ```
 
-This is one the edge of OK.
+This MCMC will take longer than the bi-allelic MCMC because the likelihood calculation is considerably more complicated. It may also take longer to converge, and so we should keep an eye on the number of burn-in iterations.
+
+As always we need to check the behaviour of our MCMC before moving on to results:
+
+```{r, fig.height=5, fig.width=8}
+plot_loglike_dignostic(myproj, K = 5)
+get_ESS(myproj, K = 5)
+```
+
+Notice that the autocorrelation falls off much more slowly than under the bi-allelic MCMC, and the effective sample size is also quite small. We therefore should re-run the MCMC with a larger number of `samples`. For the sake of this tutorial we will save time by loading in results obtained by re-running this MCMC with `samples = 1e5`:
+
+```{r, echo=FALSE}
+# secretly re-run MCMC and save results to file
+#myproj2 <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2, samples = 1e5, pb_markdown =  TRUE)
+#saveRDS(myproj2, file = "../inst/extdata/tutorial3_myproj2.rds")
+```
+
+```{r}
+# load results
+myproj <- readRDS("../inst/extdata/tutorial3_myproj2.rds")
+
+# check behaviour
+plot_loglike_dignostic(myproj, K = 5)
+get_ESS(myproj, K = 5)
+```
+
+We now mave a much more respectable effective sample size.
 
 
 ## Plotting results
