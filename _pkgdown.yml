@@ -23,6 +23,8 @@ navbar:
         - text: "Advanced topics"
         - text: "Power analysis - within model"
           href: articles/power-analysis-within-model.html
+        - text: "GTI mathematical details"
+          href: articles/gti-mathematical-details.html
     - text: "Functions"
       href: reference/index.html
     - text: "FAQ"

@@ -99,7 +99,7 @@ Viewing the project we can now see additional properties, including the current 
 myproj
 ```
 
-Now we are ready to run our first MCMC. We will start by exploring values of *K* from 1 to 5, using 10,000 burn-in iterations and 10,000 sampling iterations. The burn-in phase is required for the MCMC to "forget" its initial conditions and converge on the correct answer. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached. Hence, it is generally a good idea to set `burnin` to a high value, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should omit this argument.
+Now we are ready to run our first MCMC. We will start by exploring values of $K$ from 1 to 5, using 10,000 burn-in iterations and 10,000 sampling iterations. The burn-in phase is required for the MCMC to "forget" its initial conditions and converge on the correct answer. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached. Hence, it is generally a good idea to set `burnin` to a high value, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should omit this argument.
 
 ```{r}
 myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
@@ -112,7 +112,7 @@ myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
 myproj <- malecot_file("tutorial1_myproj.rds")
 ```
 
-If any values of *K* failed to converge then we could use the same `run_mcmc()` function to re-run the MCMC for just a single value of *K* and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of *K*, but will leave all other values untouched:
+If any values of $K$ failed to converge then we could use the same `run_mcmc()` function to re-run the MCMC for just a single value of $K$ and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of $K$, but will leave all other values untouched:
 
 
 ## Checking MCMC behaviour
@@ -135,20 +135,20 @@ get_ESS(myproj, K = 3)
 
 It is worth keeping this value in mind when looking at trace plots so we are not fooled by large numbers of iterations. If our ESS is very small (tens to hundreds) then we are extremely unlikely to have explored the full model space, even if the raw number of sampling iterations is in the millions.
 
-These checks should be carried out on each value of *K*, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using [other more sophisticated techniques](todo) to improve mixing.
+These checks should be carried out on each value of $K$, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using [other more sophisticated techniques](todo) to improve mixing.
 
 
 ## Plot results
 
 ### Structure plots
 
-Usually the main result of interest from this sort of analysis is the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the *K* subpopulations. We can use the `plot_structure()` function to produce posterior allocation plots for different values of *K*. The `divide_ind_on` argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.
+Usually the main result of interest from this sort of analysis is the posterior allocation or "structure" plot. This plot contains one bar for each sample, with the proportion of each colour giving the posterior probability of belonging to each of the $K$ subpopulations. We can use the `plot_structure()` function to produce posterior allocation plots for different values of $K$. The `divide_ind_on` argument adds white lines between individual samples, and can be turned off if these lines start getting in the way.
 
 ```{r, fig.height=5, fig.width=8}
 plot_structure(myproj, K = 2:5, divide_ind_on = TRUE)
 ```
 
-The advantage of simulated data is that we know the true value of *K* used when generating the data (*K* = 3 in this case) and which samples belong to which groups, meaning we can verify whether the model has arrived at the correct answer. In this example almost all samples are allocated correctly for *K* = 3. The issue of deciding between different values of *K* is a big one, and will be dealt with in [a later vignette](https://bobverity.github.io/MALECOT/articles/comparing-models.html).
+The advantage of simulated data is that we know the true value of $K$ used when generating the data ($K = 3$ in this case) and which samples belong to which groups, meaning we can verify whether the model has arrived at the correct answer. In this example almost all samples are allocated correctly for $K = 3$. The issue of deciding between different values of $K$ is a big one, and will be dealt with in [a later vignette](https://bobverity.github.io/MALECOT/articles/comparing-models.html).
 
 
 ### Posterior COI plots
@@ -175,9 +175,9 @@ Comparing the posterior 95% credible intervals (black) with the true COIs (red),
 
 The third parameter of interest is the posterior allele frequency at each locus and in each subpopulation. Again, we have a record of the true values, so we can check that the model output matches these values.
 
-Before doing so, however, we need to revisit structure plots. One thing to note when looking at structure plots is that the group labelling is arbitrary, and labels can be swapped around without undermining results. For example, we could swap around what we call group1 and group2 in the plots above and the overall estimated structure would be the same. In fact, the group labels used in MALECOT are simply chosen to minimise the visual differences between plots - for example, in the structure plots above the colours are chosen to align most closely between different values of *K*.
+Before doing so, however, we need to revisit structure plots. One thing to note when looking at structure plots is that the group labelling is arbitrary, and labels can be swapped around without undermining results. For example, we could swap around what we call group1 and group2 in the plots above and the overall estimated structure would be the same. In fact, the group labels used in MALECOT are simply chosen to minimise the visual differences between plots - for example, in the structure plots above the colours are chosen to align most closely between different values of $K$.
 
-However, when comparing true allele frequencies against MCMC output we need to make sure our labels match up. We can do this using the `get_group_order()` function, which takes a project and value of *K* as input, along with a "target group". The target group will be matched against the MCMC output and re-ordered as needed to get the best possible matching. For example, using `mysim$true_group` as the target group we obtain:
+However, when comparing true allele frequencies against MCMC output we need to make sure our labels match up. We can do this using the `get_group_order()` function, which takes a project and value of $K$ as input, along with a "target group". The target group will be matched against the MCMC output and re-ordered as needed to get the best possible matching. For example, using `mysim$true_group` as the target group we obtain:
 
 ```{r}
 group_order_k3 <- get_group_order(myproj, K = 3, target_group = mysim$true_group)

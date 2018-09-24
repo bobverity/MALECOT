@@ -55,7 +55,7 @@
       <a href="../articles/multiallelic-data.html">Tutorial 3: multi-allelic data</a>
     </li>
     <li>
-      <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
+      <a href="../articles/comparing-models.html">Tutorial 4: comparing models (estimating K)</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
@@ -107,10 +107,10 @@
     
 <p>This vignette demonstrates model comparison in MALECOT. It covers:</p>
 <ol style="list-style-type: decimal">
-<li>Running a thermodynamic MCMC</li>
+<li>Running thermodynamic MCMC</li>
 <li>Checking convergence of thermodynamic MCMC</li>
 <li>Estimating <em>K</em> via generalized thermodynamic integration (GTI)</li>
-<li>Comparing parameter sets</li>
+<li>Comparing parameter sets through the model evidence</li>
 </ol>
 <p>This tutorial assumes some prior knowledge about MALECOT, so if you are completely new to the program we recommend working through the simpler <a href="https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html">bi-allelic tutorial</a> first.</p>
 <div id="background-on-bayesian-model-comparison" class="section level2">
@@ -118,105 +118,110 @@
 <a href="#background-on-bayesian-model-comparison" class="anchor"></a>Background on Bayesian model comparison</h2>
 <p>When carrying out Bayesian analysis it is useful to make a distinction between two types of analysis:</p>
 <ol style="list-style-type: decimal">
-<li>parameter estimation within a given model</li>
+<li>parameter estimation within a model</li>
 <li>comparison between models</li>
 </ol>
-<p>As an example, we might create a model <span class="math inline">\(\mathcal{M}\)</span>, in which we write down the probability of the observed data <span class="math inline">\(x\)</span> as a function of the unknown allele frequencies <span class="math inline">\(p\)</span>. In other words, we write down the likelihood</p>
-<p><span class="math inline">\(Pr(x \: | \: p, \mathcal{M})\)</span></p>
-<p>Or maybe this is on a different line?</p>
-<p><span class="math display">\[Pr(x \: | \: p, \mathcal{M})\]</span></p>
-<p>In parameter estimation we are trying to get at the posterior probability <span class="math inline">\(Pr(p \: | \: x, \mathcal{M})\)</span>. We do this using MCMC, which produces a series of draws from the posterior distribution.</p>
+<p>As an example, we might create a model <span class="math inline">\(\mathcal{M}\)</span> in which we write down the probability of the observed data <span class="math inline">\(x\)</span> as a function of the unknown allele frequencies <span class="math inline">\(p\)</span>. In other words, we write down the likelihood <span class="math inline">\(Pr(x \: | \: p, \mathcal{M})\)</span>.</p>
+<p>In Bayesian parameter estimation we are trying to get at the posterior probability <span class="math inline">\(Pr(p \: | \: x, \mathcal{M})\)</span>. We typically do this using MCMC, which produces a series of draws from the posterior distribution.</p>
 <p>But what if we want to know the posterior probability of the <em>model</em>, rather than the parameters of the model? In other words, we want to know <span class="math inline">\(Pr(\mathcal{M} \: | \: x)\)</span>. Calculating this quantity requires that we integrate over all unknown parameters:</p>
-<p><span class="math inline">\(Pr(\mathcal{M} \: | \: x) = \int Pr(\mathcal{M}, p \: | \: x) dp\)</span></p>
-<p>This is often an extremely high-dimensional integration - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by standard methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.</p>
-<p>One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI).</p>
+<p><span class="math display">\[Pr(\mathcal{M} \: | \: x) = \int Pr(\mathcal{M}, p \: | \: x) dp\]</span></p>
+<p>This is often an extremely high-dimensional integral - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by most methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.</p>
+<p>One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). In TI we run multiple MCMC chains, each at a different “rung” on a temperature ladder. The hotter the chain, the flatter the target distribution. The log-likelihoods over all chains are then combined in a single calculation that - by what can only be described as mathematical magic! - is asymptotically equal to <span class="math inline">\(\log{Pr(x \: | \: \mathcal{M})}\)</span>. We can then apply a prior over models, for example giving each model equal weight, to arrive at the desired posterior value <span class="math inline">\(Pr(\mathcal{M} \: | \: x)\)</span>. <em>Generalised</em> thermodynamic integration (GTI) differs from regular TI in that it uses a slightly different calculation when combining information across rungs that leads to lower bias and higher precision.</p>
+<p>Hopefully this is enough background to run thermodynamic MCMC in MALECOT and understand the results, but for those eager to understand all the mathematical details, see <a href="https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html">this vignette</a>.</p>
 </div>
 <div id="running-a-thermodynamic-mcmc" class="section level2">
 <h2 class="hasAnchor">
 <a href="#running-a-thermodynamic-mcmc" class="anchor"></a>Running a thermodynamic MCMC</h2>
-<p>MALECOT</p>
+<p>For the sake of this tutorial we will use simulated bi-allelic data drawn from <span class="math inline">\(K = 3\)</span> subpopulations. We then create a new project and bind this data:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">data_format =</span> <span class="st">"biallelic"</span>, <span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create project and bind data</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, <span class="dt">df =</span> mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
+<p>For our first parameter set we will assume a very basic model with default parameters, meaning a Poisson prior on COI, a flat prior on allele frequencies, and no error estimation.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create parameter set</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"simple model"</span>)
-
-<span class="co"># run MCMC</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
-                   <span class="dt">samples =</span> <span class="fl">1e4</span>, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"simple model"</span>)</code></pre></div>
+<p>We will run the MCMC for values of <span class="math inline">\(K\)</span> from 1 to 5, and using the <code>rungs</code> argument to set the number of rungs on the temperature ladder, in this case opting for 10 rungs. Be warned - this MCMC will take considerably longer than regular MCMC, so be prepared to go make yourself a cup of tea!</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run MCMC</span>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> reps, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
+                   <span class="dt">samples =</span> reps, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 1
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 1800 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 9.3748 seconds
+##    completed in 0.231385 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 1400 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 17.2748 seconds
+##    completed in 0.405971 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 900 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 22.525 seconds
+##    completed in 0.500563 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 1000 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 27.8839 seconds
+##    completed in 0.575576 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 800 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 33.1917 seconds
+##    completed in 0.6498 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 1.89 minutes</code></pre>
+<pre><code>## Total run-time: 3.95 seconds</code></pre>
+<p>Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only said to have converged when <em>every</em> chain has converged, meaning we are as weak as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and increase the number of burn-in iterations if needed.</p>
+</div>
+<div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
+<h2 class="hasAnchor">
+<a href="#checking-thermodynamic-mcmc-behaviour" class="anchor"></a>Checking thermodynamic MCMC behaviour</h2>
+<p>There are more moving parts in thermodynamic MCMC, which on the one hand can</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 </div>
 <div id="comparing-different-parameter-sets" class="section level2">
 <h2 class="hasAnchor">
@@ -245,86 +250,86 @@ myproj</code></pre></div>
 ##    e1_max = 0.2
 ##    e2_max = 0.2</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run MCMC</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
-                   <span class="dt">samples =</span> <span class="fl">1e4</span>, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> reps, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
+                   <span class="dt">samples =</span> reps, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 1
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 7600 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 21.1164 seconds
+##    completed in 0.413973 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 4400 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 36.1024 seconds
+##    completed in 0.635787 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 1600 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 40.0674 seconds
+##    completed in 0.809047 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 4700 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 53.2626 seconds
+##    completed in 0.928751 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 1400 iterations
+##    Warning: convergence still not reached within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 58.8501 seconds
+##    completed in 1.14584 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.54 minutes</code></pre>
+<pre><code>## Total run-time: 5.41 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-14-1.png" width="384"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="384"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="768"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-2.png" width="768"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-2.png" width="768"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_model.html">plot_logevidence_model</a></span>(myproj)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_model.html">plot_posterior_model</a></span>(myproj)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_model.html">plot_logevidence_model</a></span>(myproj)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_model.html">plot_posterior_model</a></span>(myproj)</code></pre></div>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 </div>
   </div>
 
@@ -335,6 +340,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
       <ul class="nav nav-pills nav-stacked">
 <li><a href="#background-on-bayesian-model-comparison">Background on Bayesian model comparison</a></li>
       <li><a href="#running-a-thermodynamic-mcmc">Running a thermodynamic MCMC</a></li>
+      <li><a href="#checking-thermodynamic-mcmc-behaviour">Checking thermodynamic MCMC behaviour</a></li>
       <li><a href="#comparing-different-parameter-sets">Comparing different parameter sets</a></li>
       </ul>
 </div>

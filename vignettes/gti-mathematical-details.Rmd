@@ -1,13 +1,12 @@
 ---
-title: "Tutorial: multi-allelic data"
+title: "GTI mathematical details"
 author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Tutorial: multi-allelic data}
+  %\VignetteIndexEntry{"GTI mathematical details"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Text
-
+(TODO)

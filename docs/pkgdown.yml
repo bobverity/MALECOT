@@ -5,10 +5,10 @@ articles:
   comparing-models: comparing-models.html
   complex-priors: complex-priors.html
   faq: faq.html
+  gti-mathematical-details: gti-mathematical-details.html
   installation: installation.html
   known-issues: known-issues.html
   multiallelic-data: multiallelic-data.html
   power-analysis-within-model: power-analysis-within-model.html
   tutorial-biallelic: tutorial-biallelic.html
-  tutorial-multiallelic: tutorial-multiallelic.html
 

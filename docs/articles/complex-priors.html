@@ -55,7 +55,7 @@
       <a href="../articles/multiallelic-data.html">Tutorial 3: multi-allelic data</a>
     </li>
     <li>
-      <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
+      <a href="../articles/comparing-models.html">Tutorial 4: comparing models (estimating K)</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
@@ -158,7 +158,7 @@ myproj</code></pre></div>
 ##    estimate error = FALSE
 ##    e1 = 0
 ##    e2 = 0</code></pre>
-<p>We run the MCMC using the <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> command. We will keep things simple here by only running for <em>K</em> = 3:</p>
+<p>We run the MCMC using the <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> command. We will keep things simple here by only running for <span class="math inline">\(K = 3\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
                    <span class="dt">samples =</span> <span class="fl">1e4</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 3
@@ -171,10 +171,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.66106 seconds
+##    completed in 3.33582 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 4.35 seconds</code></pre>
+<pre><code>## Total run-time: 4 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -238,10 +238,10 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.47897 seconds
+##    completed in 2.21667 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.93 seconds</code></pre>
+<pre><code>## Total run-time: 2.59 seconds</code></pre>
 <p>After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj_skew, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -327,10 +327,10 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 4.0903 seconds
+##    completed in 3.71058 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 4.51 seconds</code></pre>
+<pre><code>## Total run-time: 4.08 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>

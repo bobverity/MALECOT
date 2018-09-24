@@ -56,7 +56,7 @@ myproj <- new_set(myproj, name = "nb model", COI_model = "nb", COI_max = 20,
 myproj
 ```
 
-We run the MCMC using the `run_mcmc()` command. We will keep things simple here by only running for *K* = 3:
+We run the MCMC using the `run_mcmc()` command. We will keep things simple here by only running for $K = 3$:
 
 ```{r}
 myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,

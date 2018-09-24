@@ -12,14 +12,15 @@ vignette: >
 ```{r, echo=FALSE}
 set.seed(3)
 library(MALECOT)
+reps <- 1e2
 ```
 
 This vignette demonstrates model comparison in MALECOT. It covers:
 
-1. Running a thermodynamic MCMC
+1. Running thermodynamic MCMC
 2. Checking convergence of thermodynamic MCMC
 3. Estimating *K* via generalized thermodynamic integration (GTI)
-4. Comparing parameter sets
+4. Comparing parameter sets through the model evidence
 
 This tutorial assumes some prior knowledge about MALECOT, so if you are completely new to the program we recommend working through the simpler [bi-allelic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) first.
 
@@ -27,30 +28,26 @@ This tutorial assumes some prior knowledge about MALECOT, so if you are complete
 
 When carrying out Bayesian analysis it is useful to make a distinction between two types of analysis:
 
-1. parameter estimation within a given model
+1. parameter estimation within a model
 2. comparison between models
 
-As an example, we might create a model $\mathcal{M}$, in which we write down the probability of the observed data $x$ as a function of the unknown allele frequencies $p$. In other words, we write down the likelihood
+As an example, we might create a model $\mathcal{M}$ in which we write down the probability of the observed data $x$ as a function of the unknown allele frequencies $p$. In other words, we write down the likelihood $Pr(x \: | \: p, \mathcal{M})$.
 
-$Pr(x \: | \: p, \mathcal{M})$
-
-Or maybe this is on a different line?
-
-$$Pr(x \: | \: p, \mathcal{M})$$
-
-In parameter estimation we are trying to get at the posterior probability $Pr(p \: | \: x, \mathcal{M})$. We do this using MCMC, which produces a series of draws from the posterior distribution.
+In Bayesian parameter estimation we are trying to get at the posterior probability $Pr(p \: | \: x, \mathcal{M})$. We typically do this using MCMC, which produces a series of draws from the posterior distribution.
 
 But what if we want to know the posterior probability of the *model*, rather than the parameters of the model? In other words, we want to know $Pr(\mathcal{M} \: | \: x)$. Calculating this quantity requires that we integrate over all unknown parameters:
 
-$Pr(\mathcal{M} \: | \: x) = \int Pr(\mathcal{M}, p \: | \: x) dp$
+$$Pr(\mathcal{M} \: | \: x) = \int Pr(\mathcal{M}, p \: | \: x) dp$$
 
-This is often an extremely high-dimensional integration - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by standard methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.
+This is often an extremely high-dimensional integral - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by most methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.
 
-One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). 
+One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). In TI we run multiple MCMC chains, each at a different "rung" on a temperature ladder. The hotter the chain, the flatter the target distribution. The log-likelihoods over all chains are then combined in a single calculation that - by what can only be described as mathematical magic! - is asymptotically equal to $\log{Pr(x \: | \: \mathcal{M})}$. We can then apply a prior over models, for example giving each model equal weight, to arrive at the desired posterior value $Pr(\mathcal{M} \: | \: x)$. *Generalised* thermodynamic integration (GTI) differs from regular TI in that it uses a slightly different calculation when combining information across rungs that leads to lower bias and higher precision. 
+
+Hopefully this is enough background to run thermodynamic MCMC in MALECOT and understand the results, but for those eager to understand all the mathematical details, see [this vignette](https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html).
 
 ## Running a thermodynamic MCMC
 
-MALECOT 
+For the sake of this tutorial we will use simulated bi-allelic data drawn from $K = 3$ subpopulations. We then create a new project and bind this data:
 
 ```{r}
 mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
@@ -58,8 +55,8 @@ mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
 
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
-#saveRDS(mysim, file = "../inst/extdata/tutorial3_mysim.rds")
-#mysim <- malecot_file("tutorial3_mysim.rds")
+#saveRDS(mysim, file = "../inst/extdata/tutorial4_mysim.rds")
+mysim <- malecot_file("tutorial4_mysim.rds")
 ```
 
 ```{r}
@@ -68,14 +65,27 @@ myproj <- malecot_project()
 myproj <- bind_data_biallelic(myproj, df = mysim$data, ID_col = 1, pop_col = 2)
 ```
 
+For our first parameter set we will assume a very basic model with default parameters, meaning a Poisson prior on COI, a flat prior on allele frequencies, and no error estimation.
+
 ```{r}
 # create parameter set
 myproj <- new_set(myproj, name = "simple model")
-
-# run MCMC
-myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
-                   samples = 1e4, rungs = 10, pb_markdown =  TRUE)
 ```
+
+We will run the MCMC for values of $K$ from 1 to 5, and using the `rungs` argument to set the number of rungs on the temperature ladder, in this case opting for 10 rungs. Be warned - this MCMC will take considerably longer than regular MCMC, so be prepared to go make yourself a cup of tea!
+
+```{r}
+# run MCMC
+myproj <- run_mcmc(myproj, K = 1:5, burnin = reps, converge_test = 1e2,
+                   samples = reps, rungs = 10, pb_markdown =  TRUE)
+```
+
+Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only said to have converged when *every* chain has converged, meaning we are as weak as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and increase the number of burn-in iterations if needed.
+
+## Checking thermodynamic MCMC behaviour
+
+There are more moving parts in thermodynamic MCMC, which on the one hand can 
+
 
 ```{r}
 plot_loglike_dignostic(myproj, K = 3)
@@ -109,8 +119,8 @@ myproj
 
 ```{r}
 # run MCMC
-myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
-                   samples = 1e4, rungs = 10, pb_markdown =  TRUE)
+myproj <- run_mcmc(myproj, K = 1:5, burnin = reps, converge_test = 1e2,
+                   samples = reps, rungs = 10, pb_markdown =  TRUE)
 ```
 
 ```{r}

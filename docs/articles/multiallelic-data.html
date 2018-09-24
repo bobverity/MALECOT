@@ -55,7 +55,7 @@
       <a href="../articles/multiallelic-data.html">Tutorial 3: multi-allelic data</a>
     </li>
     <li>
-      <a href="../articles/comparing-models.html">Tutorial 4: comparing models</a>
+      <a href="../articles/comparing-models.html">Tutorial 4: comparing models (estimating K)</a>
     </li>
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
@@ -153,10 +153,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 10.3421 seconds
+##    completed in 9.09041 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 11.64 seconds</code></pre>
+<pre><code>## Total run-time: 10.33 seconds</code></pre>
 <p>You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.</p>
 <p>As always we need to check the behaviour of our MCMC before moving on to results:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
@@ -246,7 +246,7 @@ posterior_p</code></pre></div>
 <p>The default prior in the multi-allelic case is a value of <code>lambda[j] = 1</code> for every allele, giving an expected allele frequency of 1/<em>J</em> for every allele:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="dv">1</span>, <span class="dt">alleles =</span> <span class="dv">5</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-17-1.png" width="576"></p>
-<p>The <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">next tutorial</a> covers how to compare different values of <em>K</em> and different models in MALECOT.</p>
+<p>The <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">next tutorial</a> covers how to compare different values of <span class="math inline">\(K\)</span> and different models in MALECOT.</p>
 </div>
   </div>
 

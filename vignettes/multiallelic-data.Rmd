@@ -191,4 +191,4 @@ The default prior in the multi-allelic case is a value of `lambda[j] = 1` for ev
 plot_prior_p(lambda = 1, alleles = 5)
 ```
 
-The [next tutorial](https://bobverity.github.io/MALECOT/articles/comparing-models.html) covers how to compare different values of *K* and different models in MALECOT.
+The [next tutorial](https://bobverity.github.io/MALECOT/articles/comparing-models.html) covers how to compare different values of $K$ and different models in MALECOT.
