@@ -35,7 +35,7 @@ mysim <- sim_data(n = 100, data_format = "biallelic", L = 24, K = 3, COI_mean = 
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent between tutorials
 #saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-mysim <- readRDS("../inst/extdata/tutorial1_mysim.rds")
+mysim <- malecot_file("tutorial1_mysim.rds")
 ```
 
 Running `names(mysim)` we can see that the simulated data contains several elements:
@@ -109,7 +109,7 @@ myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load project from file so results are consistent between tutorials
 #saveRDS(myproj, file = "../inst/extdata/tutorial1_myproj.rds")
-myproj <- readRDS("../inst/extdata/tutorial1_myproj.rds")
+myproj <- malecot_file("tutorial1_myproj.rds")
 ```
 
 If any values of *K* failed to converge then we could use the same `run_mcmc()` function to re-run the MCMC for just a single value of *K* and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of *K*, but will leave all other values untouched:

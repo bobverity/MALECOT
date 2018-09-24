@@ -38,26 +38,26 @@ mysim <- sim_data(data_format = "multiallelic", n = 100, L = 10, K = 5, COI_mean
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(mysim, file = "../inst/extdata/tutorial3_mysim.rds")
-mysim <- readRDS("../inst/extdata/tutorial3_mysim.rds")
+mysim <- malecot_file("tutorial3_mysim.rds")
 ```
 
 ```{r}
 head(mysim$data)
 ```
 
-We can see that multi-allelic data has three columns, consisting of the sample ID, the locus, and the observed haplotype - the column names must match those shown above. The locus column must contain positive integer values starting at 1, meaning if loci are encoded as character strings then they must be converted to integers first. The same is true for haplotypes, which must be encoded as positive integers starting at 1 or as missing data.
+We can see that multi-allelic data has three columns, consisting of the sample ID, the locus, and the observed haplotype. The column names must match those shown above. The locus column must contain positive integer values starting at 1, meaning if loci are encoded as character strings then they must be converted to integers first. The same is true for haplotypes, which must be encoded as positive integers starting at 1, or as missing data.
 
 Every locus must be represented in every sample - there can be no missing loci. Instead we can use the missing data character (-9 by default) to insert gaps in the data as needed. For example, in the simulated data above there is missing data in sample001 at loci 2 and 3, but this sample still has entries for all 10 loci rather than leaving these rows out entirely.
 
-Once we have data in the correct format we need to create a new project and bind the data to the project using the `bind_data_multiallelic()` function. When binding data we have the option of specifying the number of alleles at each locus, or if this option is unspecified then the program uses the maximum observed value at that locus by default. This can give slightly different results, for example, imagine that we sequence 10 samples at a highly diverse locus which we know from previous work to have 8 possible alleles. With such a small sample it is quite possible that we will only observe the first 5 alleles by chance. If we bind the data without the `alleles` argument then the model will assume 5 alleles at this locus, whereas if we use the `alleles` argument we can tell the model that there are 8 alleles. This option is perhaps not so important when using real data, as we rarely know the number of alleles *a priori*, but it becomes very important when testing the power of the program on simulated data.
+Once we have data in the correct format we can create a new project and bind the data to the project using the `bind_data_multiallelic()` function:
 
 ```{r}
-# create project and bind data, manually specifying the number of possible alleles
+# create project and bind data
 myproj <- malecot_project()
-myproj <- bind_data_multiallelic(myproj, df = mysim$data, alleles = 5)
+myproj <- bind_data_multiallelic(myproj, df = mysim$data)
 ```
 
-We create parameter sets in the usual way, and with the same options for priors on COI. There is currently no error model implemented in the multi-allelic method, meaning arguments like `e1` and `e2` are ignored (this is something that may change in future versions of the program). We run the MCMC as before using the `run_mcmc()` function:
+We create parameter sets in the usual way, and with the same options for priors as for bi-allelic data. The only difference is that there is currently no error model implemented in the multi-allelic method, meaning arguments like `e1` and `e2` are ignored (this is something that may change in future versions of the program). We run the MCMC using the `run_mcmc()` function:
 
 ```{r}
 # create parameter set
@@ -72,10 +72,10 @@ myproj <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load results from file so results are consistent
 #saveRDS(myproj, file = "../inst/extdata/tutorial3_myproj.rds")
-myproj <- readRDS("../inst/extdata/tutorial3_myproj.rds")
+myproj <- malecot_file("tutorial3_myproj.rds")
 ```
 
-This MCMC will take longer than the bi-allelic MCMC because the likelihood calculation is considerably more complicated. It may also take longer to converge, and so we should keep an eye on the number of burn-in iterations.
+You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.
 
 As always we need to check the behaviour of our MCMC before moving on to results:
 
@@ -84,7 +84,7 @@ plot_loglike_dignostic(myproj, K = 5)
 get_ESS(myproj, K = 5)
 ```
 
-Notice that the autocorrelation falls off much more slowly than under the bi-allelic MCMC, and the effective sample size is also quite small. We therefore should re-run the MCMC with a larger number of `samples`. For the sake of this tutorial we will save time by loading in results obtained by re-running this MCMC with `samples = 1e5`:
+Notice that the autocorrelation falls off much more slowly than it did under the bi-allelic MCMC, and hence the effective sample size is quite small. This is one case where we should re-run the MCMC with a larger number of `samples` to increase the chance that the MCMC has explored the space well. For the sake of this tutorial we will save time by loading in results obtained by re-running this MCMC with `samples = 1e5`:
 
 ```{r, echo=FALSE}
 # secretly re-run MCMC and save results to file
@@ -94,43 +94,64 @@ Notice that the autocorrelation falls off much more slowly than under the bi-all
 
 ```{r}
 # load results
-myproj <- readRDS("../inst/extdata/tutorial3_myproj2.rds")
+myproj <- malecot_file("tutorial3_myproj2.rds")
 
 # check behaviour
 plot_loglike_dignostic(myproj, K = 5)
 get_ESS(myproj, K = 5)
 ```
 
-We now mave a much more respectable effective sample size.
+We now mave a much larger effective sample size, giving us greater confidence that the MCMC has explored the space well.
 
 
 ## Plotting results
 
+### Structure plots
+
+The same plotting functions can be used irrespective of whether data is bi-allelic or multi-allelic. In the case of the posterior allocation or "structure" plot we find that there is generally more signal in multi-allelic data, because there are more possible ways for subpopulations to look different from one another. In this example we find that 100 samples sequences at just 10 loci with 5 alleles is enough to pull samples apart into 5 distinct subpopulations, while a similar analysis with bi-allelic data would have struggled to detect this structure.
+
 ```{r, fig.height=2, fig.width=8}
 # structure plot
-plot_structure(myproj, K = NULL, divide_ind_on = TRUE)
+plot_structure(myproj, K = 5, divide_ind_on = TRUE)
 ```
+
+### Posterior COI plots
+
+Perhaps the main advantage of multi-allelic data is in estimating COIs, where there tends to be far greater power than for bi-allelic data. This is because each new allele brings additional information about the number of circulating strains, rather than just relying on the overall proportion of heterozygous vs. homozygous calls. The following plot shows posterior 95% credible intervals in black, with true (simulated) COIs overlayed as red crosses:
 
 ```{r, fig.height=4, fig.width=8}
 # load ggplot2 package
 library(ggplot2)
 
 # produce plot of posterior COIs
-posterior_COI <- plot_COI(myproj, K = NULL)
+posterior_COI <- plot_COI(myproj, K = 5)
 
 # overlay true COI values
 posterior_COI <- posterior_COI + geom_point(aes(x = 1:100, y = mysim$true_m), col = "red", shape = 4)
 posterior_COI
 ```
 
-Posterior allele frequencies
+In this example we find that estimates are precise up to COIs of around 3 or 4, then become imprecise at 5 and above. Generally speaking our ability to discern high COIs increases with the number of possible alleles at a locus.
+
+The same gains in precision apply to the estimated mean COI per subpopulation:
+
+```{r, fig.height=4, fig.width=5}
+plot_COI_mean(myproj, K = 5)
+```
+
+The model clearly detects that there are mean COI differences between demes.
+
+
+### Posterior allele frequency plots
+
+The only plot that differs between bi-allelic and multi-allelic data is the posterior allele frequency plot, which is now a grouped barplot showing posterior 95% credible intervals for each separate allele. The following plot shows posterior allele frequencies for the first deme only, with true values overlayed as red crosses:
 
 ```{r, fig.height=4, fig.width=8}
 # get group order
 group_order_k3 <- get_group_order(myproj, K = 5, target_group = mysim$true_group)
 
 # produce plot of posterior allele frequencies for this subpopulation
-posterior_p <- plot_p(myproj, K = NULL, deme = 1)
+posterior_p <- plot_p(myproj, K = 5, deme = 1)
 
 # get true simulated allele frequencies for this subpopulation
 sim_p <- mapply(function(x){x[group_order_k3[1], ]}, mysim$true_p, SIMPLIFY = FALSE)
@@ -147,10 +168,27 @@ posterior_p <- posterior_p + geom_point(aes(x = locus, y = p, group = allele), d
 posterior_p
 ```
 
-## More realistic prior on allele frequencies
 
+## More realistic priors on allele frequencies
 
-```{r, fig.height=4, fig.width=8}
-plot_prior_p(lambda = c(1,5,2,3,4))
-plot_prior_p(lambda = c(1,5,2,3,4)*10)
+In the [previous tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html) we saw how different priors could be used to define skewed allele frequency distributions, and how different prior shapes could be explored using the `plot_prior_p()` function. The same is true for multi-allelic data, except now the prior plots look different because the prior is *J*-dimensional, where *J* is the number of alleles. In multi-allelic plots the *J* dimensions are visualised using a [parallel coordinates plot](https://en.wikipedia.org/wiki/Parallel_coordinates), in which axes are plotted in parallel rather than perpendicular. The prior is visualised using 1000 random draws, which correspond to 1000 simulated trajectories through this plot.
+
+The following prior is skewed in favour of the second allele. The expected allele frequency for allele *j* is equal to `lambda[j]/sum(lambda)`, which in this case yields an expectation of 0.375 for the second allele:
+
+```{r, fig.height=3, fig.width=6}
+plot_prior_p(lambda = c(1,6,2,3,4))
+```
+
+The prior uncertainty is dictated by the magnitude of `lambda`, with smaller uncertainty at large values. For example, we could define a second prior with exactly the same expected allele frequencies as the first but lower uncertainty by multiplying all `lambda` values by 10:
+
+```{r, fig.height=3, fig.width=6}
+plot_prior_p(lambda = c(10,60,20,30,40))
+```
+
+When thinking about this prior it is useful to imagine that each subpopulation has its own allele frequencies drawn from one of these trajectories. Therefore if the prior is very precise (like the one above) then we are stating that we expect subpopulations to look very similar in their composition.
+
+The default prior in the multi-allelic case is a value of `lambda[j] = 1` for every allele, giving an expected allele frequency of 1/*J* for every allele:
+
+```{r, fig.height=3, fig.width=6}
+plot_prior_p(lambda = 1, alleles = 5)
 ```

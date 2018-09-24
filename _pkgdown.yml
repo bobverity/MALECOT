@@ -21,8 +21,8 @@ navbar:
           href: articles/comparing-models.html
         - text: -------
         - text: "Advanced topics"
-        - text: "Example article"
-          href: articles/installation.html
+        - text: "Power analysis - within model"
+          href: articles/power-analysis-within-model.html
     - text: "Functions"
       href: reference/index.html
     - text: "FAQ"

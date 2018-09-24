@@ -66,7 +66,7 @@ myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load project from file so results are consistent between tutorials
 #saveRDS(myproj, file = "../inst/extdata/tutorial2_myproj.rds")
-myproj <- readRDS("../inst/extdata/tutorial2_myproj.rds")
+myproj <- malecot_file("tutorial2_myproj.rds")
 ```
 
 As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:

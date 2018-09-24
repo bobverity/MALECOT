@@ -1,0 +1,14 @@
+---
+title: "Power analysis - within model"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Power analysis - within model"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Notes for inclusion later
+
+Once we have data in the correct format we need to create a new project and bind the data to the project using the `bind_data_multiallelic()` function. When binding data we have the option of specifying the number of alleles at each locus, or if this option is unspecified then the program uses the maximum observed value at that locus by default. This can give slightly different results - for example, imagine that we sequence 10 samples at a highly diverse locus which we know from previous work to have 8 possible alleles. With such a small sample it is quite possible that we will only observe the first 5 alleles by chance. If we bind the data without the `alleles` argument then the model will assume 5 alleles at this locus, whereas if we use the `alleles` argument we can tell the model that there are 8 alleles. This option is perhaps not so important when using real data, as we rarely know the number of alleles *a priori*, but it becomes very important when testing the power of the program on simulated data. In the example data shown above it makes no difference because all 5 alleles were observed.
