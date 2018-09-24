@@ -1,14 +1,146 @@
 ---
-title: "Tutorial 4: Comparing models"
+title: "Tutorial 4: Comparing models (estimating K)"
 author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Comparing models"}
+  %\VignetteIndexEntry{"Comparing models (estimating K)"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Text
+```{r, echo=FALSE}
+set.seed(3)
+library(MALECOT)
+```
 
+This vignette demonstrates model comparison in MALECOT. It covers:
+
+1. Running a thermodynamic MCMC
+2. Checking convergence of thermodynamic MCMC
+3. Estimating *K* via generalized thermodynamic integration (GTI)
+4. Comparing parameter sets
+
+This tutorial assumes some prior knowledge about MALECOT, so if you are completely new to the program we recommend working through the simpler [bi-allelic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) first.
+
+## Background on Bayesian model comparison
+
+When carrying out Bayesian analysis it is useful to make a distinction between two types of analysis:
+
+1. parameter estimation within a given model
+2. comparison between models
+
+As an example, we might create a model $\mathcal{M}$, in which we write down the probability of the observed data $x$ as a function of the unknown allele frequencies $p$. In other words, we write down the likelihood
+
+$Pr(x \: | \: p, \mathcal{M})$
+
+Or maybe this is on a different line?
+
+$$Pr(x \: | \: p, \mathcal{M})$$
+
+In parameter estimation we are trying to get at the posterior probability $Pr(p \: | \: x, \mathcal{M})$. We do this using MCMC, which produces a series of draws from the posterior distribution.
+
+But what if we want to know the posterior probability of the *model*, rather than the parameters of the model? In other words, we want to know $Pr(\mathcal{M} \: | \: x)$. Calculating this quantity requires that we integrate over all unknown parameters:
+
+$Pr(\mathcal{M} \: | \: x) = \int Pr(\mathcal{M}, p \: | \: x) dp$
+
+This is often an extremely high-dimensional integration - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by standard methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.
+
+One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). 
+
+## Running a thermodynamic MCMC
+
+MALECOT 
+
+```{r}
+mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#saveRDS(mysim, file = "../inst/extdata/tutorial3_mysim.rds")
+#mysim <- malecot_file("tutorial3_mysim.rds")
+```
+
+```{r}
+# create project and bind data
+myproj <- malecot_project()
+myproj <- bind_data_biallelic(myproj, df = mysim$data, ID_col = 1, pop_col = 2)
+```
+
+```{r}
+# create parameter set
+myproj <- new_set(myproj, name = "simple model")
+
+# run MCMC
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e4, rungs = 10, pb_markdown =  TRUE)
+```
+
+```{r}
+plot_loglike_dignostic(myproj, K = 3)
+```
+
+```{r}
+plot_loglike(myproj, K = 3)
+```
+
+```{r}
+plot_GTI_path(myproj, K = 3)
+```
+
+```{r}
+plot_logevidence_K(myproj)
+```
+
+```{r}
+plot_posterior_K(myproj)
+```
+
+
+## Comparing different parameter sets
+
+```{r}
+# create parameter set
+myproj <- new_set(myproj, name = "error model", estimate_error = TRUE)
+
+myproj
+```
+
+```{r}
+# run MCMC
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e4, rungs = 10, pb_markdown =  TRUE)
+```
+
+```{r}
+plot_loglike_dignostic(myproj, K = 3)
+```
+
+```{r, fig.height=3, fig.width=4}
+plot_e(myproj, K = 3)
+```
+
+```{r, fig.height=5, fig.width=8}
+plot_loglike(myproj, K = 3)
+
+plot_GTI_path(myproj, K = 3)
+```
+
+
+```{r}
+plot_logevidence_K(myproj)
+```
+
+```{r}
+plot_posterior_K(myproj)
+```
+
+```{r}
+plot_logevidence_model(myproj)
+```
+
+```{r}
+plot_posterior_model(myproj)
+```
 

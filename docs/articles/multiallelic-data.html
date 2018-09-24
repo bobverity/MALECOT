@@ -153,10 +153,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 9.17868 seconds
+##    completed in 10.3421 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 10.47 seconds</code></pre>
+<pre><code>## Total run-time: 11.64 seconds</code></pre>
 <p>You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.</p>
 <p>As always we need to check the behaviour of our MCMC before moving on to results:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
@@ -182,7 +182,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/male
 <div id="structure-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#structure-plots" class="anchor"></a>Structure plots</h3>
-<p>The same plotting functions can be used irrespective of whether data is bi-allelic or multi-allelic. In the case of the posterior allocation or “structure” plot we find that there is generally more signal in multi-allelic data, because there are more possible ways for subpopulations to look different from one another. In this example we find that 100 samples sequences at just 10 loci with 5 alleles is enough to pull samples apart into 5 distinct subpopulations, while a similar analysis with bi-allelic data would have struggled to detect this structure.</p>
+<p>The same plotting functions can be used irrespective of whether data is bi-allelic or multi-allelic. In the case of the posterior allocation or “structure” plot we find that there is generally more signal in multi-allelic data, because there are more possible ways for subpopulations to look different from one another. In this example we find that 100 samples sequenced at just 10 loci with 5 alleles is enough to pull samples apart into 5 distinct subpopulations, while a similar analysis with bi-allelic data would have struggled to detect this level of structure.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-11-1.png" width="768"></p>
@@ -202,10 +202,9 @@ posterior_COI &lt;-<span class="st"> </span>posterior_COI +<span class="st"> </s
 posterior_COI</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-12-1.png" width="768"></p>
 <p>In this example we find that estimates are precise up to COIs of around 3 or 4, then become imprecise at 5 and above. Generally speaking our ability to discern high COIs increases with the number of possible alleles at a locus.</p>
-<p>The same gains in precision apply to the estimated mean COI per subpopulation:</p>
+<p>The same gains in precision can be seen in the estimated mean COI per subpopulation:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_COI_mean.html">plot_COI_mean</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-13-1.png" width="480"></p>
-<p>The model clearly detects that there are mean COI differences between demes.</p>
 </div>
 <div id="posterior-allele-frequency-plots" class="section level3">
 <h3 class="hasAnchor">
@@ -236,17 +235,18 @@ posterior_p</code></pre></div>
 <div id="more-realistic-priors-on-allele-frequencies" class="section level2">
 <h2 class="hasAnchor">
 <a href="#more-realistic-priors-on-allele-frequencies" class="anchor"></a>More realistic priors on allele frequencies</h2>
-<p>In the <a href="https://bobverity.github.io/MALECOT/articles/complex-priors.html">previous tutorial</a> we saw how different priors could be used to define skewed allele frequency distributions, and how different prior shapes could be explored using the <code>plot_prior_p()</code> function. The same is true for multi-allelic data, except now the prior plots look different because the prior is <em>J</em>-dimensional, where <em>J</em> is the number of alleles. In multi-allelic plots the <em>J</em> dimensions are visualised using a <a href="https://en.wikipedia.org/wiki/Parallel_coordinates">parallel coordinates plot</a>, in which axes are plotted in parallel rather than perpendicular. The prior is visualised using 1000 random draws, which correspond to 1000 simulated trajectories through this plot.</p>
-<p>The following prior is skewed in favour of the second allele. The expected allele frequency for allele <em>j</em> is equal to <code>lambda[j]/sum(lambda)</code>, which in this case yields an expectation of 0.375 for the second allele:</p>
+<p>In the <a href="https://bobverity.github.io/MALECOT/articles/complex-priors.html">previous tutorial</a> we saw how different priors could be used to define skewed allele frequency distributions, and how different prior shapes could be explored using the <code>plot_prior_p()</code> function. The same is true for multi-allelic data, except now the prior plots look different because the prior is <em>J</em>-dimensional, where <em>J</em> is the number of alleles. In multi-allelic plots the <em>J</em> dimensions are visualised using a <a href="https://en.wikipedia.org/wiki/Parallel_coordinates">parallel coordinates plot</a>, in which axes are displayed parallel to one another rather than perpendicular. The prior distribution is visualised using 1000 random draws from this distribution, corresponding to 1000 simulated trajectories on the plot.</p>
+<p>The following example shows a prior skewed in favour of the second allele. The expected allele frequency for allele <em>j</em> is equal to <code>lambda[j]/sum(lambda)</code>, which in this case yields an expectation of 0.375 for the second allele:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>))</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-15-1.png" width="576"></p>
-<p>The prior uncertainty is dictated by the magnitude of <code>lambda</code>, with smaller uncertainty at large values. For example, we could define a second prior with exactly the same expected allele frequencies as the first but lower uncertainty by multiplying all <code>lambda</code> values by 10:</p>
+<p>The prior uncertainty is dictated by the magnitude of <code>lambda</code>, with larger values leading to reduced uncertainty. For example, we could define a second prior with exactly the same expected allele frequencies but lower uncertainty by multiplying all <code>lambda</code> values by 10:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">60</span>,<span class="dv">20</span>,<span class="dv">30</span>,<span class="dv">40</span>))</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-16-1.png" width="576"></p>
-<p>When thinking about this prior it is useful to imagine that each subpopulation has its own allele frequencies drawn from one of these trajectories. Therefore if the prior is very precise (like the one above) then we are stating that we expect subpopulations to look very similar in their composition.</p>
+<p>When thinking about the prior on allele frequencies it is useful to imagine that each subpopulation has its own allele frequencies given by one of these trajectories. Therefore if the prior is very precise (like the one above) then we are stating that we expect subpopulations to look very similar in their composition. If this seems unlikely <em>a priori</em> then we should use a smaller value of <em>lambda</em>.</p>
 <p>The default prior in the multi-allelic case is a value of <code>lambda[j] = 1</code> for every allele, giving an expected allele frequency of 1/<em>J</em> for every allele:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="dv">1</span>, <span class="dt">alleles =</span> <span class="dv">5</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-17-1.png" width="576"></p>
+<p>The <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">next tutorial</a> covers how to compare different values of <em>K</em> and different models in MALECOT.</p>
 </div>
   </div>
 

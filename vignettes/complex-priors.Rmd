@@ -217,7 +217,7 @@ For the model, we will assume a maximum value of 0.2 for both `e1` and `e2`. It 
 
 ```{r}
 # create new parameter set
-myproj_errors <- new_set(myproj_errors, name = "errors", COI_model = "poisson",
+myproj_errors <- new_set(myproj_errors, name = "error model", COI_model = "poisson",
                          COI_max = 20, estimate_COI_mean = TRUE,
                          estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
 

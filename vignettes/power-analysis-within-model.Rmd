@@ -1,6 +1,6 @@
 ---
 title: "Power analysis - within model"
-author: "Vignette Author"
+author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
