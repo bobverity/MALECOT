@@ -62,6 +62,9 @@
     <li>
       <a href="../articles/power-analysis-within-model.html">Power analysis - within model</a>
     </li>
+    <li>
+      <a href="../articles/gti-mathematical-details.html">GTI mathematical details</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -215,7 +218,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.83748 seconds
+##    completed in 0.83461 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -227,7 +230,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.61606 seconds
+##    completed in 1.51973 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -239,7 +242,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.08082 seconds
+##    completed in 1.9972 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -251,7 +254,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.61952 seconds
+##    completed in 2.51104 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -263,10 +266,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.10484 seconds
+##    completed in 3.01207 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 12.84 seconds</code></pre>
+<pre><code>## Total run-time: 12.29 seconds</code></pre>
 <p>If any values of <span class="math inline">\(K\)</span> failed to converge then we could use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of <span class="math inline">\(K\)</span> and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of <span class="math inline">\(K\)</span>, but will leave all other values untouched:</p>
 </div>
 <div id="checking-mcmc-behaviour" class="section level2">

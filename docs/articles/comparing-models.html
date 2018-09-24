@@ -62,6 +62,9 @@
     <li>
       <a href="../articles/power-analysis-within-model.html">Power analysis - within model</a>
     </li>
+    <li>
+      <a href="../articles/gti-mathematical-details.html">GTI mathematical details</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -149,63 +152,63 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.231385 seconds
+##    completed in 9.03349 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.405971 seconds
+##    completed in 16.8597 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 700 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.500563 seconds
+##    completed in 21.6905 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 2100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.575576 seconds
+##    completed in 27.1787 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1800 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.6498 seconds
+##    completed in 32.0879 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.95 seconds</code></pre>
+<pre><code>## Total run-time: 1.83 minutes</code></pre>
 <p>Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only said to have converged when <em>every</em> chain has converged, meaning we are as weak as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and increase the number of burn-in iterations if needed.</p>
 </div>
 <div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
@@ -257,63 +260,63 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 4800 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.413973 seconds
+##    completed in 19.8162 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 2900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.635787 seconds
+##    completed in 29.7187 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1500 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.809047 seconds
+##    completed in 35.7374 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.928751 seconds
+##    completed in 45.8642 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 3200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.14584 seconds
+##    completed in 55.3869 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 5.41 seconds</code></pre>
+<pre><code>## Total run-time: 3.15 minutes</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>

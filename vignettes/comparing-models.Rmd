@@ -12,7 +12,7 @@ vignette: >
 ```{r, echo=FALSE}
 set.seed(3)
 library(MALECOT)
-reps <- 1e2
+reps <- 1e4
 ```
 
 This vignette demonstrates model comparison in MALECOT. It covers:
