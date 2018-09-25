@@ -30,12 +30,12 @@ $$
 Once we have this quantity it is straightforward to compute bayes factors as the ratio of evidence between models:
 
 $$
-\mbox{BF}(\mathcal{M}_i:\mathcal{M}_j) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_i)}{\mbox{Pr}(x \:|\: \mathcal{M}_j)} \;,
+\hspace{30mm} \mbox{BF}(\mathcal{M}_i:\mathcal{M}_j) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_i)}{\mbox{Pr}(x \:|\: \mathcal{M}_j)} \;, \hspace{30mm}[2]
 $$
 or to combine the evidence with a prior over models to arrive at the posterior probability of a model:
 
 $$
-\mbox{Pr}(\mathcal{M}_k \:|\: x) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_k)}{ \sum_{i=1}^K \mbox{Pr}(x \:|\: \mathcal{M}_i) } \;.
+\hspace{30mm} \mbox{Pr}(\mathcal{M}_k \:|\: x) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_k)}{ \sum_{i=1}^K \mbox{Pr}(x \:|\: \mathcal{M}_i) } \;. \hspace{30mm}[3]
 $$
 The challenging part in this analysis plan is the integral in (X), which is often extremely high-dimensional making it computationally infeasible by standard methods. Fortunately we can use advanced MCMC methods to arrive at asymptotically unbiased estimates of $\log[\mbox{Pr}(x \:|\: \mathcal{M}_k)]$, from which we can derive the other quantities of interest.
 
@@ -48,7 +48,7 @@ Thermodynamic Integration (TI) provides direct estimates of the (log) model evid
 
 $$
 \begin{eqnarray}
-	P_\beta(\theta \:|\: x, \mathcal{M}) &= \dfrac{\mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M})}{u( x \:|\: \beta, \mathcal{M})} \;.
+	\hspace{30mm} P_\beta(\theta \:|\: x, \mathcal{M}) &= \dfrac{\mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M})}{u( x \:|\: \beta, \mathcal{M})} \;. \hspace{30mm}[4]
 \end{eqnarray}
 $$
 
@@ -56,7 +56,7 @@ where $u(x \:|\: \beta, \mathcal{M})$ is a normalising constant that ensures the
 
 $$
 \begin{eqnarray*}
-	u( x \:|\: \beta, \mathcal{M}) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M}) \:d\theta \;.
+	\hspace{30mm} u( x \:|\: \beta, \mathcal{M}) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M}) \:d\theta \;. \hspace{30mm}[5]
 \end{eqnarray*}
 $$
 
@@ -72,7 +72,7 @@ $$
 	&=& \dfrac{1}{u( x \:|\: \beta )} \: \displaystyle\int_{\scriptsize\theta}  \mbox{Pr}( x \:|\: \theta )^\beta \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{14mm} \color{gray}{\textit{(evaluating derivative)}} \\[4mm]
 	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] \frac{\mbox{Pr}( x \:|\: \theta )^\beta \mbox{Pr}( \theta ) }{u( x \:|\: \beta )} \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(rearranging)}} \\[4mm]
 	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_\beta(\theta \:|\: x) \:d\theta \;, \hspace{42mm} \color{gray}{\textit{(substituting in (X))}} \\[4mm]
-	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{54mm} \color{gray}{\textit{(by definition of expectation)}}
+	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{54mm} \color{gray}{\textit{(by definition of expectation)}} \hspace{10mm}[6]
 \end{eqnarray}
 $$
 
@@ -80,7 +80,7 @@ To put this in words; the gradient of $\log[u( x \:|\: \beta )]$ is equivalent t
 
 $$
 \begin{eqnarray}
-	\widehat{D}_\beta = \frac{1}{t}\sum_{m=1}^t \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] \;.
+	\hspace{30mm} \widehat{D}_\beta = \frac{1}{t}\sum_{m=1}^t \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] \;. \hspace{30mm}[7]
 \end{eqnarray}
 $$
 
@@ -89,7 +89,7 @@ Finally, this quantity must be related back to the model evidence. It is easy to
 $$
 \begin{eqnarray}
 	\int_0^1 \frac{d}{d\beta} \log[u( x \:|\: \beta )] \:d\beta &=& \log[u( x \:|\: \beta\!=\!1 )] - \log[u( x \:|\: \beta\!=\!0 )] \;, \\
-	&=& \log[\mbox{Pr}(x)] \;,
+	&=& \log[\mbox{Pr}(x)] \;,\hspace{60mm}[8]
 \end{eqnarray}
 $$
 
@@ -97,8 +97,8 @@ where we have made use of the fact that $u( x \:|\: \beta\!=\!1 )$ is equal to t
 
 $$
 \begin{eqnarray*}
-	\widehat{T} &=& \displaystyle\sum_{i=1}^{r-1} \frac{\tfrac{1}{2}(\widehat{D}_{\beta_{i+1}}+\widehat{D}_{\beta_i})}{r-1} \;, \\[4mm]
-	&=& \tfrac{1}{r-1}\Big( \tfrac{1}{2}\widehat{D}_{\beta_1} + \tfrac{1}{2}\widehat{D}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{D}_{\beta_i} \Big) \;.
+	\hspace{30mm} \widehat{T} &=& \displaystyle\sum_{i=1}^{r-1} \frac{\tfrac{1}{2}(\widehat{D}_{\beta_{i+1}}+\widehat{D}_{\beta_i})}{r-1} \;, \\[4mm]
+	&=& \tfrac{1}{r-1}\Big( \tfrac{1}{2}\widehat{D}_{\beta_1} + \tfrac{1}{2}\widehat{D}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{D}_{\beta_i} \Big) \;.\hspace{30mm}[9]
 \end{eqnarray*}
 $$
 
@@ -106,7 +106,7 @@ There are two sources of error in this estimator. First, there is ordinary stati
 
 $$
 \begin{eqnarray}
-	\mbox{Var}[\widehat{T}] \approx \tfrac{1}{(r-1)^2}\Big( \tfrac{1}{4}\widehat{V}_{\beta_1} + \tfrac{1}{4}\widehat{V}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{V}_{\beta_i} \Big) \;,
+	\hspace{30mm} \mbox{Var}[\widehat{T}] \approx \tfrac{1}{(r-1)^2}\Big( \tfrac{1}{4}\widehat{V}_{\beta_1} + \tfrac{1}{4}\widehat{V}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{V}_{\beta_i} \Big) \;, \hspace{30mm}[10]
 \end{eqnarray}
 $$
 
@@ -114,7 +114,7 @@ where
 
 $$
 \begin{eqnarray}
-	\widehat{V}_{\beta} = \tfrac{1}{t-1}\sum_{m=1}^t \left( \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] - \widehat{D}_{\beta} \right)^2 \;.
+	\hspace{30mm} \widehat{V}_{\beta} = \tfrac{1}{t-1}\sum_{m=1}^t \left( \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] - \widehat{D}_{\beta} \right)^2 \;. \hspace{30mm}[11]
 \end{eqnarray}
 $$
 
@@ -128,7 +128,7 @@ We start by noting that there are many possible modifications of $\mbox{Pr}(x \:
 
 $$
 \begin{eqnarray}
-	P_{\beta,\alpha}(\theta \:|\: x) &= \dfrac{\mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta)}{u( x \:|\: \beta, \alpha)} \;.
+	\hspace{30mm} P_{\beta,\alpha}(\theta \:|\: x) &= \dfrac{\mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta)}{u( x \:|\: \beta, \alpha)} \;. \hspace{30mm}[12]
 \end{eqnarray}
 $$
 
@@ -136,7 +136,7 @@ where $u(x \:|\: \beta, \alpha)$ is the following normalising constant:
 
 $$
 \begin{eqnarray*}
-	u( x \:|\: \beta, \alpha) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta) \:d\theta \;.
+	\hspace{30mm} u( x \:|\: \beta, \alpha) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta) \:d\theta \;. \hspace{30mm}[13]
 \end{eqnarray*}
 $$
 It is no more difficult to obtain draws from this distribution than it is to obtain draws from the original power posterior distribution. Continuing with the standard TI derivation we obtain:
@@ -149,7 +149,7 @@ $$
 	&=& \dfrac{1}{u( x \:|\: \beta, \alpha )} \: \displaystyle\int_{\scriptsize\theta}  \alpha\beta^{\alpha-1} \mbox{Pr}( x \:|\: \theta )^{\beta^\alpha} \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \\[4mm]
 	&=& \int_{\scriptsize\theta} \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] \frac{\mbox{Pr}( x \:|\: \theta )^{\beta^\alpha} \mbox{Pr}( \theta ) }{u( x \:|\: \beta, \alpha )} \:d\theta \;, \\[4mm]
 	&=& \int_{\scriptsize\theta} \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_{\beta,\alpha}(\theta \:|\: x) \:d\theta \;, \\[4mm]
-	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta, \alpha}\Big[ \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;.
+	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta, \alpha}\Big[ \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{30mm}[14]
 \end{eqnarray}
 $$
 
@@ -157,7 +157,7 @@ Notice that the log-likelihood in the expectation is now weighted by $\alpha\bet
 
 $$
 \begin{eqnarray}
-	\widehat{D}_{\beta,\alpha} = \frac{1}{t}\sum_{m=1}^t \alpha\beta^{\alpha-1} \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta^\alpha} ) \right] \;.
+	\hspace{30mm} \widehat{D}_{\beta,\alpha} = \frac{1}{t}\sum_{m=1}^t \alpha\beta^{\alpha-1} \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta^\alpha} ) \right] \;. \hspace{30mm}[15]
 \end{eqnarray}
 $$
 for a range of $\beta_i$, and we can carry out numerical integration over these values as before. The fact that the expectation in (X) is weighted by $\alpha\beta^{\alpha-1}$ means that values towards the prior end of the spectrum are down-weighted relative to values near the posterior end of the spectrum, and in particular the new path is constrained to equal zero at the point $\beta = 0$ whenever $\alpha > 1$. This results in a much smoother path, and reduces both statistical error and discretisation error.
