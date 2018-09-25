@@ -9,6 +9,8 @@ articles:
   installation: installation.html
   known-issues: known-issues.html
   multiallelic-data: multiallelic-data.html
+  power-analysis-between-models: power-analysis-between-models.html
   power-analysis-within-model: power-analysis-within-model.html
+  running-in-parallel: running-in-parallel.html
   tutorial-biallelic: tutorial-biallelic.html
 

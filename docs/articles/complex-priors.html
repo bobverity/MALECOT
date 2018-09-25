@@ -57,10 +57,16 @@
     <li>
       <a href="../articles/comparing-models.html">Tutorial 4: comparing models (estimating K)</a>
     </li>
+    <li>
+      <a href="../articles/running-in-parallel.html">Tutorial 5: running in parallel</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
     <li>
       <a href="../articles/power-analysis-within-model.html">Power analysis - within model</a>
+    </li>
+    <li>
+      <a href="../articles/power-analysis-between-models.html">Power analysis - between models</a>
     </li>
     <li>
       <a href="../articles/gti-mathematical-details.html">GTI mathematical details</a>
@@ -99,7 +105,7 @@
       <h1>More realistic models</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-24</h4>
+            <h4 class="date">2018-09-25</h4>
       
       
       <div class="hidden name"><code>complex-priors.Rmd</code></div>
@@ -110,9 +116,9 @@
     
 <p>This vignette demonstrates the use of more complex priors, which can add realism to the model but also tend to slow down the MCMC. It covers:</p>
 <ol style="list-style-type: decimal">
-<li>different types of prior on COI</li>
-<li>more realistic priors on allele frequencies</li>
-<li>dealing with missing data and estimating error rates</li>
+<li>Different types of prior on COI</li>
+<li>More realistic priors on allele frequencies</li>
+<li>Dealing with missing data and estimating error rates</li>
 </ol>
 <p>This vignette follows on from the previous tutorial - or you can pick up here by running these lines of code:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load output of previous tutorial</span>
@@ -174,10 +180,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.12598 seconds
+##    completed in 3.13197 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.73 seconds</code></pre>
+<pre><code>## Total run-time: 3.74 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -241,7 +247,7 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.16114 seconds
+##    completed in 2.16345 seconds
 ## 
 ## Processing results</code></pre>
 <pre><code>## Total run-time: 2.53 seconds</code></pre>
@@ -330,10 +336,10 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.43234 seconds
+##    completed in 3.41569 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.79 seconds</code></pre>
+<pre><code>## Total run-time: 3.76 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>

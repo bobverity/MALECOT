@@ -57,10 +57,16 @@
     <li>
       <a href="../articles/comparing-models.html">Tutorial 4: comparing models (estimating K)</a>
     </li>
+    <li>
+      <a href="../articles/running-in-parallel.html">Tutorial 5: running in parallel</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
     <li>
       <a href="../articles/power-analysis-within-model.html">Power analysis - within model</a>
+    </li>
+    <li>
+      <a href="../articles/power-analysis-between-models.html">Power analysis - between models</a>
     </li>
     <li>
       <a href="../articles/gti-mathematical-details.html">GTI mathematical details</a>
@@ -99,7 +105,7 @@
       <h1>Multi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-24</h4>
+            <h4 class="date">2018-09-25</h4>
       
       
       <div class="hidden name"><code>multiallelic-data.Rmd</code></div>
@@ -110,11 +116,11 @@
     
 <p>This vignette demonstrates the MALECOT analysis pipeline for multi-allelic data, i.e. data for which there are more than two alleles at a locus. It covers:</p>
 <ol style="list-style-type: decimal">
-<li>how multi-allelic format differs from bi-allelic format</li>
-<li>binding multi-allelic data to a project and running a basic MCMC</li>
-<li>checking MCMC behaviour</li>
-<li>plotting results</li>
-<li>more realistic priors on multi-allelic allele frequencies</li>
+<li>How multi-allelic format differs from bi-allelic format</li>
+<li>Binding multi-allelic data to a project and running a basic MCMC</li>
+<li>Checking MCMC behaviour</li>
+<li>Plotting results</li>
+<li>More realistic priors on multi-allelic allele frequencies</li>
 </ol>
 <p>This tutorial assumes some prior knowledge about MALECOT, so if you are completely new to the program we recommend working through the simpler <a href="https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html">bi-allelic tutorial</a> first.</p>
 <div id="loading-and-running-multi-allelic-data" class="section level2">
@@ -156,10 +162,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 8.92806 seconds
+##    completed in 8.8322 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 10.15 seconds</code></pre>
+<pre><code>## Total run-time: 10.02 seconds</code></pre>
 <p>You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.</p>
 <p>As always we need to check the behaviour of our MCMC before moving on to results:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
