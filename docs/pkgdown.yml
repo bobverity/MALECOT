@@ -4,6 +4,7 @@ pkgdown_sha: ~
 articles:
   comparing-models: comparing-models.html
   complex-priors: complex-priors.html
+  ensuring-good-mixing: ensuring-good-mixing.html
   faq: faq.html
   gti-mathematical-details: gti-mathematical-details.html
   installation: installation.html

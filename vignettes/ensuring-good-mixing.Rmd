@@ -1,0 +1,12 @@
+---
+title: "Ensuring good mixing"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Ensuring good mixing"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+(TOD)

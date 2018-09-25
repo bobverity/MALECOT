@@ -23,6 +23,8 @@ navbar:
           href: articles/running-in-parallel.html
         - text: -------
         - text: "Advanced topics"
+        - text: "Ensuring good mixing"
+          href: articles/ensuring-good-mixing.html
         - text: "Power analysis - within model"
           href: articles/power-analysis-within-model.html
         - text: "Power analysis - between models"

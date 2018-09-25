@@ -65,10 +65,10 @@ The crucial step in the TI method is the following derivation:
 
 $$
 \begin{eqnarray}
-	\frac{d}{d\beta} \log[u( x \:|\: \beta )] &=& \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} u( x \:|\: \beta ) \;, \hspace{56mm} \color{gray}{\textit{(by chain rule)}} \\[4mm]
+	\frac{d}{d\beta} \log[u( x \:|\: \beta )] &=& \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} u( x \:|\: \beta ) \;, \hspace{57mm} \color{gray}{\textit{(by chain rule)}} \\[4mm]
 	&=& \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} \int_{\scriptsize\theta} \: \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(substituting in (5))}} \\[4mm]
 	&=& \frac{1}{u( x \:|\: \beta )} \: \int_{\scriptsize\theta} \: \frac{d}{d\beta} \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(by Leibniz integral rule)}} \\[4mm]
-	&=& \dfrac{1}{u( x \:|\: \beta )} \: \displaystyle\int_{\scriptsize\theta}  \mbox{Pr}( x \:|\: \theta )^\beta \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{14mm} \color{gray}{\textit{(evaluating derivative)}} \\[4mm]
+	&=& \dfrac{1}{u( x \:|\: \beta )} \: \displaystyle\int_{\scriptsize\theta}  \mbox{Pr}( x \:|\: \theta )^\beta \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{13mm} \color{gray}{\textit{(evaluating derivative)}} \\[4mm]
 	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] \frac{\mbox{Pr}( x \:|\: \theta )^\beta \mbox{Pr}( \theta ) }{u( x \:|\: \beta )} \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(rearranging)}} \\[4mm]
 	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_\beta(\theta \:|\: x) \:d\theta \;, \hspace{42mm} \color{gray}{\textit{(substituting in (4))}} \\[4mm]
 	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{54mm} \color{gray}{\textit{(by definition of expectation)}} \hspace{10mm}(6)

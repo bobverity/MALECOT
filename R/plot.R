@@ -1050,8 +1050,8 @@ plot_posterior_model <- function(project) {
 #'   
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
-#' @param rung which value of K to produce the plot for. Defaults to the cold rung
+#' @param K which value of K to plot
+#' @param rung which rung to plot. Defaults to the cold chain
 #' @param col colour of the trace
 #'   
 #' @export
@@ -1090,8 +1090,9 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
   }
   
   # use cold rung by default
-  rung <- define_default(rung, ncol(loglike_sampling))
-  assert_leq(rung, ncol(loglike_sampling))
+  rungs <- ncol(loglike_sampling)
+  rung <- define_default(rung, rungs)
+  assert_leq(rung, rungs)
   loglike <- as.vector(loglike_sampling[,rung])
   
   # get into ggplot format
@@ -1119,8 +1120,8 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
-#' @param rung which value of K to produce the plot for. Defaults to the cold rung
+#' @param K which value of K to plot
+#' @param rung which rung to plot. Defaults to the cold chain
 #' @param col colour of the trace
 #'
 #' @export
@@ -1159,8 +1160,9 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
   }
   
   # use cold rung by default
-  rung <- define_default(rung, ncol(loglike_sampling))
-  assert_leq(rung, ncol(loglike_sampling))
+  rungs <- ncol(loglike_sampling)
+  rung <- define_default(rung, rungs)
+  assert_leq(rung, rungs)
   loglike <- as.vector(loglike_sampling[,rung])
   
   # store variable to plot
@@ -1194,8 +1196,8 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
-#' @param rung which value of K to produce the plot for. Defaults to the cold rung
+#' @param K which value of K to plot
+#' @param rung which rung to plot. Defaults to the cold chain
 #' @param col colour of the trace
 #'
 #' @export
@@ -1234,8 +1236,9 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
   }
   
   # use cold rung by default
-  rung <- define_default(rung, ncol(loglike_sampling))
-  assert_leq(rung, ncol(loglike_sampling))
+  rungs <- ncol(loglike_sampling)
+  rung <- define_default(rung, rungs)
+  assert_leq(rung, rungs)
   loglike <- as.vector(loglike_sampling[,rung])
   
   # get into ggplot format
@@ -1262,21 +1265,22 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
+#' @param K which value of K to plot
+#' @param rung which rung to plot. Defaults to the cold chain
 #' @param col colour of the trace
 #'
 #' @export
 
-plot_loglike_dignostic <- function(project, K = NULL, col = "black") {
+plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black") {
   
   # produce individual diagnostic plots and add features
-  plot1 <- plot_trace(project, K = K, col = col)
+  plot1 <- plot_trace(project, K = K, rung = rung, col = col)
   plot1 <- plot1 + ggtitle("MCMC trace")
   
-  plot2 <- plot_acf(project, K = K, col = col)
+  plot2 <- plot_acf(project, K = K, rung = rung, col = col)
   plot2 <- plot2 + ggtitle("autocorrelation")
   
-  plot3 <- plot_density(project, K = K, col = col)
+  plot3 <- plot_density(project, K = K, rung = rung, col = col)
   plot3 <- plot3 + ggtitle("density")
   
   # produce grid of plots

@@ -63,6 +63,9 @@
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
     <li>
+      <a href="../articles/ensuring-good-mixing.html">Ensuring good mixing</a>
+    </li>
+    <li>
       <a href="../articles/power-analysis-within-model.html">Power analysis - within model</a>
     </li>
     <li>
@@ -136,7 +139,7 @@
 <p><span class="math display">\[\mbox{Pr}(\mathcal{M} \: | \: x) = \int \mbox{Pr}(\mathcal{M}, p \: | \: x) dp\]</span></p>
 <p>This is often an extremely high-dimensional integral - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by most methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.</p>
 <p>One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). In TI we run multiple MCMC chains, each at a different “rung” on a temperature ladder. The hotter the chain, the flatter the target distribution. The log-likelihoods over all chains are then combined in a single calculation that - by what can only be described as mathematical magic! - is asymptotically equal to <span class="math inline">\(\log[\mbox{Pr}(x \: | \: \mathcal{M})]\)</span>. We can then apply a prior over models, for example giving each model equal weight, to arrive at the desired posterior value <span class="math inline">\(\mbox{Pr}(\mathcal{M} \: | \: x)\)</span>. <em>Generalised</em> thermodynamic integration (GTI) differs from regular TI in that it uses a slightly different calculation when combining information across rungs that leads to lower bias and higher precision.</p>
-<p>Hopefully this is enough background to run thermodynamic MCMC in MALECOT and understand the results. For those eager to understand all the mathematical details, see <a href="https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html">this vignette</a>.</p>
+<p>Hopefully this is enough background to run thermodynamic MCMC in MALECOT, and to understand the results. For those eager to understand all the mathematical details, see <a href="https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html">this vignette</a>.</p>
 </div>
 <div id="running-a-thermodynamic-mcmc" class="section level2">
 <h2 class="hasAnchor">
@@ -147,10 +150,10 @@ mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_d
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create project and bind data</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, <span class="dt">df =</span> mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
-<p>For our first parameter set we will assume a very basic model with default parameters; which means a Poisson prior on COI, a flat prior on allele frequencies and no error estimation.</p>
+<p>For our first parameter set we will assume a very basic model with default parameters; which means a Poisson prior on COI, a flat prior on allele frequencies and no error estimation:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create parameter set</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"simple model"</span>)</code></pre></div>
-<p>We will then run the MCMC for values of <span class="math inline">\(K\)</span> from 1 to 5. To make this thermodymic MCMC we use the <code>rungs</code> argument to set the number of rungs on the temperature ladder, here opting for 10 rungs. Be warned - this MCMC will take considerably longer to run than regular MCMC, so be prepared to go make yourself a cup of tea!</p>
+<p>We will then run the MCMC for values of <span class="math inline">\(K\)</span> from 1 to 5. What makes this thermodynamic MCMC rather than regular MCMC is the <code>rungs</code> argument, which dictates the number of rungs on the temperature ladder. We will opt for 10 rungs for now. Be warned - this MCMC will take considerably longer to run than regular MCMC, so be prepared to go make yourself a cup of tea!</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run thermodynamic MCMC</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> reps, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
                    <span class="dt">samples =</span> reps, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
@@ -164,7 +167,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.222851 seconds
+##    completed in 0.223032 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -176,7 +179,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.392556 seconds
+##    completed in 0.400106 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -188,7 +191,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.484374 seconds
+##    completed in 0.452536 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -200,7 +203,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.552525 seconds
+##    completed in 0.547122 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -212,36 +215,47 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.646247 seconds
+##    completed in 0.652686 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.8 seconds</code></pre>
-<p>Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only deemed to have converged when <em>every</em> chain has converged, meaning we are as weak as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and increase the number of burn-in iterations if needed.</p>
+<pre><code>## Total run-time: 3.74 seconds</code></pre>
+<p>Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only deemed to have converged when <em>every</em> chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.</p>
 </div>
 <div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
 <h2 class="hasAnchor">
 <a href="#checking-thermodynamic-mcmc-behaviour" class="anchor"></a>Checking thermodynamic MCMC behaviour</h2>
-<p>There are more moving parts in thermodynamic MCMC, which on the one hand can help it to explore the space well, but on the other hand means we have more things to check.</p>
-<p>First, we should perform the same diagnostic checks as for regular MCMC, ensuring that the cold chain has explored the space well:</p>
+<p>There are more moving parts in thermodynamic MCMC, meaning we have more things to check. First, we should perform the same diagnostic checks as for regular MCMC:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
-<p>Running <code><a href="../reference/get_ESS.html">get_ESS()</a></code> on thermodynamic MCMC output now prints the effective sample size of every MCMC rung:</p>
+<p>This uses the cold rung by default (i.e. the final rung), but we can use the <code>rung</code> argument to plot diagnostics for any given rung.</p>
+<p>Running <code><a href="../reference/get_ESS.html">get_ESS()</a></code> now prints out the effective sample size of every rung:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <pre><code>##    rung1    rung2    rung3    rung4    rung5    rung6    rung7    rung8 
 ## 45.70899 31.67886 18.16358 21.66121 21.37925 18.75050 17.77945 19.34429 
 ##    rung9   rung10 
 ## 13.51520 12.07435</code></pre>
-<p>We interpret ESS for hot chains the same way as for the cold chain - this is the number of samples that we have obtained from the target distribution once autocorrelation has been taken into account. Therefore if we see small values (tens to hundreds as a rule of thumb) then we should be concerned that our thermodynamic MCMC has not explored the space well, and we should repeat the analysis with a larger number of samples.</p>
-<p>Another useful plotting function is <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code>, which plots the 95% quantiles of the log-likelihood under each temperature rung:</p>
+<p>We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. Therefore, if we see small values of the ESS (tens to hundreds as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples.</p>
+<p>A useful plotting function when working with multiple rungs is the <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code> function, which plots the 95% quantiles of the log-likelihood at each rung:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
-<p>This plot should be always-increasing from left to right, aside from small variations due to the random nature of MCMC. If any rungs stand out from the overall pattern then it is worth running <code>plot_loglike_diagnostic()</code> on these particular rungs using the <code>rung</code> argument, for example:</p>
+<p>This plot should be always-increasing from left to right, aside from small variations due to the random nature of MCMC. If any rungs stand out from the overall pattern then it is worth running <code>plot_loglike_diagnostic()</code> on these particular rungs. As with all other checks, this should be performed on every explored value of <span class="math inline">\(K\)</span>. This plot can also be very useful when it comes to ensuring good mixing, as described in <a href="todo">another vignette</a>.</p>
+<p>The GTI method takes the log-likelihood values above and multiplies them by custom weights, leading to a GTI “path”. The area between this path and zero then makes up our estimate of the log-evidence. We can visualise this path using the <code><a href="../reference/plot_GTI_path.html">plot_GTI_path()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>As our evidence estimate is derived from the area between the line and zero, it is important that this path is not too jagged. We are essentially approximating a smooth curve with a series of straight line segments, so if there are corners cut off by this approximation then the area will be too large or too small leading to a biased estimate. There are two ways that we can mitigate this:</p>
+<ol style="list-style-type: decimal">
+<li>Increase the number of rungs</li>
+<li>Change the <code>GTI_pow</code> argument</li>
+</ol>
+<p>Increasing the number of rungs will obviously lead to a smoother path, and it will also help with MCMC mixing, but it comes at the cost of slowing the MCMC down. The <code>GTI_pow</code> argument changes the curvature of the path by modifying the log-likelihood weights, with large values leading to a more concave path. Ideally we want to choose <code>GTI_pow</code> such that the path is as straight as possible, as this will lead to smallest difference between the true curve and the approximation. The plot above is straight enough (using the default value <code>GTI_pow = 3</code>) so there is no need to re-run the MCMC.</p>
+<p>Once we are happy with our log-likelihood estimates and our GTI path, we can use our evidence estimates to compare values of <span class="math inline">\(K\)</span>. The raw estimates can be plotted using the <code><a href="../reference/plot_logevidence_K.html">plot_logevidence_K()</a></code> function, which plots 95% credible intervals of the log-evidence for each value of <span class="math inline">\(K\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p>We can see immediately that the model favors <span class="math inline">\(K = 3\)</span> in this case, which agrees with our simulation parameters. If we had seen large credible intervals at this stage then we would have to re-run the model with a larger number of <code>samples</code>, but in this case the intervals are non-overlapping and the signal is clear.</p>
+<p>We can also use the <code><a href="../reference/plot_posterior_K.html">plot_posterior_K()</a></code> function to plot the posterior probability of each value of <span class="math inline">\(K\)</span>, which is obtained by taking these raw estimates out of log space and applying an equal prior over <span class="math inline">\(K\)</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p>This plot is often easier to interpret as it is in units of probability. In this case we can see that there is a &gt;99% posterior probability that the data were drawn from 3 subpopulations. Again, if there are large credible intervals at this stage then it is worth re-running the MCMC with a larger number of <code>samples</code>, but here there is no need.</p>
 </div>
 <div id="comparing-different-parameter-sets" class="section level2">
 <h2 class="hasAnchor">
@@ -282,7 +296,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.39986 seconds
+##    completed in 0.405517 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -294,7 +308,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.630915 seconds
+##    completed in 0.617793 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -306,7 +320,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.767789 seconds
+##    completed in 0.756896 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -318,7 +332,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.920283 seconds
+##    completed in 0.911278 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -330,10 +344,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.07924 seconds
+##    completed in 1.12021 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 5.24 seconds</code></pre>
+<pre><code>## Total run-time: 5.28 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
