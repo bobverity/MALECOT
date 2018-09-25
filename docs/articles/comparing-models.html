@@ -162,63 +162,63 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.223032 seconds
+##    completed in 8.68635 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.400106 seconds
+##    completed in 16.5315 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 700 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.452536 seconds
+##    completed in 21.4275 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 2100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.547122 seconds
+##    completed in 26.6825 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1800 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.652686 seconds
+##    completed in 31.972 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.74 seconds</code></pre>
+<pre><code>## Total run-time: 1.8 minutes</code></pre>
 <p>Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only deemed to have converged when <em>every</em> chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.</p>
 </div>
 <div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
@@ -227,42 +227,47 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 <p>There are more moving parts in thermodynamic MCMC, meaning we have more things to check. First, we should perform the same diagnostic checks as for regular MCMC:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="comparing-models_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
-<p>This uses the cold rung by default (i.e. the final rung), but we can use the <code>rung</code> argument to plot diagnostics for any given rung.</p>
+<p>This uses the cold rung by default (in this case the 10th rung), or we can use the <code>rung</code> argument to plot diagnostics for any given rung.</p>
 <p>Running <code><a href="../reference/get_ESS.html">get_ESS()</a></code> now prints out the effective sample size of every rung:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<pre><code>##    rung1    rung2    rung3    rung4    rung5    rung6    rung7    rung8 
-## 45.70899 31.67886 18.16358 21.66121 21.37925 18.75050 17.77945 19.34429 
-##    rung9   rung10 
-## 13.51520 12.07435</code></pre>
+<pre><code>##     rung1     rung2     rung3     rung4     rung5     rung6     rung7 
+##  121.2872  503.4540  888.0968 1093.2949 1594.9459  995.2440 1424.7382 
+##     rung8     rung9    rung10 
+## 1420.6116 1259.9497 1063.6057</code></pre>
 <p>We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. Therefore, if we see small values of the ESS (tens to hundreds as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples.</p>
-<p>A useful plotting function when working with multiple rungs is the <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code> function, which plots the 95% quantiles of the log-likelihood at each rung:</p>
+<p>A useful plotting function when working with multiple rungs is the <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code> function, which plots the 95% quantiles of the log-likelihood over every rung:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
-<p>This plot should be always-increasing from left to right, aside from small variations due to the random nature of MCMC. If any rungs stand out from the overall pattern then it is worth running <code>plot_loglike_diagnostic()</code> on these particular rungs. As with all other checks, this should be performed on every explored value of <span class="math inline">\(K\)</span>. This plot can also be very useful when it comes to ensuring good mixing, as described in <a href="todo">another vignette</a>.</p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-9-1.png" width="480"></p>
+<p>This plot should be always-increasing from left to right, aside from small variations due to the random nature of MCMC. If any rungs stand out from the overall pattern then it is worth running <code>plot_loglike_diagnostic()</code> on these particular rungs, as they may have mixed badly. As with all other checks, this should be performed on every explored value of <span class="math inline">\(K\)</span>.</p>
 <p>The GTI method takes the log-likelihood values above and multiplies them by custom weights, leading to a GTI “path”. The area between this path and zero then makes up our estimate of the log-evidence. We can visualise this path using the <code><a href="../reference/plot_GTI_path.html">plot_GTI_path()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-<p>As our evidence estimate is derived from the area between the line and zero, it is important that this path is not too jagged. We are essentially approximating a smooth curve with a series of straight line segments, so if there are corners cut off by this approximation then the area will be too large or too small leading to a biased estimate. There are two ways that we can mitigate this:</p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-10-1.png" width="480"></p>
+<p>As our evidence estimate is derived from the area between the line and zero, it is important that this path is not too jagged. We are essentially approximating a smooth curve with a series of straight line segments, so if there are corners cut off by this approximation then the area will be too large or too small, leading to a biased estimate. There are two ways that we can mitigate this:</p>
 <ol style="list-style-type: decimal">
 <li>Increase the number of rungs</li>
 <li>Change the <code>GTI_pow</code> argument</li>
 </ol>
-<p>Increasing the number of rungs will obviously lead to a smoother path, and it will also help with MCMC mixing, but it comes at the cost of slowing the MCMC down. The <code>GTI_pow</code> argument changes the curvature of the path by modifying the log-likelihood weights, with large values leading to a more concave path. Ideally we want to choose <code>GTI_pow</code> such that the path is as straight as possible, as this will lead to smallest difference between the true curve and the approximation. The plot above is straight enough (using the default value <code>GTI_pow = 3</code>) so there is no need to re-run the MCMC.</p>
+<p>Increasing the number of rungs will obviously lead to a smoother path, and it will also help with <a href="https://bobverity.github.io/MALECOT/articles/ensuring-good-mixing.html">MCMC mixing</a>, but it comes at the cost of slowing the MCMC down. The <code>GTI_pow</code> argument changes the curvature of the path by modifying the log-likelihood weights, with large values leading to a more concave path. Ideally we want to choose <code>GTI_pow</code> such that the path is as straight as possible, as this will lead to smallest difference between the true curve and the approximation. The plot above is slightly concave (using the default value <code>GTI_pow = 3</code>), but is straight enough so there is no need to re-run the MCMC.</p>
+</div>
+<div id="plotting-results" class="section level2">
+<h2 class="hasAnchor">
+<a href="#plotting-results" class="anchor"></a>Plotting results</h2>
 <p>Once we are happy with our log-likelihood estimates and our GTI path, we can use our evidence estimates to compare values of <span class="math inline">\(K\)</span>. The raw estimates can be plotted using the <code><a href="../reference/plot_logevidence_K.html">plot_logevidence_K()</a></code> function, which plots 95% credible intervals of the log-evidence for each value of <span class="math inline">\(K\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
-<p>We can see immediately that the model favors <span class="math inline">\(K = 3\)</span> in this case, which agrees with our simulation parameters. If we had seen large credible intervals at this stage then we would have to re-run the model with a larger number of <code>samples</code>, but in this case the intervals are non-overlapping and the signal is clear.</p>
-<p>We can also use the <code><a href="../reference/plot_posterior_K.html">plot_posterior_K()</a></code> function to plot the posterior probability of each value of <span class="math inline">\(K\)</span>, which is obtained by taking these raw estimates out of log space and applying an equal prior over <span class="math inline">\(K\)</span>.</p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-11-1.png" width="480"></p>
+<p>We can see immediately that the model favors <span class="math inline">\(K = 3\)</span> in this case, which agrees with our simulation parameters. If we had seen large credible intervals at this stage then we would have to re-run the model with a larger number of <code>samples</code>, but in this case the intervals are non-overlapping and the signal is clear so there is no need.</p>
+<p>We can also use the <code><a href="../reference/plot_posterior_K.html">plot_posterior_K()</a></code> function to plot the posterior probability of each value of <span class="math inline">\(K\)</span>, which is obtained by taking these raw estimates out of log space and applying an equal prior over <span class="math inline">\(K\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
-<p>This plot is often easier to interpret as it is in units of probability. In this case we can see that there is a &gt;99% posterior probability that the data were drawn from 3 subpopulations. Again, if there are large credible intervals at this stage then it is worth re-running the MCMC with a larger number of <code>samples</code>, but here there is no need.</p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-12-1.png" width="480"></p>
+<p>This second plot is often easier to interpret, as it is in units of probability. In this case we can see that there is a &gt;99% posterior probability that the data were drawn from <span class="math inline">\(K = 3\)</span> subpopulations (which we know to be true). Again, if we saw large credible intervals at this stage then it would be worth re-running the MCMC with a larger number of <code>samples</code>, but here there is no need.</p>
 </div>
 <div id="comparing-different-parameter-sets" class="section level2">
 <h2 class="hasAnchor">
 <a href="#comparing-different-parameter-sets" class="anchor"></a>Comparing different parameter sets</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create parameter set</span>
+<p>One of the major advantages of the model evidence is that we can use it to compare wider evolutionary models, i.e. parameter sets. Mathematically this is a simple as summing the evidence for each value of <span class="math inline">\(K\)</span>, weighted by the prior probability of <span class="math inline">\(K\)</span>.</p>
+<p>We will test this by creating a second parameter set in the same project that estimates the error, but is identical in all other respects:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create new parameter set</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"error model"</span>, <span class="dt">estimate_error =</span> <span class="ot">TRUE</span>)
-
 myproj</code></pre></div>
 <pre><code>## DATA:
 ##    data format = biallelic
@@ -283,6 +288,7 @@ myproj</code></pre></div>
 ##    estimate error = TRUE
 ##    e1_max = 0.2
 ##    e2_max = 0.2</code></pre>
+<p>We will run thermodynamic MCMC for this parameter set over the same range of <span class="math inline">\(K\)</span> values. This MCMC will typically take slightly longer to run, longer to converge, and will have lower effective sample sizes:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run MCMC</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> reps, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
                    <span class="dt">samples =</span> reps, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
@@ -291,79 +297,89 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 4800 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.405517 seconds
+##    completed in 18.7771 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 2900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.617793 seconds
+##    completed in 29.3257 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1500 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.756896 seconds
+##    completed in 35.9348 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 1900 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.911278 seconds
+##    completed in 43.7464 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
+##    converged within 3200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.12021 seconds
+##    completed in 52.1628 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 5.28 seconds</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<pre><code>## Total run-time: 3.05 minutes</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot diagnostics</span>
+<span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># report ESS</span>
+<span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<pre><code>##     rung1     rung2     rung3     rung4     rung5     rung6     rung7 
+## 7149.3542 6070.9243 2031.9150 1125.6925 1051.7283  271.1434 1416.7296 
+##     rung8     rung9    rung10 
+## 1504.5466  814.0294  825.4789</code></pre>
+<p>Assuming everything looks OK with the MCMC behaviour we can plot the posterior error estimates:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-1.png" width="384"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="384"></p>
+<p>We know from the simulation parameters that there are no errors in the data, meaning this extra flexibility of estimating the error is actually taking the model further away from the truth. looking at the posterior credible intervals we can see that the model has struggled to arrive at precise estimates of the error rates, instead exploring the prior range <span class="math inline">\([0,0.2]\)</span> quite evenly.</p>
+<p>The</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-17-1.png" width="768"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-17-2.png" width="768"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-2.png" width="768"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_model.html">plot_logevidence_model</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_model.html">plot_posterior_model</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 </div>
   </div>
 
@@ -375,6 +391,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 <li><a href="#background-on-bayesian-model-comparison">Background on Bayesian model comparison</a></li>
       <li><a href="#running-a-thermodynamic-mcmc">Running a thermodynamic MCMC</a></li>
       <li><a href="#checking-thermodynamic-mcmc-behaviour">Checking thermodynamic MCMC behaviour</a></li>
+      <li><a href="#plotting-results">Plotting results</a></li>
       <li><a href="#comparing-different-parameter-sets">Comparing different parameter sets</a></li>
       </ul>
 </div>

@@ -183,10 +183,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.11454 seconds
+##    completed in 3.12628 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.71 seconds</code></pre>
+<pre><code>## Total run-time: 3.73 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -250,10 +250,10 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.13677 seconds
+##    completed in 2.13171 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.51 seconds</code></pre>
+<pre><code>## Total run-time: 2.49 seconds</code></pre>
 <p>After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj_skew, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -339,10 +339,10 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.44198 seconds
+##    completed in 3.37112 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.78 seconds</code></pre>
+<pre><code>## Total run-time: 3.73 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>
