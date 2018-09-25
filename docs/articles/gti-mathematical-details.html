@@ -57,10 +57,16 @@
     <li>
       <a href="../articles/comparing-models.html">Tutorial 4: comparing models (estimating K)</a>
     </li>
+    <li>
+      <a href="../articles/running-in-parallel.html">Tutorial 5: running in parallel</a>
+    </li>
     <li class="divider">
     <li class="dropdown-header">Advanced topics</li>
     <li>
       <a href="../articles/power-analysis-within-model.html">Power analysis - within model</a>
+    </li>
+    <li>
+      <a href="../articles/power-analysis-between-models.html">Power analysis - between models</a>
     </li>
     <li>
       <a href="../articles/gti-mathematical-details.html">GTI mathematical details</a>
@@ -99,7 +105,7 @@
       <h1>GTI mathematical details</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-24</h4>
+            <h4 class="date">2018-09-25</h4>
       
       
       <div class="hidden name"><code>gti-mathematical-details.Rmd</code></div>
@@ -108,7 +114,98 @@
 
     
     
-<p>(TODO)</p>
+<p>This vignette gives complete mathematical details of the model comparison methods implemented in MALECOT. It covers:</p>
+<ol style="list-style-type: decimal">
+<li>model evidence and Bayes factors</li>
+<li>thermodynamic integration (TI)</li>
+<li>generalised thermodynamic integration (GTI)</li>
+</ol>
+<p>Most of this derivation can be found in <a href="http://www.genetics.org/content/203/4/1827.supplemental">Supplementary Material 1</a> of (ref), which also contains derivations of common model comparison statistics.</p>
+<div id="problem-definition" class="section level3">
+<h3 class="hasAnchor">
+<a href="#problem-definition" class="anchor"></a>Problem definition</h3>
+<p>We start by assuming a set of models <span class="math inline">\(\mathcal{M}_k\)</span> for <span class="math inline">\(k \in 1:K\)</span>, each of which has its own set of parameters <span class="math inline">\(\theta_k\)</span>. The probability of the observed data <span class="math inline">\(x\)</span> conditional on the model and the parameters of the model (a.k.a. the likelihood) can be written <span class="math inline">\(\mbox{Pr}(x \: | \: \theta_k, \mathcal{M}_k)\)</span>. We are interested in comparing models based on the <em>Bayesian evidence</em>, defined as the probability of the model integrated over all free parameters (a.k.a. the marginal likelihood of the model). This can be written</p>
+<p><span class="math display">\[
+\begin{align}
+    \hspace{30mm} \mbox{Pr}(x \:|\: \mathcal{M}_k) = \int_{\scriptsize\theta_k} \mbox{Pr}(x \:|\: \theta_k, \mathcal{M}_k) \mbox{Pr}(\theta_k \:|\: \mathcal{M}_k) \:d\theta_k \;. \hspace{30mm}[1]
+\end{align}
+\]</span> Once we have this quantity it is straightforward to compute bayes factors as the ratio of evidence between models:</p>
+<p><span class="math display">\[
+\mbox{BF}(\mathcal{M}_i:\mathcal{M}_j) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_i)}{\mbox{Pr}(x \:|\: \mathcal{M}_j)} \;,
+\]</span> or to combine the evidence with a prior over models to arrive at the posterior probability of a model:</p>
+<p><span class="math display">\[
+\mbox{Pr}(\mathcal{M}_k \:|\: x) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_k)}{ \sum_{i=1}^K \mbox{Pr}(x \:|\: \mathcal{M}_i) } \;.
+\]</span> The challenging part in this analysis plan is the integral in (X), which is often extremely high-dimensional making it computationally infeasible by standard methods. Fortunately we can use advanced MCMC methods to arrive at asymptotically unbiased estimates of <span class="math inline">\(\log[\mbox{Pr}(x \:|\: \mathcal{M}_k)]\)</span>, from which we can derive all other quantities of interest.</p>
+<p>In the following sections <span class="math inline">\(\mathcal{M}_k\)</span> and <span class="math inline">\(\theta_k\)</span> are often shortened to <span class="math inline">\(\mathcal{M}\)</span> and <span class="math inline">\(\theta\)</span> for succinctness, in which case it is assumed that the model <span class="math inline">\(\mathcal{M}\)</span> is one of several to be compared.</p>
+</div>
+<div id="thermodynamic-integration" class="section level3">
+<h3 class="hasAnchor">
+<a href="#thermodynamic-integration" class="anchor"></a>Thermodynamic integration</h3>
+<p>Thermodynamic Integration (TI) provides direct estimates of the (log) model evidence that are unbiased and have finite and quantifiable variance. The method exploits the “power posterior” , defined as follows:</p>
+<p><span class="math display">\[
+\begin{eqnarray}
+    P_\beta(\theta \:|\: x, \mathcal{M}) &amp;= \dfrac{\mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M})}{u( x \:|\: \beta, \mathcal{M})} \;.
+\end{eqnarray}
+\]</span></p>
+<p>where <span class="math inline">\(u(x \:|\: \beta, \mathcal{M})\)</span> is a normalising constant that ensures the distribution integrates to unity:</p>
+<p><span class="math display">\[
+\begin{eqnarray*}
+    u( x \:|\: \beta, \mathcal{M}) &amp;= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M}) \:d\theta \;.
+\end{eqnarray*}
+\]</span></p>
+<p>In subsequent expressions in this section the conditioning on the model <span class="math inline">\(\mathcal{M}\)</span> will be supressed for succinctness.</p>
+<p>The crucial step in the TI method is the following derivation:</p>
+<p><span class="math display">\[
+\begin{eqnarray}
+    \frac{d}{d\beta} \log[u( x \:|\: \beta )] &amp;=&amp; \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} u( x \:|\: \beta ) \;, \hspace{56mm} \color{gray}{\textit{(by chain rule)}} \\[4mm]
+    &amp;=&amp; \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} \int_{\scriptsize\theta} \: \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(substituting in (X))}} \\[4mm]
+    &amp;=&amp; \frac{1}{u( x \:|\: \beta )} \: \int_{\scriptsize\theta} \: \frac{d}{d\beta} \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(by Leibniz integral rule)}} \\[4mm]
+    &amp;=&amp; \dfrac{1}{u( x \:|\: \beta )} \: \displaystyle\int_{\scriptsize\theta}  \mbox{Pr}( x \:|\: \theta )^\beta \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{14mm} \color{gray}{\textit{(evaluating derivative)}} \\[4mm]
+    &amp;=&amp; \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] \frac{\mbox{Pr}( x \:|\: \theta )^\beta \mbox{Pr}( \theta ) }{u( x \:|\: \beta )} \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(rearranging)}} \\[4mm]
+    &amp;=&amp; \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_\beta(\theta \:|\: x) \:d\theta \;, \hspace{42mm} \color{gray}{\textit{(substituting in (X))}} \\[4mm]
+    &amp;=&amp; \mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{54mm} \color{gray}{\textit{(by definition of expectation)}}
+\end{eqnarray}
+\]</span></p>
+<p>In other words, the gradient of <span class="math inline">\(\log[u( x \:|\: \beta )]\)</span> is equivalent to the expected log-likelihood of the parameter <span class="math inline">\(\theta\)</span>, where the expectation is taken over the power posterior. Assuming we cannot derive this quantity analytically, we must turn to estimation methods. Let <span class="math inline">\(\theta_m^{\beta}\)</span> for <span class="math inline">\(m\in\{1,\dots,t\}\)</span> represent a series of independent draws from the power posterior with power <span class="math inline">\(\beta\)</span>. Then the expectation can be estimated using the quantity <span class="math inline">\(\widehat{D}_\beta\)</span>, defined as follows:</p>
+<p><span class="math display">\[
+\begin{eqnarray}
+    \label{EQ_pathPoint}
+    \widehat{D}_\beta = \frac{1}{t}\sum_{m=1}^t \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] \;.
+\end{eqnarray}
+\]</span></p>
+<p>Finally, this quantity must be related back to the model evidence. It is easy to demonstrate that the integral of  with respect to <span class="math inline">\(\beta\)</span> over the range <span class="math inline">\([0,1]\)</span> is equal to the logarithm of the model evidence:</p>
+<p><span class="math display">\[
+\begin{eqnarray}
+    \notag \int_0^1 \frac{d}{d\beta} \log[u( x \:|\: \beta )] \:d\beta &amp;=&amp; \log[u( x \:|\: \beta\!=\!1 )] - \log[u( x \:|\: \beta\!=\!0 )] \;, \\
+    \label{EQ_integral}
+    &amp;=&amp; \log[\mbox{Pr}(x)] \;,
+\end{eqnarray}
+\]</span></p>
+<p>where we have made use of the fact that <span class="math inline">\(u( x \:|\: \beta\!=\!1 )\)</span> is equal to the model evidence, and <span class="math inline">\(u( x \:|\: \beta\!=\!0 )\)</span> is equal to the integral over the prior, which is 1 by definition. We cannot usually carry out this integral analytically, but we can approximate it using the values <span class="math inline">\(\widehat{D}_\beta\)</span> in a simple numerical integration technique, such as the trapezium rule. For example, if the values <span class="math inline">\(\beta_i=(i-1)/(r-1)\)</span> for <span class="math inline">\(i\!=\!\{1,\dots,r\}\)</span> represent a series of equally spaced powers spanning the interval <span class="math inline">\([0,1]\)</span>, where <span class="math inline">\(r\)</span> denotes the number of `rungs’ used (<span class="math inline">\(r\geq2\)</span>), then the integral in  can be approximated using</p>
+<p><span class="math display">\[
+\begin{eqnarray*}
+    \widehat{T} &amp;=&amp; \displaystyle\sum_{i=1}^{r-1} \frac{\tfrac{1}{2}(\widehat{D}_{\beta_{i+1}}+\widehat{D}_{\beta_i})}{r-1} \;, \\[4mm]
+    &amp;=&amp; \tfrac{1}{r-1}\Big( \tfrac{1}{2}\widehat{D}_{\beta_1} + \tfrac{1}{2}\widehat{D}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{D}_{\beta_i} \Big) \;.
+\end{eqnarray*}
+\]</span></p>
+<p>There are two sources of error in this estimator. First, there is ordinary statistical error associated with replacing  by its Monte Carlo estimator, and second, there is discretisation error caused by replacing a continuous integral with a numerical approximation. Both of these sources of error are quantified in . In the example above the sampling variance of the estimator can be calculated using</p>
+<p><span class="math display">\[
+\begin{eqnarray}
+    \mbox{Var}[\widehat{T}] \approx \tfrac{1}{(r-1)^2}\Big( \tfrac{1}{4}\widehat{V}_{\beta_1} + \tfrac{1}{4}\widehat{V}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{V}_{\beta_i} \Big) \;,
+\end{eqnarray}
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\begin{eqnarray}
+    \widehat{V}_{\beta} = \tfrac{1}{t-1}\sum_{m=1}^t \left( \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] - \widehat{D}_{\beta} \right)^2 \;.
+\end{eqnarray}
+\]</span></p>
+<p>Notice that <span class="math inline">\(\widehat{V}_{\beta}\)</span> can be reduced by simply increasing the number of MCMC iterations (<span class="math inline">\(t\)</span>) used in the procedure. The discretisation error can also be kept within bounds. As noted by , the curve traced by <span class="math inline">\(\mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big]\)</span> is always-increasing with <span class="math inline">\(\beta\)</span>, meaning there are strict upper and lower bounds on the error that is possible given a series of known values distributed along this curve (and ignoring interactions between statistical error and discretisation error). These bounds can be quantified, leading to an estimate of the worst-case scenario discretisation error. In practice we find that these estimates are too pessimistic to be useful, and prefer to simply examine the shape of the estimated curve to ensure that sufficient rungs have been used to capture the curvature.</p>
+</div>
+<div id="generalised-thermodynamic-integration" class="section level3">
+<h3 class="hasAnchor">
+<a href="#generalised-thermodynamic-integration" class="anchor"></a>Generalised thermodynamic integration</h3>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

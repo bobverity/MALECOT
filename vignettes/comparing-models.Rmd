@@ -12,7 +12,7 @@ vignette: >
 ```{r, echo=FALSE}
 set.seed(3)
 library(MALECOT)
-reps <- 1e4
+reps <- 1e2
 ```
 
 This vignette demonstrates model comparison in MALECOT. It covers:
@@ -47,9 +47,10 @@ Hopefully this is enough background to run thermodynamic MCMC in MALECOT and und
 
 ## Running a thermodynamic MCMC
 
-For the sake of this tutorial we will use simulated bi-allelic data drawn from $K = 3$ subpopulations. We then create a new project and bind this data:
+For the sake of this tutorial we will use simulated bi-allelic data drawn from $K = 3$ subpopulations. We create a new project and bind this data:
 
 ```{r}
+# simulate data
 mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
 ```
 
@@ -65,35 +66,48 @@ myproj <- malecot_project()
 myproj <- bind_data_biallelic(myproj, df = mysim$data, ID_col = 1, pop_col = 2)
 ```
 
-For our first parameter set we will assume a very basic model with default parameters, meaning a Poisson prior on COI, a flat prior on allele frequencies, and no error estimation.
+For our first parameter set we will assume a very basic model with default parameters; which means a Poisson prior on COI, a flat prior on allele frequencies and no error estimation.
 
 ```{r}
 # create parameter set
 myproj <- new_set(myproj, name = "simple model")
 ```
 
-We will run the MCMC for values of $K$ from 1 to 5, and using the `rungs` argument to set the number of rungs on the temperature ladder, in this case opting for 10 rungs. Be warned - this MCMC will take considerably longer than regular MCMC, so be prepared to go make yourself a cup of tea!
+We will then run the MCMC for values of $K$ from 1 to 5. To make this thermodymic MCMC we use the `rungs` argument to set the number of rungs on the temperature ladder, here opting for 10 rungs. Be warned - this MCMC will take considerably longer to run than regular MCMC, so be prepared to go make yourself a cup of tea!
 
 ```{r}
-# run MCMC
+# run thermodynamic MCMC
 myproj <- run_mcmc(myproj, K = 1:5, burnin = reps, converge_test = 1e2,
                    samples = reps, rungs = 10, pb_markdown =  TRUE)
 ```
 
-Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only said to have converged when *every* chain has converged, meaning we are as weak as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and increase the number of burn-in iterations if needed.
+Notice that convergence times are much longer than under regular MCMC. This is bacause the MCMC is only deemed to have converged when *every* chain has converged, meaning we are as weak as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and increase the number of burn-in iterations if needed.
 
 ## Checking thermodynamic MCMC behaviour
 
-There are more moving parts in thermodynamic MCMC, which on the one hand can 
+There are more moving parts in thermodynamic MCMC, which on the one hand can help it to explore the space well, but on the other hand means we have more things to check.
 
+First, we should perform the same diagnostic checks as for regular MCMC, ensuring that the cold chain has explored the space well:
 
 ```{r}
 plot_loglike_dignostic(myproj, K = 3)
 ```
 
+Running `get_ESS()` on thermodynamic MCMC output now prints the effective sample size of every MCMC rung:
+
+```{r}
+get_ESS(myproj, K = 3)
+```
+
+We interpret ESS for hot chains the same way as for the cold chain - this is the number of samples that we have obtained from the target distribution once autocorrelation has been taken into account. Therefore if we see small values (tens to hundreds as a rule of thumb) then we should be concerned that our thermodynamic MCMC has not explored the space well, and we should repeat the analysis with a larger number of samples.
+
+Another useful plotting function is `plot_loglike()`, which plots the 95% quantiles of the log-likelihood under each temperature rung:
+
 ```{r}
 plot_loglike(myproj, K = 3)
 ```
+
+This plot should be always-increasing from left to right, aside from small variations due to the random nature of MCMC. If any rungs stand out from the overall pattern then it is worth running `plot_loglike_diagnostic()` on these particular rungs using the `rung` argument, for example:
 
 ```{r}
 plot_GTI_path(myproj, K = 3)
