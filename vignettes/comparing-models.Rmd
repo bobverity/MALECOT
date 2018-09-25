@@ -91,7 +91,11 @@ There are more moving parts in thermodynamic MCMC, meaning we have more things t
 plot_loglike_dignostic(myproj, K = 3)
 ```
 
-This uses the cold rung by default (in this case the 10th rung), or we can use the `rung` argument to plot diagnostics for any given rung.
+This uses the cold rung by default (in this case the 10th rung), or we can use the `rung` argument to plot diagnostics for any given rung, for example:
+
+```{r}
+plot_loglike_dignostic(myproj, K = 3, rung = 1)
+```
 
 Running `get_ESS()` now prints out the effective sample size of every rung:
 
@@ -99,7 +103,7 @@ Running `get_ESS()` now prints out the effective sample size of every rung:
 get_ESS(myproj, K = 3)
 ```
 
-We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. Therefore, if we see small values of the ESS (tens to hundreds as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples.
+We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (tens to hundreds as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples.
 
 A useful plotting function when working with multiple rungs is the `plot_loglike()` function, which plots the 95% quantiles of the log-likelihood over every rung:
 
@@ -115,16 +119,16 @@ The GTI method takes the log-likelihood values above and multiplies them by cust
 plot_GTI_path(myproj, K = 3)
 ```
 
-As our evidence estimate is derived from the area between the line and zero, it is important that this path is not too jagged. We are essentially approximating a smooth curve with a series of straight line segments, so if there are corners cut off by this approximation then the area will be too large or too small, leading to a biased estimate. There are two ways that we can mitigate this:
+As our evidence estimate is derived from the area between the line and zero, it is important that this path is not too jagged. We are essentially approximating a smooth curve with a series of straight line segments, so if the straight lines cut the corners off the smooth curve then the area will be too large or too small, leading to a biased estimate. There are two ways that we can mitigate this:
 
 1. Increase the number of rungs
 2. Change the `GTI_pow` argument
 
-Increasing the number of rungs will obviously lead to a smoother path, and it will also help with [MCMC mixing](https://bobverity.github.io/MALECOT/articles/ensuring-good-mixing.html), but it comes at the cost of slowing the MCMC down. The `GTI_pow` argument changes the curvature of the path by modifying the log-likelihood weights, with large values leading to a more concave path. Ideally we want to choose `GTI_pow` such that the path is as straight as possible, as this will lead to smallest difference between the true curve and the approximation. The plot above is slightly concave (using the default value `GTI_pow = 3`), but is straight enough so there is no need to re-run the MCMC.
+Increasing the number of rungs will obviously lead to a smoother path, and it will also help with [MCMC mixing](https://bobverity.github.io/MALECOT/articles/ensuring-good-mixing.html), but it comes at the cost of slowing the MCMC down. The `GTI_pow` argument changes the curvature of the path by modifying the log-likelihood weights, with large values leading to a more concave path. Ideally we want to choose `GTI_pow` such that the path is as straight as possible, as this will lead to smallest difference between the true curve and the discrete approximation. The plot above is slightly concave (using the default value `GTI_pow = 3`), but is straight enough so there is no need to re-run the MCMC in this case.
 
 ## Plotting results
 
-Once we are happy with our log-likelihood estimates and our GTI path, we can use our evidence estimates to compare values of $K$. The raw estimates can be plotted using the `plot_logevidence_K()` function, which plots 95% credible intervals of the log-evidence for each value of $K$:
+Once we are happy with our log-likelihood estimates and our GTI path, we can use our log-evidence estimates to compare values of $K$. The raw estimates can be plotted using the `plot_logevidence_K()` function, which plots 95% credible intervals of the log-evidence for each value of $K$:
 
 ```{r, fig.height=4, fig.width=5}
 plot_logevidence_K(myproj)
@@ -138,14 +142,14 @@ We can also use the `plot_posterior_K()` function to plot the posterior probabil
 plot_posterior_K(myproj)
 ```
 
-This second plot is often easier to interpret, as it is in units of probability. In this case we can see that there is a >99% posterior probability that the data were drawn from $K = 3$ subpopulations (which we know to be true). Again, if we saw large credible intervals at this stage then it would be worth re-running the MCMC with a larger number of `samples`, but here there is no need.
+This second plot is often easier to interpret as it is in units of probability. In this case we can see that there is a >99% posterior probability that the data were drawn from $K = 3$ subpopulations (which we know to be true). Again, if we saw large credible intervals at this stage then it would be worth re-running the MCMC with a larger number of `samples`, but here there is no need.
 
 
 ## Comparing different parameter sets
 
-One of the major advantages of the model evidence is that we can use it to compare wider evolutionary models, i.e. parameter sets. Mathematically this is a simple as summing the evidence for each value of $K$, weighted by the prior probability of $K$.
+One of the major advantages of the model evidence is that we can use it to compare wider evolutionary models, i.e. different parameter sets. Mathematically this is a simple as summing the evidence for each value of $K$, weighted by the prior probability of $K$.
 
-We will test this by creating a second parameter set in the same project that estimates the error, but is identical in all other respects:
+We will test this by creating a second parameter set that differs from the first in that in that we now estimate the error terms:
 
 ```{r}
 # create new parameter set
@@ -153,7 +157,7 @@ myproj <- new_set(myproj, name = "error model", estimate_error = TRUE)
 myproj
 ```
 
-We will run thermodynamic MCMC for this parameter set over the same range of $K$ values. This MCMC will typically take slightly longer to run, longer to converge, and will have lower effective sample sizes:
+We will run thermodynamic MCMC for this parameter set over the same range of $K$ values. This MCMC will typically take longer to run, longer to converge, and will have lower effective sample sizes than the simple model:
 
 ```{r}
 # run MCMC
@@ -167,30 +171,33 @@ plot_loglike_dignostic(myproj, K = 3)
 get_ESS(myproj, K = 3)
 ```
 
-Assuming everything looks OK with the MCMC behaviour we can plot the posterior error estimates:
+Assuming we are happy with the MCMC behaviour we can go ahead and plot the posterior error estimates:
 
 ```{r, fig.height=3, fig.width=4}
 plot_e(myproj, K = 3)
 ```
 
-We know from the simulation parameters that there are no errors in the data, meaning this extra flexibility of estimating the error is actually taking the model further away from the truth. looking at the posterior credible intervals we can see that the model has struggled to arrive at precise estimates of the error rates, instead exploring the prior range $[0,0.2]$ quite evenly.
+We know from the simulation parameters that there are no errors in the data, meaning this extra flexibility of estimating the error is actually taking the model further away from the truth. Looking at the posterior credible intervals we can see that the model has struggled to arrive at precise estimates of the error rates, instead exploring the prior range $[0,0.2]$ quite evenly.
 
-The
+We continue with the same analyses as in the previous section:
 
-```{r, fig.height=5, fig.width=8}
+```{r, fig.height=4, fig.width=5}
 plot_loglike(myproj, K = 3)
-
 plot_GTI_path(myproj, K = 3)
-```
-
-
-```{r}
 plot_logevidence_K(myproj)
-```
-
-```{r}
 plot_posterior_K(myproj)
 ```
+
+The GTI path looks more concave this time, and so we might consider re-running the MCMC with a smaller value of `GTI_pow`. We can also see wide credible intervals around the posterior distribution of $K$ due to the evidence estimates being similar for $K = 3$ and $K = 4$, and so we should re-run the MCMC with a larger number of `samples`. 
+
+```{r}
+# run MCMC
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10, )
+```
+
+As before, we can explore the evidence estimates in log space and linear space:
+
+
 
 ```{r}
 plot_logevidence_model(myproj)

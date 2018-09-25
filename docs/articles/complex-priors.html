@@ -132,12 +132,12 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/male
 <a href="#more-realistic-priors-on-coi" class="anchor"></a>More realistic priors on COI</h2>
 <p>In the previous tutorial we assumed a uniform prior on COI. This tends to be too permissive for real data as it gives considerable weight to high COIs and can therefore lead to over-estimation. There are two alternative priors implemented in MALECOT - the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distribution</a> and the <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution">negative binomial distribution</a>.</p>
 <p>The Poisson distribution assumes that COIs are clustered around a mean value. It is what we would expect if all individuals in the population were becoming infected and clearing infections at the same constant rate. The negative binomial distribution can be thought of as an over-dispersed form of Poisson distribution, i.e. it allows for a greater spread of values around the mean. It more closely reflects a situation where there is heterogeneity in exposure, meaning some individuals tend to be heavily infected while some are only lightly infected. We can use the parameter <code>COI_dispersion</code> to set the level of over-dispersion - for example, a value of 2 means the prior variance will be twice as large as the prior mean. Note that whatever prior we choose, COIs will still be truncated at <code>COI_max</code>.</p>
-<p>We can explore different shapes of prior using the <code>plot_prior_COI()</code> function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_COI</span>(<span class="dt">COI_model =</span> <span class="st">"uniform"</span>)</code></pre></div>
+<p>We can explore different shapes of prior using the <code><a href="../reference/plot_prior_COI.html">plot_prior_COI()</a></code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_COI.html">plot_prior_COI</a></span>(<span class="dt">COI_model =</span> <span class="st">"uniform"</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-3-1.png" width="384"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_COI</span>(<span class="dt">COI_model =</span> <span class="st">"poisson"</span>, <span class="dt">COI_mean =</span> <span class="dv">3</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_COI.html">plot_prior_COI</a></span>(<span class="dt">COI_model =</span> <span class="st">"poisson"</span>, <span class="dt">COI_mean =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-3-2.png" width="384"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_COI</span>(<span class="dt">COI_model =</span> <span class="st">"nb"</span>, <span class="dt">COI_mean =</span> <span class="dv">3</span>, <span class="dt">COI_dispersion =</span> <span class="dv">2</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_COI.html">plot_prior_COI</a></span>(<span class="dt">COI_model =</span> <span class="st">"nb"</span>, <span class="dt">COI_mean =</span> <span class="dv">3</span>, <span class="dt">COI_dispersion =</span> <span class="dv">2</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-3-3.png" width="384"></p>
 <p>The simulated data in the previous tutorial were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have the luxury of knowing the true COI distribution, and so for this example we will use a negative binomial prior. Rather than using a set value for the prior mean we will use the argument <code>COI_mean = TRUE</code> to tell the model that we want to estimate the mean COI for each subpopulation.</p>
 <p>In some cases we may want to specify the COI of certain samples manually - for example if we have already used other programs to estimate the COI and we want to insert these results. This can be accommodated using the <code>COI_manual</code> argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.</p>
@@ -183,10 +183,10 @@ myproj</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.12628 seconds
+##    completed in 3.19629 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.73 seconds</code></pre>
+<pre><code>## Total run-time: 3.82 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -217,13 +217,13 @@ posterior_COI</code></pre></div>
 <li><p><code>lambda</code> can be a vector of shape parameters - one for each allele. In this case the prior will usually be asymmetric and skewed in favour of one allele. The same prior is still applied over all loci, meaning this option can only be used if there are the same number of alleles at every locus (for bi-allelic data this will always be true).</p></li>
 <li><p><code>lambda</code> can be a list with as many elements as there are loci, and each element consisting of a vector with as many elements as there are alleles at that locus. This makes it possible to specify a different prior at every locus.</p></li>
 </ol>
-<p>By default, <code>lambda</code> is defined using the first method with a value of 1. This places equal weight on every allele frequency between 0 and 1 at every locus, i.e. the Beta distribution simplifies to the uniform distribution. Here we will instead use the second method to place a skewed prior on allele frequencies. We can visualise different priors using the <code>plot_prior_p()</code> function:</p>
+<p>By default, <code>lambda</code> is defined using the first method with a value of 1. This places equal weight on every allele frequency between 0 and 1 at every locus, i.e. the Beta distribution simplifies to the uniform distribution. Here we will instead use the second method to place a skewed prior on allele frequencies. We can visualise different priors using the <code><a href="../reference/plot_prior_p.html">plot_prior_p()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># (the default prior)</span>
-<span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="dv">1</span>)</code></pre></div>
+<span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="dv">1</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-12-1.png" width="384"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="fl">0.5</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="fl">0.5</span>)</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-12-2.png" width="384"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_prior_p</span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">7</span>,<span class="dv">1</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">7</span>,<span class="dv">1</span>))</code></pre></div>
 <p><img src="complex-priors_files/figure-html/unnamed-chunk-12-3.png" width="384"></p>
 <p>We will use the last of these distributions, which makes it more likely <em>a priori</em> that the reference allele will be common and the alternative allele will be rare. We can simulate some new data under this prior and load it into a new project:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># simulate new data with skewed allele frequency distribution</span>
@@ -250,10 +250,10 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.13171 seconds
+##    completed in 2.17499 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.49 seconds</code></pre>
+<pre><code>## Total run-time: 2.56 seconds</code></pre>
 <p>After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj_skew, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -339,10 +339,10 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.37112 seconds
+##    completed in 3.53583 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.73 seconds</code></pre>
+<pre><code>## Total run-time: 3.88 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>
