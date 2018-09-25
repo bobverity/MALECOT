@@ -31,19 +31,19 @@ When carrying out Bayesian analysis it is useful to make a distinction between t
 1. parameter estimation within a model
 2. comparison between models
 
-As an example, we might create a model $\mathcal{M}$ in which we write down the probability of the observed data $x$ as a function of the unknown allele frequencies $p$. In other words, we write down the likelihood $Pr(x \: | \: p, \mathcal{M})$.
+As an example, we might create a model $\mathcal{M}$ in which we write down the probability of the observed data $x$ as a function of the unknown allele frequencies $p$. In other words, we write down the likelihood $\mbox{Pr}(x \: | \: p, \mathcal{M})$.
 
-In Bayesian parameter estimation we are trying to get at the posterior probability $Pr(p \: | \: x, \mathcal{M})$. We typically do this using MCMC, which produces a series of draws from the posterior distribution.
+In Bayesian parameter estimation we are trying to get at the posterior probability $\mbox{Pr}(p \: | \: x, \mathcal{M})$. We typically do this using MCMC, which produces a series of draws from the posterior distribution.
 
-But what if we want to know the posterior probability of the *model*, rather than the parameters of the model? In other words, we want to know $Pr(\mathcal{M} \: | \: x)$. Calculating this quantity requires that we integrate over all unknown parameters:
+But what if we want to know the posterior probability of the *model*, rather than the parameters of the model? In other words, we want to know $\mbox{Pr}(\mathcal{M} \: | \: x)$. Calculating this quantity requires that we integrate over all unknown parameters:
 
-$$Pr(\mathcal{M} \: | \: x) = \int Pr(\mathcal{M}, p \: | \: x) dp$$
+$$\mbox{Pr}(\mathcal{M} \: | \: x) = \int \mbox{Pr}(\mathcal{M}, p \: | \: x) dp$$
 
 This is often an extremely high-dimensional integral - for example in MALECOT there could easily be hundreds of unknown parameters - making it computationally infeasible by most methods. Regular MCMC cannot help us here either, because it only produces draws from the posterior distribution rather than normalised values.
 
-One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). In TI we run multiple MCMC chains, each at a different "rung" on a temperature ladder. The hotter the chain, the flatter the target distribution. The log-likelihoods over all chains are then combined in a single calculation that - by what can only be described as mathematical magic! - is asymptotically equal to $\log{Pr(x \: | \: \mathcal{M})}$. We can then apply a prior over models, for example giving each model equal weight, to arrive at the desired posterior value $Pr(\mathcal{M} \: | \: x)$. *Generalised* thermodynamic integration (GTI) differs from regular TI in that it uses a slightly different calculation when combining information across rungs that leads to lower bias and higher precision. 
+One way around this is to use an advanced MCMC technique known as thermodynamic integration (TI). In TI we run multiple MCMC chains, each at a different "rung" on a temperature ladder. The hotter the chain, the flatter the target distribution. The log-likelihoods over all chains are then combined in a single calculation that - by what can only be described as mathematical magic! - is asymptotically equal to $\log[\mbox{Pr}(x \: | \: \mathcal{M})]$. We can then apply a prior over models, for example giving each model equal weight, to arrive at the desired posterior value $\mbox{Pr}(\mathcal{M} \: | \: x)$. *Generalised* thermodynamic integration (GTI) differs from regular TI in that it uses a slightly different calculation when combining information across rungs that leads to lower bias and higher precision. 
 
-Hopefully this is enough background to run thermodynamic MCMC in MALECOT and understand the results, but for those eager to understand all the mathematical details, see [this vignette](https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html).
+Hopefully this is enough background to run thermodynamic MCMC in MALECOT and understand the results. For those eager to understand all the mathematical details, see [this vignette](https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html).
 
 ## Running a thermodynamic MCMC
 
