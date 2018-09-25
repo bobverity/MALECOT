@@ -16,11 +16,11 @@ library(MALECOT)
 
 This vignette demonstrates the MALECOT analysis pipeline for multi-allelic data, i.e. data for which there are more than two alleles at a locus. It covers:
 
-1. how multi-allelic format differs from bi-allelic format
-2. binding multi-allelic data to a project and running a basic MCMC
-3. checking MCMC behaviour
-4. plotting results
-5. more realistic priors on multi-allelic allele frequencies
+1. How multi-allelic format differs from bi-allelic format
+2. Binding multi-allelic data to a project and running a basic MCMC
+3. Checking MCMC behaviour
+4. Plotting results
+5. More realistic priors on multi-allelic allele frequencies
 
 This tutorial assumes some prior knowledge about MALECOT, so if you are completely new to the program we recommend working through the simpler [bi-allelic tutorial](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) first.
 

@@ -16,12 +16,12 @@ library(MALECOT)
 
 This vignette demonstrates a very basic MALECOT analysis for bi-allelic data, i.e. data for which there are two alleles at every locus. It covers:
 
-1. simulating/loading data into R
-2. creating a project and binding data to the project
-3. defining a simple parameter set
-4. running the MCMC
-5. checking MCMC behaviour
-6. plotting results
+1. Simulating/loading data into R
+2. Creating a project and binding data to the project
+3. Defining a simple parameter set
+4. Running the MCMC
+5. Checking MCMC behaviour
+6. Plotting results
 
 
 ## Simulate some data

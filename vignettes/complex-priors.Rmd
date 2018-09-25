@@ -16,9 +16,9 @@ library(MALECOT)
 
 This vignette demonstrates the use of more complex priors, which can add realism to the model but also tend to slow down the MCMC. It covers:
 
-1. different types of prior on COI
-2. more realistic priors on allele frequencies
-3. dealing with missing data and estimating error rates
+1. Different types of prior on COI
+2. More realistic priors on allele frequencies
+3. Dealing with missing data and estimating error rates
 
 This vignette follows on from the previous tutorial - or you can pick up here by running these lines of code:
 ```{r}

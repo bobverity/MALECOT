@@ -3,6 +3,7 @@ title: "GTI mathematical details"
 author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
+bibliography: gti-mathematical-details.bib
 vignette: >
   %\VignetteIndexEntry{"GTI mathematical details"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -11,11 +12,11 @@ vignette: >
 
 This vignette gives complete mathematical details of the model comparison methods implemented in MALECOT. It covers:
 
-1. problem definition - model evidence and Bayes factors
-2. thermodynamic integration (TI)
-3. generalised thermodynamic integration (GTI)
+1. Problem definition - model evidence and Bayes factors
+2. Thermodynamic integration (TI)
+3. Generalised thermodynamic integration (GTI)
 
-Most of this derivation is taken from [Supplementary Material 1](http://www.genetics.org/content/203/4/1827.supplemental) of (ref), which also contains derivations of common model comparison statistics.
+Some of this text is taken from [Supplementary Material 1](http://www.genetics.org/content/203/4/1827.supplemental) of @verity2016estimating, which also contains derivations of common model comparison statistics.
 
 
 ## Problem definition
@@ -24,31 +25,29 @@ We start by assuming a set of models $\mathcal{M}_k$ for $k \in 1:K$, each of wh
 
 $$
 \begin{align}
-	\hspace{30mm} \mbox{Pr}(x \:|\: \mathcal{M}_k) = \int_{\scriptsize\theta_k} \mbox{Pr}(x \:|\: \theta_k, \mathcal{M}_k) \mbox{Pr}(\theta_k \:|\: \mathcal{M}_k) \:d\theta_k \;. \hspace{30mm}[1]
+	\hspace{30mm} \mbox{Pr}(x \:|\: \mathcal{M}_k) = \int_{\scriptsize\theta_k} \mbox{Pr}(x \:|\: \theta_k, \mathcal{M}_k) \mbox{Pr}(\theta_k \:|\: \mathcal{M}_k) \:d\theta_k \;. \hspace{30mm}(1)
 \end{align}
 $$
 Once we have this quantity it is straightforward to compute bayes factors as the ratio of evidence between models:
 
 $$
-\hspace{30mm} \mbox{BF}(\mathcal{M}_i:\mathcal{M}_j) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_i)}{\mbox{Pr}(x \:|\: \mathcal{M}_j)} \;, \hspace{30mm}[2]
+\hspace{30mm} \mbox{BF}(\mathcal{M}_i:\mathcal{M}_j) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_i)}{\mbox{Pr}(x \:|\: \mathcal{M}_j)} \;, \hspace{30mm}(2)
 $$
 or to combine the evidence with a prior over models to arrive at the posterior probability of a model:
 
 $$
-\hspace{30mm} \mbox{Pr}(\mathcal{M}_k \:|\: x) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_k)}{ \sum_{i=1}^K \mbox{Pr}(x \:|\: \mathcal{M}_i) } \;. \hspace{30mm}[3]
+\hspace{30mm} \mbox{Pr}(\mathcal{M}_k \:|\: x) = \frac{\mbox{Pr}(x \:|\: \mathcal{M}_k)}{ \sum_{i=1}^K \mbox{Pr}(x \:|\: \mathcal{M}_i) } \;. \hspace{30mm}(3)
 $$
-The challenging part in this analysis plan is the integral in (X), which is often extremely high-dimensional making it computationally infeasible by standard methods. Fortunately we can use advanced MCMC methods to arrive at asymptotically unbiased estimates of $\log[\mbox{Pr}(x \:|\: \mathcal{M}_k)]$, from which we can derive the other quantities of interest.
-
-In the following sections, $\mathcal{M}_k$ and $\theta_k$ are often shortened to $\mathcal{M}$ and $\theta$ for succinctness, in which case it is assumed that the model $\mathcal{M}$ is one of several to be compared.
+The challenging part in this analysis plan is the integral in (1), which is often extremely high-dimensional making it computationally infeasible by standard methods. Fortunately we can use advanced MCMC methods to arrive at asymptotically unbiased estimates of $\log[\mbox{Pr}(x \:|\: \mathcal{M}_k)]$, from which we can derive the other quantities of interest.
 
 
 ## Thermodynamic integration
 
-Thermodynamic Integration (TI) provides direct estimates of the (log) model evidence that are unbiased and have finite and quantifiable variance. The method exploits the "power posterior" \citep{friel2008marginal}, defined as follows:
+Thermodynamic integration (TI) provides direct estimates of the (log) model evidence that are unbiased and have finite and quantifiable variance. The method exploits the "power posterior" [@friel2008marginal], defined as follows:
 
 $$
 \begin{eqnarray}
-	\hspace{30mm} P_\beta(\theta \:|\: x, \mathcal{M}) &= \dfrac{\mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M})}{u( x \:|\: \beta, \mathcal{M})} \;. \hspace{30mm}[4]
+	\hspace{30mm} P_\beta(\theta \:|\: x, \mathcal{M}) &= \dfrac{\mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M})}{u( x \:|\: \beta, \mathcal{M})} \;. \hspace{30mm}(4)
 \end{eqnarray}
 $$
 
@@ -56,7 +55,7 @@ where $u(x \:|\: \beta, \mathcal{M})$ is a normalising constant that ensures the
 
 $$
 \begin{eqnarray*}
-	\hspace{30mm} u( x \:|\: \beta, \mathcal{M}) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M}) \:d\theta \;. \hspace{30mm}[5]
+	\hspace{30mm} u( x \:|\: \beta, \mathcal{M}) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta, \mathcal{M})^\beta \: \mbox{Pr}( \theta \:|\: \mathcal{M}) \:d\theta \;. \hspace{30mm}(5)
 \end{eqnarray*}
 $$
 
@@ -67,46 +66,46 @@ The crucial step in the TI method is the following derivation:
 $$
 \begin{eqnarray}
 	\frac{d}{d\beta} \log[u( x \:|\: \beta )] &=& \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} u( x \:|\: \beta ) \;, \hspace{56mm} \color{gray}{\textit{(by chain rule)}} \\[4mm]
-	&=& \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} \int_{\scriptsize\theta} \: \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(substituting in (X))}} \\[4mm]
+	&=& \frac{1}{u( x \:|\: \beta )} \: \frac{d}{d\beta} \int_{\scriptsize\theta} \: \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(substituting in (5))}} \\[4mm]
 	&=& \frac{1}{u( x \:|\: \beta )} \: \int_{\scriptsize\theta} \: \frac{d}{d\beta} \mbox{Pr}( x \:|\: \theta )^\beta \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(by Leibniz integral rule)}} \\[4mm]
 	&=& \dfrac{1}{u( x \:|\: \beta )} \: \displaystyle\int_{\scriptsize\theta}  \mbox{Pr}( x \:|\: \theta )^\beta \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \hspace{14mm} \color{gray}{\textit{(evaluating derivative)}} \\[4mm]
 	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] \frac{\mbox{Pr}( x \:|\: \theta )^\beta \mbox{Pr}( \theta ) }{u( x \:|\: \beta )} \:d\theta \;, \hspace{30mm} \color{gray}{\textit{(rearranging)}} \\[4mm]
-	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_\beta(\theta \:|\: x) \:d\theta \;, \hspace{42mm} \color{gray}{\textit{(substituting in (X))}} \\[4mm]
-	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{54mm} \color{gray}{\textit{(by definition of expectation)}} \hspace{10mm}[6]
+	&=& \int_{\scriptsize\theta} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_\beta(\theta \:|\: x) \:d\theta \;, \hspace{42mm} \color{gray}{\textit{(substituting in (4))}} \\[4mm]
+	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{54mm} \color{gray}{\textit{(by definition of expectation)}} \hspace{10mm}(6)
 \end{eqnarray}
 $$
 
-To put this in words; the gradient of $\log[u( x \:|\: \beta )]$ is equivalent to the expected log-likelihood of the parameter $\theta$, where the expectation is taken over the power posterior. Assuming we cannot derive this quantity analytically, we must turn to estimation methods. Let $\theta_m^{\beta}$ for $m\in\{1,\dots,t\}$ represent a series of independent draws from the power posterior with power $\beta$. Then the expectation in (X) can be estimated using the quantity $\widehat{D}_\beta$, defined as follows:
+To put this in words; the gradient of $\log[u( x \:|\: \beta )]$ is equivalent to the expected log-likelihood of the parameter $\theta$, where the expectation is taken over the power posterior. Assuming we cannot derive this quantity analytically, we must turn to estimation methods. Let $\theta_m^{\beta}$ for $m\in\{1,\dots,t\}$ represent a series of independent draws from the power posterior with power $\beta$. Then the expectation in (6) can be estimated using the quantity $\widehat{D}_\beta$, defined as follows:
 
 $$
 \begin{eqnarray}
-	\hspace{30mm} \widehat{D}_\beta = \frac{1}{t}\sum_{m=1}^t \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] \;. \hspace{30mm}[7]
+	\hspace{30mm} \widehat{D}_\beta = \frac{1}{t}\sum_{m=1}^t \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] \;. \hspace{30mm}(7)
 \end{eqnarray}
 $$
 
-Finally, this quantity must be related back to the model evidence. It is easy to demonstrate that the integral of (X) with respect to $\beta$ over the range $[0,1]$ is equal to the logarithm of the model evidence:
+Finally, this quantity must be related back to the model evidence. It is easy to demonstrate that the integral of (6) with respect to $\beta$ over the range $[0,1]$ is equal to the logarithm of the model evidence:
 
 $$
 \begin{eqnarray}
 	\int_0^1 \frac{d}{d\beta} \log[u( x \:|\: \beta )] \:d\beta &=& \log[u( x \:|\: \beta\!=\!1 )] - \log[u( x \:|\: \beta\!=\!0 )] \;, \\
-	&=& \log[\mbox{Pr}(x)] \;,\hspace{60mm}[8]
+	&=& \log[\mbox{Pr}(x)] \;,\hspace{60mm}(8)
 \end{eqnarray}
 $$
 
-where we have made use of the fact that $u( x \:|\: \beta\!=\!1 )$ is equal to the model evidence, and $u( x \:|\: \beta\!=\!0 )$ is equal to the integral over the prior, which is 1 by definition. We cannot usually carry out this integral analytically, but we can approximate it using the values $\widehat{D}_\beta$ in a simple numerical integration technique, such as the [trapezoidal rule](https://en.wikipedia.org/wiki/Trapezoidal_rule). For example, if the values $\beta_i=(i-1)/(r-1)$ for $i\!=\!\{1,\dots,r\}$ represent a series of equally spaced powers spanning the interval $[0,1]$, where $r$ denotes the number of "rungs"" used ($r\geq2$), then the integral in (X) can be approximated using 
+where we have made use of the fact that $u( x \:|\: \beta\!=\!1 )$ is equal to the model evidence, and $u( x \:|\: \beta\!=\!0 )$ is equal to the integral over the prior, which is 1 by definition. We cannot usually carry out this integral analytically, but we can approximate it using the values $\widehat{D}_\beta$ in a simple numerical integration technique, such as the [trapezoidal rule](https://en.wikipedia.org/wiki/Trapezoidal_rule). For example, if the values $\beta_i=(i-1)/(r-1)$ for $i\!=\!\{1,\dots,r\}$ represent a series of equally spaced powers spanning the interval $[0,1]$, where $r$ denotes the number of "rungs"" used ($r\geq2$), then the integral in (8) can be approximated using 
 
 $$
 \begin{eqnarray*}
 	\hspace{30mm} \widehat{T} &=& \displaystyle\sum_{i=1}^{r-1} \frac{\tfrac{1}{2}(\widehat{D}_{\beta_{i+1}}+\widehat{D}_{\beta_i})}{r-1} \;, \\[4mm]
-	&=& \tfrac{1}{r-1}\Big( \tfrac{1}{2}\widehat{D}_{\beta_1} + \tfrac{1}{2}\widehat{D}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{D}_{\beta_i} \Big) \;.\hspace{30mm}[9]
+	&=& \tfrac{1}{r-1}\Big( \tfrac{1}{2}\widehat{D}_{\beta_1} + \tfrac{1}{2}\widehat{D}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{D}_{\beta_i} \Big) \;.\hspace{30mm}(9)
 \end{eqnarray*}
 $$
 
-There are two sources of error in this estimator. First, there is ordinary statistical error associated with replacing (X) by its Monte Carlo estimator, and second, there is discretisation error caused by replacing a continuous integral with a numerical approximation. Both of these sources of error are quantified in \citet{lartillot2006computing}. In the example above the sampling variance of the estimator can be calculated using
+There are two sources of error in this estimator. First, there is ordinary statistical error associated with replacing (6) by its Monte Carlo estimator, and second, there is discretisation error caused by replacing a continuous integral in (8) with a numerical approximation. Both of these sources of error are quantified by @lartillot2006computing. In the example above the sampling variance of the estimator can be calculated using
 
 $$
 \begin{eqnarray}
-	\hspace{30mm} \mbox{Var}[\widehat{T}] \approx \tfrac{1}{(r-1)^2}\Big( \tfrac{1}{4}\widehat{V}_{\beta_1} + \tfrac{1}{4}\widehat{V}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{V}_{\beta_i} \Big) \;, \hspace{30mm}[10]
+	\hspace{30mm} \mbox{Var}[\widehat{T}] \approx \tfrac{1}{(r-1)^2}\Big( \tfrac{1}{4}\widehat{V}_{\beta_1} + \tfrac{1}{4}\widehat{V}_{\beta_{r}} + \sum_{i=2}^{r-1} \widehat{V}_{\beta_i} \Big) \;, \hspace{30mm}(10)
 \end{eqnarray}
 $$
 
@@ -114,21 +113,21 @@ where
 
 $$
 \begin{eqnarray}
-	\hspace{30mm} \widehat{V}_{\beta} = \tfrac{1}{t-1}\sum_{m=1}^t \left( \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] - \widehat{D}_{\beta} \right)^2 \;. \hspace{30mm}[11]
+	\hspace{30mm} \widehat{V}_{\beta} = \tfrac{1}{t-1}\sum_{m=1}^t \left( \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta} ) \right] - \widehat{D}_{\beta} \right)^2 \;. \hspace{30mm}(11)
 \end{eqnarray}
 $$
 
-Notice that $\widehat{V}_{\beta}$ can be reduced by simply increasing the number of MCMC iterations ($t$) used in the procedure. The discretisation error can also be kept within bounds. As noted by \citet{friel2013improving}, the curve traced by $\mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big]$ is always-increasing with $\beta$, meaning there are strict upper and lower bounds on the error that is possible given a series of known values distributed along this curve (and ignoring interactions between statistical error and discretisation error). These bounds can be quantified, leading to an estimate of the worst-case scenario discretisation error. However, in practice we find that these estimates are too pessimistic to be useful, and prefer to simply examine the shape of the estimated curve to ensure that sufficient rungs have been used to capture the curvature.
+Notice that $\widehat{V}_{\beta}$ can be reduced by simply increasing the number of MCMC iterations ($t$) used in the procedure. The discretisation error can also be kept within bounds. As noted by @friel2014improving, the curve traced by $\mbox{E}_{\scriptsize\theta \,|\, x, \beta}\Big[ \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big]$ is always-increasing with $\beta$, meaning there are strict upper and lower bounds on the error that is possible given a series of known values distributed along this curve (and ignoring interactions between statistical error and discretisation error). These bounds can be quantified, leading to an estimate of the worst-case scenario discretisation error. However, in practice we find that these estimates are too pessimistic to be useful, and prefer to simply examine the shape of the estimated curve to ensure that sufficient rungs have been used to capture the curvature.
 
 ## Generalised thermodynamic integration
 
-As described above, the two sources of error in TI are: 1) the statistical error in $\widehat{D}_\beta$, and 2) the discretisation error caused by approximating a smooth curve with with a series of linear sections. The first issue brings uncertainty and the second brings bias, with bias being arguably more of a problem. Crucially, both of these problems are exacerbated when the curve is steep, as this is where variance is highest (it is demonstrated in [REF] that the variance is proportional to the gradient of the curve), and also where discretisation error is highest due to cutting corners in the smooth curve. In practical applications the steepest point in the curve is often at $\beta = 0$, where we go from the pure prior (with no influence of the data) to something in between the prior and the posterior. This can be seen in [an earlier tutorial](https://bobverity.github.io/MALECOT/articles/comparing-models.html), where plots produced by the `plot_loglike()` function have wide quantiles towards $\beta = 0$ and much tighter quantiles as we move towards $\beta = 1$. TI could therefore be improved by reducing the contribution that low $\beta$ values make towards the final estimator.
+As described above, the two sources of error in TI are: 1) the statistical error in $\widehat{D}_\beta$, and 2) the discretisation error caused by approximating a smooth curve with with a series of linear sections. The first issue brings uncertainty and the second brings bias, with bias being arguably more of a problem. Crucially, both of these problems are exacerbated when the curve is steep, as this is where variance is highest (it is demonstrated by @friel2014improving that the variance is proportional to the gradient of the curve), and this is also where discretisation error is highest due to cutting corners in the smooth curve. In practical applications the steepest point in the curve is often at $\beta = 0$, where we go from the pure prior (with no influence of the data) to something in between the prior and the posterior. This can be seen in [an earlier tutorial](https://bobverity.github.io/MALECOT/articles/comparing-models.html), where plots produced by the `plot_loglike()` function have wide quantiles towards $\beta = 0$ and much tighter quantiles as we move towards $\beta = 1$. TI could therefore be improved by reducing the contribution that low $\beta$ values make towards the final estimator.
 
-We start by noting that there are many possible modifications of $\mbox{Pr}(x \: | \: \theta)$ that return the prior when $\beta = 0$ and the likelihood when $\beta = 1$, with $\mbox{Pr}(x \: | \: \theta)^\beta$ being just one option. For example, replacing $\beta$ with $\beta^\alpha$, where $\alpha \in (0, \infty)$, we arrive at the following alternative form of the power posterior:
+We can achieve this by noting that there are many possible modifications of $\mbox{Pr}(x \: | \: \theta)$ that return the prior when $\beta = 0$ and the likelihood when $\beta = 1$, with $\mbox{Pr}(x \: | \: \theta)^\beta$ being just one option. For example, replacing $\beta$ with $\beta^\alpha$, where $\alpha \in (0, \infty)$, we arrive at the following alternative form of the power posterior:
 
 $$
 \begin{eqnarray}
-	\hspace{30mm} P_{\beta,\alpha}(\theta \:|\: x) &= \dfrac{\mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta)}{u( x \:|\: \beta, \alpha)} \;. \hspace{30mm}[12]
+	\hspace{30mm} P_{\beta,\alpha}(\theta \:|\: x) &= \dfrac{\mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta)}{u( x \:|\: \beta, \alpha)} \;. \hspace{30mm}(12)
 \end{eqnarray}
 $$
 
@@ -136,10 +135,10 @@ where $u(x \:|\: \beta, \alpha)$ is the following normalising constant:
 
 $$
 \begin{eqnarray*}
-	\hspace{30mm} u( x \:|\: \beta, \alpha) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta) \:d\theta \;. \hspace{30mm}[13]
+	\hspace{30mm} u( x \:|\: \beta, \alpha) &= \displaystyle\int_{\scriptsize\theta} \mbox{Pr}( x \:|\: \theta)^{\beta^\alpha} \: \mbox{Pr}(\theta) \:d\theta \;. \hspace{30mm}(13)
 \end{eqnarray*}
 $$
-It is no more difficult to obtain draws from this distribution than it is to obtain draws from the original power posterior distribution. Continuing with the standard TI derivation we obtain:
+It is no more difficult to obtain draws from this distribution than it is to obtain draws from the original power posterior distribution, as we are still just raising the likelihood to a power. Continuing with the standard TI derivation we obtain:
 
 $$
 \begin{eqnarray}
@@ -149,23 +148,23 @@ $$
 	&=& \dfrac{1}{u( x \:|\: \beta, \alpha )} \: \displaystyle\int_{\scriptsize\theta}  \alpha\beta^{\alpha-1} \mbox{Pr}( x \:|\: \theta )^{\beta^\alpha} \log[ \mbox{Pr}( x \:|\: \theta ) ] \: \mbox{Pr}( \theta ) \:d\theta \;, \\[4mm]
 	&=& \int_{\scriptsize\theta} \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] \frac{\mbox{Pr}( x \:|\: \theta )^{\beta^\alpha} \mbox{Pr}( \theta ) }{u( x \:|\: \beta, \alpha )} \:d\theta \;, \\[4mm]
 	&=& \int_{\scriptsize\theta} \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] P_{\beta,\alpha}(\theta \:|\: x) \:d\theta \;, \\[4mm]
-	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta, \alpha}\Big[ \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{30mm}[14]
+	&=& \mbox{E}_{\scriptsize\theta \,|\, x, \beta, \alpha}\Big[ \alpha\beta^{\alpha-1} \log[ \mbox{Pr}( x \:|\: \theta ) ] \Big] \;. \hspace{30mm}(14)
 \end{eqnarray}
 $$
 
-Notice that the log-likelihood in the expectation is now weighted by $\alpha\beta^{\alpha-1}$. It is still the case that the integral of $\frac{d}{d\beta} \log[u( x \:|\: \beta, \alpha )]$ over the interval $[0,1]$ brings us to the log-evidence, and so the rest of the TI method remains essentially unchanged. We can define the statistic
+Notice that the log-likelihood in the expectation is now weighted by $\alpha\beta^{\alpha-1}$, which simplifies to ordinary TI when $\alpha = 1$. It is still the case that the integral of $\frac{d}{d\beta} \log[u( x \:|\: \beta, \alpha )]$ over the interval $[0,1]$ brings us to the log-evidence, and so the rest of the TI method remains essentially unchanged. We can define the statistic
 
 $$
 \begin{eqnarray}
-	\hspace{30mm} \widehat{D}_{\beta,\alpha} = \frac{1}{t}\sum_{m=1}^t \alpha\beta^{\alpha-1} \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta^\alpha} ) \right] \;. \hspace{30mm}[15]
+	\hspace{30mm} \widehat{D}_{\beta,\alpha} = \frac{1}{t}\sum_{m=1}^t \alpha\beta^{\alpha-1} \log\left[ \mbox{Pr}( x \:|\: \theta_m^{\beta^\alpha} ) \right] \;. \hspace{30mm}(15)
 \end{eqnarray}
 $$
-for a range of $\beta_i$, and we can carry out numerical integration over these values as before. The fact that the expectation in (X) is weighted by $\alpha\beta^{\alpha-1}$ means that values towards the prior end of the spectrum are down-weighted relative to values near the posterior end of the spectrum, and in particular the new path is constrained to equal zero at the point $\beta = 0$ whenever $\alpha > 1$. This results in a much smoother path, and reduces both statistical error and discretisation error.
+for a range of $\beta_i$, and we can carry out numerical integration over these values as before. The fact that the expectation in (14) is weighted by $\alpha\beta^{\alpha-1}$ means that values towards the prior end of the spectrum are down-weighted relative to values near the posterior, and in particular the new path is constrained to equal zero at the point $\beta = 0$ whenever $\alpha > 1$. This results in a much smoother path, and reduces both statistical error and discretisation error.
 
-In summary, what we refer to as *generalised* thermodynamic integration here is any method by which the power $\beta$ is replaced by $f(\beta)$ to achieve a different weighting over the elements of the integral path. [REF]. In MALECOT we use the function $f(\beta) = \beta^\alpha$ as above, and the argument `GTI_pow` in the `run_mcmc()` function is exactly equal to $\alpha$.
+In summary, what we refer to here as *generalised* thermodynamic integration is any method by which the power $\beta$ in the TI approach is replaced by $f(\beta)$ to achieve a different weighting over the elements of the integral path. Although we arrived at this method independently, to the best of our knowledge the first appearance of this method in peer-reviewed print is due to @hug2016adaptive as one of several suggested techniques for improving TI estimation. It certainly has not permiated mainstream Bayesian statistics yet, despite being an extremely powerful and simple extension of existing methods. We hope that by drawing attention to this method here we can increase awareness in the Bayesian community.
 
+In MALECOT we use the fixed function $f(\beta) = \beta^\alpha$ as in the derivation above, and the argument `GTI_pow` in the `run_mcmc()` function is exactly equal to $\alpha$. This has a value of `GTI_pow = 3` by default, which seems to give good results on simulated data sets of intermediate size.
 
 
 ### References
 
-Hug, Sabine, et al. "An adaptive scheduling scheme for calculating Bayes factors with thermodynamic integration using Simpson’s rule." Statistics and Computing 26.3 (2016): 663-677.
