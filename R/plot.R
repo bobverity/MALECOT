@@ -641,7 +641,7 @@ plot.malecot_COI_mean_intervals <- function(x, y, ...) {
   
   # produce plot
   plot1 <- ggplot(df) + theme_bw()
-  plot1 <- plot1 + geom_segment(aes_(x = xvals, y = ~Q2.5, xend = xvals, yend = ~Q97.5))
+  plot1 <- plot1 + geom_segment(aes_(x = factor(xvals, levels = xvals), y = ~Q2.5, xend = xvals, yend = ~Q97.5))
   plot1 <- plot1 + geom_point(aes_(x = xvals, y = ~Q50))
   plot1 <- plot1 + xlab("") + ylab("posterior mean COI")
   
@@ -659,18 +659,23 @@ plot.malecot_COI_mean_intervals <- function(x, y, ...) {
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
 #' @param K TODO
+#' @param deme_order the order in which to plot demes. Defaults to increasing order
 #' @param ... TODO
 #'
 #' @export
 #' @examples
 #' # TODO
 
-plot_COI_mean <- function(project, K = NULL, ...) {
+plot_COI_mean <- function(project, K = NULL, deme_order = NULL, ...) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
   if (!is.null(K)) {
     assert_single_pos_int(K, zero_allowed = FALSE)
+  }
+  if (!is.null(deme_order)) {
+    assert_pos_int(deme_order, zero_allowed = FALSE)
+    assert_vector(deme_order)
   }
   
   # get active set and check non-zero
@@ -695,8 +700,15 @@ plot_COI_mean <- function(project, K = NULL, ...) {
     stop(sprintf("no COI_mean_intervals output for K = %s of active set", K))
   }
   
+  # get quantile object in chosen order
+  df <- project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_intervals
+  deme_order <- define_default(deme_order, 1:nrow(df))
+  assert_eq(length(deme_order), nrow(df))
+  df <- df[deme_order,]
+  class(df) <- "malecot_COI_mean_intervals"
+  
   # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_intervals)
+  plot1 <- plot(df)
   
   # return plot object
   return(plot1)

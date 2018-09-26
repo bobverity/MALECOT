@@ -41,9 +41,9 @@ plot_prior_COI(COI_model = "poisson", COI_mean = 3)
 plot_prior_COI(COI_model = "nb", COI_mean = 3, COI_dispersion = 2)
 ```
 
-The simulated data in the previous tutorial were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have the luxury of knowing the true COI distribution, and so for this example we will use a negative binomial prior. Rather than using a set value for the prior mean we will use the argument `COI_mean = TRUE` to tell the model that we want to estimate the mean COI for each subpopulation.
+The simulated data in the previous tutorial were generated from a Poisson distribution, and so we could use this prior to exactly match the inference model to the simulated data. However, in reality we will not have the luxury of knowing the true COI distribution, and so for this example we will use a negative binomial prior. Rather than using a set value for the prior mean we will use the argument `estimate_COI_mean = TRUE` to tell the model that we want to estimate the mean COI for each subpopulation.
 
-In some cases we may want to specify the COI of certain samples manually - for example if we have already used other programs to estimate the COI and we want to insert these results. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.
+In some cases we may want to specify the COI of certain samples manually - for example if we have already used other programs to estimate the COI and we want to insert these values. This can be accommodated using the `COI_manual` argument, which takes a vector of length equal to the number of samples. Values of -1 indicate that the COI should be estimated, while positive values indicate that the COI should be fixed at that value. In this example we will assume that we know the true COIs of the last 10 samples.
 
 ```{r}
 # define some COIs manually
@@ -56,17 +56,18 @@ myproj <- new_set(myproj, name = "nb model", COI_model = "nb", COI_max = 20,
 myproj
 ```
 
-We run the MCMC using the `run_mcmc()` command. We will keep things simple here by only running for $K = 3$:
+We will keep things simple here by only running the MCMC for $K = 3$:
 
 ```{r}
+# run MCMC
 myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
                    samples = 1e4, pb_markdown =  TRUE)
 ```
 
 ```{r, echo=FALSE}
 # secretly save/load project from file so results are consistent between tutorials
-#saveRDS(myproj, file = "../inst/extdata/tutorial2_myproj.rds")
-myproj <- malecot_file("tutorial2_myproj.rds")
+#saveRDS(myproj, file = "../ignore/inst/extdata/tutorial2_myproj.rds")
+myproj <- readRDS(file = "../ignore/inst/extdata/tutorial2_myproj.rds")
 ```
 
 As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:
@@ -88,7 +89,7 @@ posterior_COI <- posterior_COI + geom_point(aes(x = 1:100, y = mysim$true_m), co
 posterior_COI
 ```
 
-Notice that the 95% credible intervals in the COI plot are tighter than the equivalent plot of the previous tutorial. This is because our prior now assumes that COIs are clustered around a mean value, and so extreme high values become unlikely. Notice also that the final ten samples have their COI fixed at the correct value.
+Notice that the 95% credible intervals in the COI plot are tighter than the equivalent plot of the previous tutorial. This is because our prior now assumes that COIs are clustered around a mean value. Notice also that the final ten samples have their COI fixed at the correct value due to our use of the `COI_manual` argument.
 
 Next we can look at the estimated mean COI for each of the subpopulations:
 
@@ -102,8 +103,11 @@ plot_COI_mean(myproj, K = 3)
 so <- order(get_group_order(myproj, 3, mysim$true_group))
 ```
 
-Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated roughly these values, but in the wrong order. The seemingly incorrect order of these estimates goes back to the issue of labelling subpopulations mentioned in the previous tutorial. When lined up against the three groups in the structure plot above (which go group`r so[1]` then group`r so[2]` then group`r so[3]`) we can see that mean COI estimates do in fact go from lowest on the left to highest on the right. 
+Recall that the data were simulated from three subpopulations with true mean COIs of 1.2, 2, and 3 respectively. The model appears to have estimated the correct values, but in the wrong order. The seemingly incorrect order of these estimates goes back to the issue of labelling subpopulations mentioned in the previous tutorial. When lined up against the three groups in the structure plot above (which go group`r so[1]` then group`r so[2]` then group`r so[3]`) we can see that mean COI estimates do in fact go from lowest on the left to highest on the right. We can also specify the deme order in this plot using the `deme_order` argument:
 
+```{r, fig.height=4, fig.width=5}
+plot_COI_mean(myproj, K = 3, deme_order = c(3,2,1))
+```
 
 ## More realistic priors on allele frequencies
 
@@ -117,11 +121,11 @@ MALECOT assumes a [beta prior](https://en.wikipedia.org/wiki/Beta_distribution) 
 
 1. `lambda` can be a single value. In this case the same shape parameter is used for all alleles and all loci, making the prior symmetric and identical over all loci.
 
-2. `lambda` can be a vector of shape parameters - one for each allele. In this case the prior will usually be asymmetric and skewed in favour of one allele. The same prior is still applied over all loci, meaning this option can only be used if there are the same number of alleles at every locus (for bi-allelic data this will always be true).
+2. `lambda` can be a vector of shape parameters - one for each allele. In this case the prior will usually be asymmetric and skewed in favour of one allele. The same prior is still applied over all loci, meaning this option can only be used if there are the same number of alleles at every locus (this is always true for bi-allelic data).
 
 3. `lambda` can be a list with as many elements as there are loci, and each element consisting of a vector with as many elements as there are alleles at that locus. This makes it possible to specify a different prior at every locus.
 
-By default, `lambda` is defined using the first method with a value of 1. This places equal weight on every allele frequency between 0 and 1 at every locus, i.e. the Beta distribution simplifies to the uniform distribution. Here we will instead use the second method to place a skewed prior on allele frequencies. We can visualise different priors using the `plot_prior_p()` function:
+By default, `lambda` is defined using the first method with a value of 1. This places equal weight on every allele frequency in the interval $[0,1]$ at every locus, i.e. the Beta distribution simplifies to the uniform distribution. We can visualise different priors using the `plot_prior_p()` function:
 
 ```{r, fig.height=3, fig.width=4}
 # (the default prior)
@@ -138,12 +142,12 @@ We will use the last of these distributions, which makes it more likely *a prior
 # simulate new data with skewed allele frequency distribution
 mysim_skew <- sim_data(n = 100, L = 24, K = 3, lambda = c(7,1))
 
-# load data into a new project
+# bind data to new project
 myproj_skew <- malecot_project()
 myproj_skew <- bind_data_biallelic(myproj_skew, df = mysim_skew$data, ID_col = 1, pop_col = 2)
 ```
 
-Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution, so in this example our model will exactly match the data. We run the MCMC as normal:
+Next we need a parameter set. When defining the prior on allele frequencies we will use the same skewed distribution that we used when generating the data. We then run the MCMC as normal:
 
 ```{r}
 # define parameter set with skewed prior
@@ -162,9 +166,9 @@ After checking that our MCMC has behaved as expected, we can look at the posteri
 plot_structure(myproj_skew, K = 3, divide_ind_on = TRUE)
 ```
 
-We can see immediately that the model has struggled to pull apart the population structure. This is due to there being less information in 24 loci with skewed allele frequencies than in 24 loci with evenly spread allele frequencies.
+We can see that the model has struggled slightly to pull apart the population structure. This is due to there being less information in 24 loci with skewed allele frequencies than in 24 loci with evenly spread allele frequencies.
 
-Plotting credible intervals of posterior allele frequencies and overlaying the true simulated values (as demonstrated in the previous tutorial) we see that the model has done a good job of estimating the allele frequencies:
+Plotting credible intervals of posterior allele frequencies and overlaying the true simulated values, as demonstrated in the previous tutorial, we see that the model has done a good job of estimating the allele frequencies:
 
 ```{r, fig.height=3, fig.width=6}
 # get group order
@@ -199,6 +203,7 @@ Real data is rarely without errors. Often true homozygotes will be miscalled as 
 Let us simulate some new data containing errors to test the model in a more challenging setting. We will assume that artificial heterozygotes occur with probability 0.1, and artificial homozygotes with probability 0.05. We will also assume that 20% of the data is missing, and hence encoded as `-9`.
 
 ```{r}
+# simulate data
 mysim_errors <- sim_data(n = 100, L = 24, K = 3, e1 = 0.1, e2 = 0.05, prop_missing = 0.2)
 head(mysim_errors$data)
 ```
@@ -206,6 +211,7 @@ head(mysim_errors$data)
 Next we will create a new project and bind the new data:
 
 ```{r}
+# bind data to new project
 myproj_errors <- malecot_project()
 myproj_errors <- bind_data_biallelic(myproj_errors, mysim_errors$data, ID_col = 1, pop_col = 2)
 myproj_errors
@@ -221,6 +227,7 @@ myproj_errors <- new_set(myproj_errors, name = "error model", COI_model = "poiss
                          COI_max = 20, estimate_COI_mean = TRUE,
                          estimate_error = TRUE, e1_max = 0.2, e2_max = 0.2)
 
+# run the MCMC
 myproj_errors <- run_mcmc(myproj_errors, K = 3, burnin = 1e4, converge_test = 1e2,
                           samples = 1e4, pb_markdown =  TRUE)
 ```
@@ -231,6 +238,6 @@ After checking the behaviour of our MCMC we can plot the posterior 95% credible 
 plot_e(myproj_errors)
 ```
 
-In this example the model has been able to correctly infer the error rates from the data. To help get an intuition as to how the model is able to do this, imagine a situation in which every locus in a given sample is homozygous apart from one which is heterozygous. There are two possibilities here: 1) the heterozygous locus is due to that sample having COI of 2 and being homozygous everywhere else by chance, 2) the heterozygous call is an error and the sample actually has COI of 1. The probability of being homozygous at every other locus by pure chance may be very small if the allele frequencies are intermediate, in which case the weight of evidence is in favour of it being an error. The model considers all possibilities in proportion to their likelihood, and weighted by our prior beliefs, to arrive at the posterior distributions above.
+In this example the model has been able to correctly infer the error rates of around 0.1 and 0.05 from the data. To help get an intuition as to how the model is able to do this, imagine a situation where every locus in a given sample is homozygous apart from one which is heterozygous. There are two possibilities here: 1) the heterozygous locus is due to that sample having COI of 2 and being homozygous everywhere else by chance, 2) the heterozygous call is an error and the sample actually has COI of 1. The probability of being homozygous at every other locus by chance may be very small if the allele frequencies are intermediate, in which case the weight of evidence is in favour of this one heterozygous call being an error. The MCMC considers all possibilities in proportion to their likelihood, and weighted by our prior beliefs, to arrive at the posterior distributions above.
 
 The [next tutorial](https://bobverity.github.io/MALECOT/articles/multiallelic-data.html) explores how the analysis pipeline differs when using multi-allelic data.

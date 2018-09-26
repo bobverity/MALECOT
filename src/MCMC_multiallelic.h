@@ -41,6 +41,8 @@ public:
   std::vector<std::vector<int>> p_accept;
   std::vector<int> coupling_accept;
   
+  // store convergence
+  std::vector<bool> rung_converged;
   
   // PUBLIC FUNCTIONS
   

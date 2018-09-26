@@ -2,6 +2,7 @@
 
 S3method(print,malecot_project)
 S3method(summary,malecot_project)
+export(active_set)
 export(bind_data_biallelic)
 export(bind_data_multiallelic)
 export(check_MALECOT_loaded)

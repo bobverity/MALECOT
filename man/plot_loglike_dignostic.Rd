@@ -4,13 +4,15 @@
 \alias{plot_loglike_dignostic}
 \title{Produce diagnostic plots of log-likelihood}
 \usage{
-plot_loglike_dignostic(project, K = NULL, col = "black")
+plot_loglike_dignostic(project, K = NULL, rung = NULL, col = "black")
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to plot}
+
+\item{rung}{which rung to plot. Defaults to the cold chain}
 
 \item{col}{colour of the trace}
 }

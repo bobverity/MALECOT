@@ -1,10 +1,11 @@
 ^index.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
-ignore/
-R_ignore/
+^ignore$
+^R_ignore$
 ^\.travis\.yml$
 ^appveyor\.yml$
 ^_pkgdown\.yml$
 ^docs$
 ^codecov\.yml$
+^MALECOT_.*\.tar\.gz$

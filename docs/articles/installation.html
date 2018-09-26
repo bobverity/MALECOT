@@ -79,12 +79,6 @@
 <li>
   <a href="../reference/index.html">Functions</a>
 </li>
-<li>
-  <a href="../articles/faq.html">FAQ</a>
-</li>
-<li>
-  <a href="../articles/known-issues.html">Known issues</a>
-</li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
@@ -108,7 +102,7 @@
       <h1>Installing MALECOT</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-25</h4>
+            <h4 class="date">2018-09-26</h4>
       
       
       <div class="hidden name"><code>installation.Rmd</code></div>
@@ -151,12 +145,13 @@
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">"devtools"</span>, <span class="dt">repos=</span><span class="st">'http://cran.us.r-project.org'</span>)</code></pre></div>
 <p>Then install the MALECOT package directly from GitHub by running</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools::<span class="kw">install_github</span>(<span class="st">"bobverity/malecot"</span>)</code></pre></div>
-<p>If you have any problems installing, please check the <a href="https://bobverity.github.io/MALECOT/articles/known-issues.html">Known issues</a> page to see if there is a known solution. If not then please <a href="https://github.com/bobverity/malecot/issues">raise an issue</a> on github.</p>
+<p>If you have any problems installing then please <a href="https://github.com/bobverity/malecot/issues">raise an issue</a> on github.</p>
 <p>Assuming everything installed correctly, we need to load the package:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(MALECOT)</code></pre></div>
 <p>You can test that the package is loaded and working by running the following command, which should produce this output:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/check_MALECOT_loaded.html">check_MALECOT_loaded</a></span>()</code></pre></div>
 <pre><code>## MALECOT loaded successfully!</code></pre>
+<p>Now check out the <a href="https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html">tutorials</a> on how to run analyses in MALECOT.</p>
 </div>
   </div>
 

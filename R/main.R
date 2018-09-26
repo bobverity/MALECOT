@@ -472,6 +472,34 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
 }
 
 #------------------------------------------------
+#' @title Change the active set of a MALECOT project
+#'
+#' @description Change the active set of a MALECOT project
+#'
+#' @param project a MALECOT project, as produced by the function 
+#'   \code{malecot_project()}
+#' @param set the new active set
+#'
+#' @export
+#' @examples
+#' # TODO
+
+active_set <- function(project, set) {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  assert_single_pos_int(set)
+  assert_leq(set, length(project$parameter_sets), message = "chosen set outside range")
+  
+  # change active set
+  project$active_set <- set
+  message(sprintf("active set = %s", set))
+  
+  # return invisibly
+  invisible(project)
+}
+
+#------------------------------------------------
 #' @title Delete parameter set
 #'   
 #' @description Delete a given parameter set from a MALECOT project.
@@ -713,6 +741,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   
   # loop through K
   ret <- list()
+  all_converged <- TRUE
   for (i in 1:length(K)) {
     
     # create name lists
@@ -757,6 +786,12 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
       full_COI_mean <- rcpp_to_mat(output_raw[[i]]$COI_mean_store)
       colnames(full_COI_mean) <- deme_names
       full_COI_mean <- mcmc(full_COI_mean)
+    }
+    
+    # get whether rungs have converged
+    converged <- output_raw[[i]]$rung_converged
+    if (all_converged && any(!converged)) {
+      all_converged <- FALSE
     }
     
     # ---------- summary results ----------
@@ -897,7 +932,8 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
                                                                 COI_mean = full_COI_mean,
                                                                 p_accept = p_accept,
                                                                 e_accept = e_accept,
-                                                                coupling_accept = coupling_accept)
+                                                                coupling_accept = coupling_accept,
+                                                                converged = converged)
     
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,
                                                                           call = match.call())
@@ -923,6 +959,13 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   } else {
     message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
   }
+  
+  # warning if any rungs in any MCMCs did not converge
+  if (!all_converged && !silent) {
+    message("\n**WARNING** at least one MCMC run did not converge\n")
+  }
+  
+  project$output$single_set[[s]]$single_K[[K[i]]]$raw
   
   # return invisibly
   invisible(project)

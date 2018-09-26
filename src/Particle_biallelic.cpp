@@ -63,6 +63,7 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   
   // store acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
+  m_accept = vector<int>(n);
   e_accept = 0;
   
   // vary core likelihood function depending on user choices
@@ -189,7 +190,7 @@ double Particle_biallelic::get_lambda(int i, int j) {
     return lambda[0][0];
   } else if (lambda_type == 2) {
     return lambda[0][j];
-  } else {
+  } else if (lambda_type == 3) {
     return lambda[i][j];
   }
   return 1.0;
@@ -248,10 +249,9 @@ void Particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           p_propSD[k][j]  += (1-0.23)/sqrt(double(iteration));
+        } else {
+          p_accept[k][j]++;
         }
-        
-        // update acceptance rates
-        p_accept[k][j]++;
         
       } else {
         
@@ -343,6 +343,8 @@ void Particle_biallelic::update_m(bool robbins_monro_on, int iteration) {
       // Robbins-Monro positive update
       if (robbins_monro_on) {
         m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
+      } else {
+        m_accept[i]++;
       }
       
     } else {

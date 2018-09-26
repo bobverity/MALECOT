@@ -46,8 +46,12 @@ MCMC_biallelic::MCMC_biallelic() {
   
   // objects for storing acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
+  m_accept = vector<int>(n);
   e_accept = 0;
   coupling_accept = vector<int>(rungs-1);
+  
+  // store convergence
+  rung_converged = vector<bool>(rungs, false);
   
 }
 
@@ -119,8 +123,11 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
       
     } // end loop over rungs
     
+    // focus on cold rung
+    cold_rung = rung_order[rungs-1];
+    
     // methods that only apply when K>1
-    if (K>1) {
+    if (K > 1) {
       
       // fix labels
       if (solve_label_switching_on) {
@@ -148,7 +155,7 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
     
     // update progress bars
     if (!silent) {
-      if ((rep+1)==burnin) {
+      if ((rep+1) == burnin) {
         update_progress(args_progress, "pb_burnin", rep+1, burnin);
       } else {
         int remainder = rep % int(ceil(double(burnin)/100));
@@ -159,13 +166,14 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
     }
     
     // check for convergence
-    if (auto_converge && (rep+1)==convergence_checkpoint[checkpoint_i]) {
+    if (auto_converge && (rep+1) == convergence_checkpoint[checkpoint_i]) {
       
       // check for convergence of all unconverged chains
       for (int r=0; r<rungs; r++) {
         if (!convergence_reached[r]) {
           convergence_reached[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
           if (convergence_reached[r]) {
+            rung_converged[r] = true;
             loglike_burnin[r].resize(rep+1);
           }
         }
@@ -335,6 +343,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   
   // store acceptance rates
   p_accept = particle_vec[cold_rung].p_accept;
+  m_accept = particle_vec[cold_rung].m_accept;
   e_accept = particle_vec[cold_rung].e_accept;
 }
 

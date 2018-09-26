@@ -10,9 +10,9 @@ plot_density(project, K = NULL, rung = NULL, col = "black")
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to plot}
 
-\item{rung}{which value of K to produce the plot for. Defaults to the cold rung}
+\item{rung}{which rung to plot. Defaults to the cold chain}
 
 \item{col}{colour of the trace}
 }

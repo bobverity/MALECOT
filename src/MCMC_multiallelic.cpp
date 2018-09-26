@@ -46,6 +46,9 @@ MCMC_multiallelic::MCMC_multiallelic() {
   p_accept = vector<vector<int>>(K, vector<int>(L));
   coupling_accept = vector<int>(rungs-1);
   
+  // store convergence
+  rung_converged = vector<bool>(rungs, false);
+  
 }
 
 //------------------------------------------------
@@ -158,6 +161,7 @@ void MCMC_multiallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args
         if (!convergence_reached[r]) {
           convergence_reached[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
           if (convergence_reached[r]) {
+            rung_converged[r] = true;
             loglike_burnin[r].resize(rep+1);
           }
         }

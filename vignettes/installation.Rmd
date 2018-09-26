@@ -39,7 +39,7 @@ Then install the MALECOT package directly from GitHub by running
 devtools::install_github("bobverity/malecot")
 ```
 
-If you have any problems installing, please check the [Known issues](https://bobverity.github.io/MALECOT/articles/known-issues.html) page to see if there is a known solution. If not then please [raise an issue](https://github.com/bobverity/malecot/issues) on github.
+If you have any problems installing then please [raise an issue](https://github.com/bobverity/malecot/issues) on github.
 
 Assuming everything installed correctly, we need to load the package:
 
@@ -53,3 +53,4 @@ You can test that the package is loaded and working by running the following com
 check_MALECOT_loaded()
 ```
 
+Now check out the [tutorials](https://bobverity.github.io/MALECOT/articles/tutorial-biallelic.html) on how to run analyses in MALECOT.

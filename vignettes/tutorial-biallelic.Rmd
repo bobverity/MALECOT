@@ -29,13 +29,13 @@ This vignette demonstrates a very basic MALECOT analysis for bi-allelic data, i.
 MALECOT comes with built-in functions for simulating data from different models. The models used in simulation are exactly the same as the models used in the inference step, allowing us to test the power of the program to arrive at the correct answer. We will simulate a data set of 100 samples, each genotyped at 24 loci and originating from 3 distinct subpopulations or [demes](https://en.wikipedia.org/wiki/Deme_(biology)). We will assume that the mean complexity of infection (COI) in these three subpopulation varies from 1.2 to 3:
 
 ```{r}
-mysim <- sim_data(n = 100, data_format = "biallelic", L = 24, K = 3, COI_mean = c(1.2,2,3))
+mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3, COI_mean = c(1.2,2,3))
 ```
 
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent between tutorials
 #saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-mysim <- malecot_file("tutorial1_mysim.rds")
+mysim <- readRDS("../inst/extdata/tutorial1_mysim.rds")
 ```
 
 Running `names(mysim)` we can see that the simulated data contains several elements:
@@ -61,7 +61,7 @@ The actual genetic data must be one of the following values
 * 1 = homozygote for the reference allele (REF)
 * 0 = homozygote for the alternative allele (ALT)
 * 0.5 = heterozygote (both REF and ALT alleles observed)
-* -9 = missing data. This value can be specified, -9 is the default
+* -9 = missing data. This value can be specified, but -9 is the default
 
 MALECOT currently does not use within-sample allele frequency data, for example the raw read depth of REF vs. ALT alleles, and hence read depths should be converted to homozygote/heterozygote calls prior to analysis.
 
@@ -98,6 +98,7 @@ Viewing the project we can now see additional properties, including the current 
 ```{r}
 myproj
 ```
+All analyses and plotting functions default to using the active set. We can change the active set using the function `active_set()`, or we can delete parameter sets with `delete_set()`.
 
 Now we are ready to run our first MCMC. We will start by exploring values of $K$ from 1 to 5, using 10,000 burn-in iterations and 10,000 sampling iterations. The burn-in phase is required for the MCMC to "forget" its initial conditions and converge on the correct answer. By default the MCMC has `auto_converge` turned on, meaning it will test for convergence every `convergence_test` iterations and will exit if convergence is reached. Hence, it is generally a good idea to set `burnin` to a high value, as the MCMC will adjust this number down if needed. The number of sampling iterations can also be tuned. Our aim when choosing the number of sampling iterations should be to obtain enough samples that our posterior estimates are accurate to an acceptable tolerance level, but not so many that we waste time running the MCMC for long periods past this point. We will look into this parameter again once the MCMC has completed. Finally, for the sake of this document we will run with `pb_markdown = TRUE` to avoid printing large amounts of output, but you should omit this argument.
 
@@ -125,9 +126,9 @@ We can explore the estimated log-likelihood values through a series of diagnosti
 plot_loglike_dignostic(myproj, K = 3)
 ```
 
-The top panel shows a trace plot of the log-likelihood, in other words it shows the value of the log-likelihood at each sampling iteration of the MCMC, and the bottom right panel shows a histogram of these same values. We can see that the log-likelihood has fluctuated around a single stable value, and has bounced around freely enough to cover the same range of values many times over. This indicates that the MCMC has *probably* explored the space well, although we can never rule out that there might be another "level" of log-likelihood that the MCMC has not found yet. This is one of the many paradoxes of MCMC - we can never be 100% sure that an MCMC has completely explored the space, we can only diagnose if it definitly *hasn't* explored the space well. In other words, when looking at these plots we are looking for tell-tale signs of *bad* MCMC behaviour, such as jumping sporadically between levels or moving very slowly through a range of values.
+The top panel shows a "trace plot"" of the log-likelihood, in other words it shows the value of the log-likelihood at each sampling iteration of the MCMC, and the bottom right panel shows a histogram of these same values. We can see that the log-likelihood has fluctuated around a single stable value, and has bounced around freely enough to cover the same range of values many times over. This is exactly what we want to see - ideally a trace plot should look like a fuzzy black caterpillar! This indicates that the MCMC has *probably* explored the space well, although we can never rule out that there might be another "level" of log-likelihood that the MCMC has not found yet. This is one of the many paradoxes of MCMC - we can never be 100% sure that an MCMC has completely explored the space, we can only diagnose if it definitly *hasn't* explored the space well. In other words, when looking at these plots we are looking for tell-tale signs of *bad* MCMC behaviour, such as jumping sporadically between levels or moving very slowly through a range of values.
 
-The bottom left panel shows the level of autocorrelation in the trace plot for different degrees of separation between points. When autocorrelation approaches zero it means that values are approximately independent - this occurs at around 20 lags here, meaning every 20th draw is approximately independent. The number of *independent* samples is therefore much smaller than the raw number of samples. We can use the `get_ESS()` function to get at exactly how many effectively independent samples we have:
+The bottom left panel shows the level of autocorrelation in the trace plot for different degrees of separation between points (lags). When autocorrelation approaches zero it means that values are approximately independent - this occurs at around 20 lags here, meaning every 20th draw is approximately independent. The number of *independent* samples is therefore much smaller than the raw number of samples. We can use the `get_ESS()` function to get at exactly how many effectively independent samples we have:
 
 ```{r}
 get_ESS(myproj, K = 3)
@@ -135,7 +136,7 @@ get_ESS(myproj, K = 3)
 
 It is worth keeping this value in mind when looking at trace plots so we are not fooled by large numbers of iterations. If our ESS is very small (tens to hundreds) then we are extremely unlikely to have explored the full model space, even if the raw number of sampling iterations is in the millions.
 
-These checks should be carried out on each value of $K$, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using [other more sophisticated techniques](todo) to improve mixing.
+These checks should be carried out on each value of $K$, and if any results show signs of poor MCMC behaviour then they should be repeated with larger sample sizes, or using other [more sophisticated techniques](https://bobverity.github.io/MALECOT/articles/ensuring-good-mixing.html) to improve mixing.
 
 
 ## Plot results
@@ -148,7 +149,7 @@ Usually the main result of interest from this sort of analysis is the posterior 
 plot_structure(myproj, K = 2:5, divide_ind_on = TRUE)
 ```
 
-The advantage of simulated data is that we know the true value of $K$ used when generating the data ($K = 3$ in this case) and which samples belong to which groups, meaning we can verify whether the model has arrived at the correct answer. In this example almost all samples are allocated correctly for $K = 3$. The issue of deciding between different values of $K$ is a big one, and will be dealt with in [a later vignette](https://bobverity.github.io/MALECOT/articles/comparing-models.html).
+The advantage of simulated data is that we know the true value of $K$ used when generating the data ($K = 3$ in this case) as well as which samples belong to which groups, meaning we can verify whether the model has arrived at the correct answer. In this example almost all samples are allocated correctly for $K = 3$. The issue of deciding between different values of $K$ is a big one, and will be dealt with in [a later tutorial](https://bobverity.github.io/MALECOT/articles/comparing-models.html).
 
 
 ### Posterior COI plots
@@ -159,7 +160,7 @@ Next we can plot the posterior COI of our samples. All plots produced by MALECOT
 # load ggplot2 package (which must be already installed)
 library(ggplot2)
 
-# produce plot of posterior COIs
+# store plot of posterior COIs as object
 posterior_COI <- plot_COI(myproj, K = 3)
 
 # overlay true COI values
@@ -173,9 +174,9 @@ Comparing the posterior 95% credible intervals (black) with the true COIs (red),
 
 ### Posterior allele frequency plots
 
-The third parameter of interest is the posterior allele frequency at each locus and in each subpopulation. Again, we have a record of the true values, so we can check that the model output matches these values.
+The third parameter of interest is the posterior allele frequency at each locus and in each subpopulation. Again, we have a record of the true values so we can check that the model output matches these values.
 
-Before doing so, however, we need to revisit structure plots. One thing to note when looking at structure plots is that the group labelling is arbitrary, and labels can be swapped around without undermining results. For example, we could swap around what we call group1 and group2 in the plots above and the overall estimated structure would be the same. In fact, the group labels used in MALECOT are simply chosen to minimise the visual differences between plots - for example, in the structure plots above the colours are chosen to align most closely between different values of $K$.
+Before doing so, however, we need to revisit structure plots. One thing to note when looking at structure plots is that the group labelling is arbitrary, and labels can be swapped around without undermining results. For example, we could swap around what we call group1 and group2 in the structure plots above and the overall estimated structure would be the same. In fact, the group labels used in MALECOT are simply chosen to minimise the visual differences between plots - for example, in the structure plots above the colours are chosen to align most closely between different values of $K$.
 
 However, when comparing true allele frequencies against MCMC output we need to make sure our labels match up. We can do this using the `get_group_order()` function, which takes a project and value of $K$ as input, along with a "target group". The target group will be matched against the MCMC output and re-ordered as needed to get the best possible matching. For example, using `mysim$true_group` as the target group we obtain:
 
@@ -184,7 +185,7 @@ group_order_k3 <- get_group_order(myproj, K = 3, target_group = mysim$true_group
 group_order_k3
 ```
 
-This tells us that group `r group_order_k3[1]` in our simulated data matches the first group in the MCMC output, group `r group_order_k3[2]` matches the second group in the MCMC output, and group `r group_order_k3[3]` matches the third group in the MCMC output. Now that we know this we can plot posterior allele frequencies in each subpopulation and overlay the correct corresponding values from the simulated data:
+This tells us that group `r group_order_k3[1]` in our simulated data matches the first group in the MCMC output, group `r group_order_k3[2]` matches the second group in the MCMC output, and group `r group_order_k3[3]` matches the third group in the MCMC output. Now that we know this, we can plot posterior allele frequencies in each subpopulation and overlay the correct corresponding values from the simulated data. Note that when ggplot objects are produced inside a loop we have to use the `print()` function to make them appear on the screen:
 
 ```{r, fig.height=3, fig.width=6}
 # loop through subpopulations
@@ -202,7 +203,7 @@ for (i in 1:3) {
 }
 ```
 
-We can see that the MCMC has done a good job of estimating allele frequencies in all three subpopulations.
+We can see that the MCMC has done a good job of estimating allele frequencies in all three subpopulations. This was made easier by the fact that allele frequencies are quite evenly distributed between 0 and 1, which is rarely the case in real data.
 
 In the [next tutorial](https://bobverity.github.io/MALECOT/articles/complex-priors.html) we will look at ways of adding realism to the model through more complex priors.
 

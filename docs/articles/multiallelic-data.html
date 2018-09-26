@@ -79,12 +79,6 @@
 <li>
   <a href="../reference/index.html">Functions</a>
 </li>
-<li>
-  <a href="../articles/faq.html">FAQ</a>
-</li>
-<li>
-  <a href="../articles/known-issues.html">Known issues</a>
-</li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
@@ -108,7 +102,7 @@
       <h1>Multi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-25</h4>
+            <h4 class="date">2018-09-26</h4>
       
       
       <div class="hidden name"><code>multiallelic-data.Rmd</code></div>
@@ -130,7 +124,7 @@
 <h2 class="hasAnchor">
 <a href="#loading-and-running-multi-allelic-data" class="anchor"></a>Loading and running multi-allelic data</h2>
 <p>The bi-allelic data format used in previous tutorials cannot be used for multi-allelic data because now we can observe more than just homozygous and heterozygous calls at a locus. Instead, if there are <em>J</em> alleles at a locus then we can observe any subset of these alleles, ranging from just a single allele to all <em>J</em> alleles. MALECOT accommodates this by reading in data in long format.</p>
-<p>The easiest way to understand long format is to simulate some multi-allelic data. This can be done using the standard <code><a href="../reference/sim_data.html">sim_data()</a></code> function but with the argument <code>data_format = "multiallelic"</code>. As before, there are many elements that make up this simulated data including records of the true values used in simulation, but here we are only interested in the “data” element. Here we will draw data from 5 subpopulations covering a range of mean COIs from 1 to 5. We will assume that we have sequenced the samples at 10 loci, with each locus having 5 possible alleles. Finally, we will assume 10% missing data so we can see what missing data looks like in long format:</p>
+<p>The easiest way to understand long format is to simulate some multi-allelic data. This can be done using the standard <code><a href="../reference/sim_data.html">sim_data()</a></code> function but with the argument <code>data_format = "multiallelic"</code>. As before, there are many elements that make up this simulated data, including records of the true values used in simulation, but here we are only interested in the “data” element. Here we will draw samples from 5 subpopulations covering a range of mean COIs from 1 to 5. We will assume that we have sequenced the samples at 10 loci, with each locus having 5 possible alleles. Finally, we will assume 10% missing data so we can see what missing data looks like in long format:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">data_format =</span> <span class="st">"multiallelic"</span>, <span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">10</span>, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">COI_mean =</span> <span class="dv">1</span>:<span class="dv">5</span>,
                   <span class="dt">alleles =</span> <span class="dv">5</span>, <span class="dt">prop_missing =</span> <span class="fl">0.1</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(mysim$data)</code></pre></div>
@@ -142,7 +136,7 @@
 ## 5   samp001     5         5
 ## 6   samp001     6         4</code></pre>
 <p>We can see that multi-allelic data has three columns, consisting of the sample ID, the locus, and the observed haplotype. The column names must match those shown above. The locus column must contain positive integer values starting at 1, meaning if loci are encoded as character strings then they must be converted to integers first. The same is true for haplotypes, which must be encoded as positive integers starting at 1, or as missing data.</p>
-<p>Every locus must be represented in every sample - there can be no missing loci. Instead we can use the missing data character (-9 by default) to insert gaps in the data as needed. For example, in the simulated data above there is missing data in sample001 at loci 2 and 3, but this sample still has entries for all 10 loci rather than leaving these rows out entirely.</p>
+<p>Every locus must be represented in every sample - there can be no missing loci. Instead we can use the missing data character (-9 by default) to insert gaps in the data as needed. For example, in the simulated data above there is missing information in sample001 at loci 2 and 3, but this sample still has entries for all 10 loci rather than leaving these rows out entirely.</p>
 <p>Once we have data in the correct format we can create a new project and bind the data to the project using the <code><a href="../reference/bind_data_multiallelic.html">bind_data_multiallelic()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create project and bind data</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
@@ -165,10 +159,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 9.47323 seconds
+##    completed in 8.89406 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 10.75 seconds</code></pre>
+<pre><code>## Total run-time: 10.04 seconds</code></pre>
 <p>You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.</p>
 <p>As always we need to check the behaviour of our MCMC before moving on to results:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
@@ -176,17 +170,17 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
 <pre><code>##    rung1 
 ## 636.3328</code></pre>
-<p>Notice that the autocorrelation falls off much more slowly than it did under the bi-allelic MCMC, and hence the effective sample size is quite small. This is one case where we should re-run the MCMC with a larger number of <code>samples</code> to increase the chance that the MCMC has explored the space well. For the sake of this tutorial we will save time by loading in results obtained by re-running this MCMC with <code>samples = 1e5</code>:</p>
+<p>Notice that the autocorrelation falls off much more slowly than it did under the bi-allelic MCMC, and hence the effective sample size is smaller. This is one example where we should re-run the MCMC with a larger number of <code>samples</code> to increase the chance that the MCMC has explored the space well. For the sake of this tutorial we will save time by loading in results obtained by re-running this MCMC with <code>samples = 1e5</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load results</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial3_myproj2.rds"</span>)
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial3_myproj.rds"</span>)
 
 <span class="co"># check behaviour</span>
 <span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
 <pre><code>##    rung1 
-## 4309.956</code></pre>
-<p>We now mave a much larger effective sample size, giving us greater confidence that the MCMC has explored the space well.</p>
+## 636.3328</code></pre>
+<p>We now mave a nice fuzzy black caterpillar and a much larger effective sample size, giving us greater confidence that the MCMC has explored the space well.</p>
 </div>
 <div id="plotting-results" class="section level2">
 <h2 class="hasAnchor">
@@ -194,10 +188,11 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/male
 <div id="structure-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#structure-plots" class="anchor"></a>Structure plots</h3>
-<p>The same plotting functions can be used irrespective of whether data is bi-allelic or multi-allelic. In the case of the posterior allocation or “structure” plot we find that there is generally more signal in multi-allelic data, because there are more possible ways for subpopulations to look different from one another. In this example we find that 100 samples sequenced at just 10 loci with 5 alleles is enough to pull samples apart into 5 distinct subpopulations, while a similar analysis with bi-allelic data would have struggled to detect this level of structure.</p>
+<p>The same plotting functions can be used irrespective of whether data is bi-allelic or multi-allelic. In the case of the posterior allocation or “structure” plot we find that there is generally more signal in multi-allelic data because there are more possible ways for subpopulations to look different from one another:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-11-1.png" width="768"></p>
+<p>In this example we find that 100 samples sequenced at just 10 loci with 5 alleles is enough to pull samples apart into 5 distinct subpopulations, while a similar analysis with bi-allelic data would have struggled to detect this level of structure.</p>
 </div>
 <div id="posterior-coi-plots" class="section level3">
 <h3 class="hasAnchor">
@@ -215,21 +210,22 @@ posterior_COI</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-12-1.png" width="768"></p>
 <p>In this example we find that estimates are precise up to COIs of around 3 or 4, then become imprecise at 5 and above. Generally speaking our ability to discern high COIs increases with the number of possible alleles at a locus.</p>
 <p>The same gains in precision can be seen in the estimated mean COI per subpopulation:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_COI_mean.html">plot_COI_mean</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># get correct plotting order</span>
+group_order_k5 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_group_order.html">get_group_order</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">target_group =</span> mysim$true_group)
+plot_order &lt;-<span class="st"> </span><span class="kw">order</span>(group_order_k5)
+
+<span class="kw"><a href="../reference/plot_COI_mean.html">plot_COI_mean</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">deme_order =</span> plot_order)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-13-1.png" width="480"></p>
 </div>
 <div id="posterior-allele-frequency-plots" class="section level3">
 <h3 class="hasAnchor">
 <a href="#posterior-allele-frequency-plots" class="anchor"></a>Posterior allele frequency plots</h3>
 <p>The only plot that differs between bi-allelic and multi-allelic data is the posterior allele frequency plot, which is now a grouped barplot showing posterior 95% credible intervals for each separate allele. The following plot shows posterior allele frequencies for the first deme only, with true values overlayed as red crosses:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># get group order</span>
-group_order_k3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_group_order.html">get_group_order</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">target_group =</span> mysim$true_group)
-
-<span class="co"># produce plot of posterior allele frequencies for this subpopulation</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># produce plot of posterior allele frequencies for this subpopulation</span>
 posterior_p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_p.html">plot_p</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>, <span class="dt">deme =</span> <span class="dv">1</span>)
 
 <span class="co"># get true simulated allele frequencies for this subpopulation</span>
-sim_p &lt;-<span class="st"> </span><span class="kw">mapply</span>(function(x){x[group_order_k3[<span class="dv">1</span>], ]}, mysim$true_p, <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>)
+sim_p &lt;-<span class="st"> </span><span class="kw">mapply</span>(function(x){x[group_order_k5[<span class="dv">1</span>], ]}, mysim$true_p, <span class="dt">SIMPLIFY =</span> <span class="ot">FALSE</span>)
 
 <span class="co"># get plotting results into dataframe</span>
 df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">locus =</span> <span class="kw">rep</span>(<span class="dv">1</span>:<span class="dv">10</span>, <span class="dt">each =</span> <span class="dv">5</span>),
@@ -251,13 +247,13 @@ posterior_p</code></pre></div>
 <p>The following example shows a prior skewed in favour of the second allele. The expected allele frequency for allele <em>j</em> is equal to <code>lambda[j]/sum(lambda)</code>, which in this case yields an expectation of 0.375 for the second allele:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>))</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-15-1.png" width="576"></p>
-<p>The prior uncertainty is dictated by the magnitude of <code>lambda</code>, with larger values leading to reduced uncertainty. For example, we could define a second prior with exactly the same expected allele frequencies but lower uncertainty by multiplying all <code>lambda</code> values by 10:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">60</span>,<span class="dv">20</span>,<span class="dv">30</span>,<span class="dv">40</span>))</code></pre></div>
+<p>The prior uncertainty is dictated by the magnitude of <code>lambda</code>, with larger values leading to reduced uncertainty. For example, we could define a second prior with exactly the same expected allele frequencies but lower uncertainty by multiplying all <code>lambda</code> values in the above by 10:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>)*<span class="dv">10</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-16-1.png" width="576"></p>
-<p>When thinking about the prior on allele frequencies it is useful to imagine that each subpopulation has its own allele frequencies given by one of these trajectories. Therefore if the prior is very precise (like the one above) then we are stating that we expect subpopulations to look very similar in their composition. If this seems unlikely <em>a priori</em> then we should use a smaller value of <em>lambda</em>.</p>
 <p>The default prior in the multi-allelic case is a value of <code>lambda[j] = 1</code> for every allele, giving an expected allele frequency of 1/<em>J</em> for every allele:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_prior_p.html">plot_prior_p</a></span>(<span class="dt">lambda =</span> <span class="dv">1</span>, <span class="dt">alleles =</span> <span class="dv">5</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-17-1.png" width="576"></p>
+<p>When thinking about the prior on allele frequencies it is useful to imagine that each subpopulation has its own allele frequencies, drawn by picking one of these trajectories at random. Therefore if the prior is very precise (like the second plot above) then we are stating that we expect subpopulations to look very similar in their composition. If this seems unlikely <em>a priori</em> then we should use a smaller value of <code>lambda</code>. Our aim when designing priors is to capture the <em>plausible</em> range of values, not what we expect the actual values to be.</p>
 <p>The <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">next tutorial</a> covers how to compare different values of <span class="math inline">\(K\)</span> and different models in MALECOT.</p>
 </div>
   </div>
