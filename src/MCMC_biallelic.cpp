@@ -205,6 +205,8 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
     print("   Warning: convergence still not reached within", burnin, "iterations");
   }
   
+  print_vector(particle_vec[cold_rung].m_prop_mean);
+  
 }
 
 //------------------------------------------------

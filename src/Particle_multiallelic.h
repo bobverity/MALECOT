@@ -69,6 +69,7 @@ public:
   
   // store acceptance rates
   std::vector<std::vector<int>> p_accept;
+  std::vector<int> m_accept;
   
   // PUBLIC FUNCTIONS
   

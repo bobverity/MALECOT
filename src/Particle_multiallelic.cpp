@@ -73,7 +73,7 @@ Particle_multiallelic::Particle_multiallelic(double beta_raised) {
   
   // store acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
-  
+  m_accept = vector<int>(n);
 }
 
 //------------------------------------------------
@@ -263,10 +263,9 @@ void Particle_multiallelic::update_p(bool robbins_monro_on, int iteration) {
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           p_propSD[k][l] = exp(log(p_propSD[k][l]) + (1-0.23)/sqrt(iteration));
+        } else {
+          p_accept[k][l]++;
         }
-        
-        // update acceptance rates
-        p_accept[k][l]++;
         
       } else {
         
@@ -334,10 +333,22 @@ void Particle_multiallelic::update_m() {
     
     // Metropolis step
     if (log(runif_0_1()) < (sum_loglike_new - sum_loglike_old)) {
+      
+      // update m
       m[i] = m_prop;
+      
+      // update loglike
       for (int l=0; l<L; l++) {
         loglike_old[i][l] = loglike_new[i][l];
       }
+      
+      // Robbins-Monro positive update
+      //if (robbins_monro_on) {
+      //  m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
+      //} else {
+      //  m_accept[i]++;
+      //}
+      
     }
     
   }   // end loop through individuals

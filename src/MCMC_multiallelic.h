@@ -39,6 +39,7 @@ public:
   
   // objects for storing acceptance rates
   std::vector<std::vector<int>> p_accept;
+  std::vector<int> m_accept;
   std::vector<int> coupling_accept;
   
   // store convergence

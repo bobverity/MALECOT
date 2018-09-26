@@ -44,6 +44,7 @@ MCMC_multiallelic::MCMC_multiallelic() {
   
   // objects for storing acceptance rates
   p_accept = vector<vector<int>>(K, vector<int>(L));
+  m_accept = vector<int>(n);
   coupling_accept = vector<int>(rungs-1);
   
   // store convergence
@@ -315,6 +316,7 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
   
   // store acceptance rates
   p_accept = particle_vec[cold_rung].p_accept;
+  m_accept = particle_vec[cold_rung].m_accept;
 }
 
 //------------------------------------------------

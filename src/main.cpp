@@ -63,6 +63,7 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( mcmc_biallelic.COI_mean_store ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.qmatrix_final ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.p_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_biallelic.m_accept ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.e_accept ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.coupling_accept ));
   ret.push_back(Rcpp::wrap( mcmc_biallelic.rung_converged ));
@@ -77,6 +78,7 @@ Rcpp::List run_mcmc_biallelic_cpp(Rcpp::List args) {
   ret_names.push_back("COI_mean_store");
   ret_names.push_back("qmatrix");
   ret_names.push_back("p_accept");
+  ret_names.push_back("m_accept");
   ret_names.push_back("e_accept");
   ret_names.push_back("coupling_accept");
   ret_names.push_back("rung_converged");
@@ -132,7 +134,9 @@ Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.COI_mean_store ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.qmatrix_final ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.p_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.m_accept ));
   ret.push_back(Rcpp::wrap( mcmc_multiallelic.coupling_accept ));
+  ret.push_back(Rcpp::wrap( mcmc_multiallelic.rung_converged ));
   
   Rcpp::StringVector ret_names;
   ret_names.push_back("loglike_burnin");
@@ -142,7 +146,9 @@ Rcpp::List run_mcmc_multiallelic_cpp(Rcpp::List args) {
   ret_names.push_back("COI_mean_store");
   ret_names.push_back("qmatrix");
   ret_names.push_back("p_accept");
+  ret_names.push_back("m_accept");
   ret_names.push_back("coupling_accept");
+  ret_names.push_back("rung_converged");
   
   ret.names() = ret_names;
   return ret;
