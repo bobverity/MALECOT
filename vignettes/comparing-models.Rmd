@@ -12,7 +12,7 @@ vignette: >
 ```{r, echo=FALSE}
 set.seed(3)
 library(MALECOT)
-reps <- 1e2
+reps <- 1e4
 ```
 
 This vignette demonstrates model comparison in MALECOT. It covers:
@@ -77,8 +77,14 @@ We will then run the MCMC for values of $K$ from 1 to 5. What makes this *thermo
 
 ```{r}
 # run thermodynamic MCMC
-myproj <- run_mcmc(myproj, K = 1:5, burnin = reps, converge_test = 1e2,
-                   samples = reps, rungs = 10, pb_markdown =  TRUE)
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e4, rungs = 10, pb_markdown =  TRUE)
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj0.rds")
+myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj0.rds")
 ```
 
 Notice that convergence times are much longer than under regular MCMC. This is because the MCMC is only deemed to have converged when *every* chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.
@@ -103,7 +109,20 @@ Running `get_ESS()` now prints out the effective sample size of every rung:
 get_ESS(myproj, K = 3)
 ```
 
-We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (less than one thousand as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples.
+We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (less than one thousand as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples. For the sake of this tutorial we will laod in the result of re-running this MCMC with `samples = 2e4`.
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
+
+#saveRDS(myproj, file = "../inst/extdata/tutorial4_myproj.rds")
+```
+
+```{r}
+# load results
+myproj <- malecot_file("tutorial4_myproj.rds")
+get_ESS(myproj, K = 3)
+```
 
 A useful plotting function when working with multiple rungs is the `plot_loglike()` function, which plots the 95% quantiles of the log-likelihood over every rung:
 
@@ -157,18 +176,25 @@ myproj <- new_set(myproj, name = "error model", estimate_error = TRUE)
 myproj
 ```
 
-We will run thermodynamic MCMC for this parameter set over the same range of $K$ values:
+We then need to run thermodynamic MCMC for this parameter set over the same range of $K$ values. For the sake of this tutorial we will save time by loading results from file:
 
 ```{r}
-# run MCMC
-myproj <- run_mcmc(myproj, K = 1:5, burnin = reps, converge_test = 1e2,
-                   samples = reps, rungs = 10, pb_markdown =  TRUE)
+# uncomment to run MCMC
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
+
+# load results
+myproj <- malecot_file("tutorial4_myproj2.rds")
 
 # plot diagnostics
 plot_loglike_dignostic(myproj, K = 3)
 
 # report ESS
 get_ESS(myproj, K = 3)
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#saveRDS(myproj, file = "../inst/extdata/tutorial4_myproj2.rds")
 ```
 
 Assuming we are happy with the MCMC behaviour we can go ahead and plot the posterior error estimates:
@@ -193,12 +219,7 @@ plot4 <- plot_posterior_K(myproj)
 grid.arrange(plot1, plot2, plot3, plot4)
 ```
 
-The GTI path looks more concave this time, and so we might consider re-running the MCMC with a smaller value of `GTI_pow`. We can also see wide credible intervals around the posterior distribution of $K$ due to the evidence estimates being similar for $K = 3$ and $K = 4$, and so we should re-run the MCMC with a larger number of `samples`. 
-
-```{r, echo=FALSE}
-# run MCMC
-#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)
-```
+As with the previous model, the evidence is in favour of $K = 3$ in this example.
 
 Finally, we come to the issue of comparing parameter sets. Just as with the evidence estimates over $K$, we can plot the log-evidence of a parameter set using the `plot_logevidence_model()` function, or the posterior distribution over models assuming an equal prior using the `plot_posterior_model()` function:
 

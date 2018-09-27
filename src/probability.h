@@ -78,6 +78,10 @@ void sample3(std::vector<TYPE> &x, int n) {
 double rgamma1(double shape, double rate);
 
 //------------------------------------------------
+// probability density of gamma(shape,rate) distribution
+double dgamma1(double x, double shape, double rate, bool return_log = true);
+
+//------------------------------------------------
 // draw from beta(shape1,shape2) distribution
 double rbeta1(double shape1, double shape2);
 

@@ -704,7 +704,7 @@ plot_COI_mean <- function(project, K = NULL, deme_order = NULL, ...) {
   df <- project$output$single_set[[s]]$single_K[[K]]$summary$COI_mean_intervals
   deme_order <- define_default(deme_order, 1:nrow(df))
   assert_eq(length(deme_order), nrow(df))
-  df <- df[deme_order,]
+  df <- df[deme_order, , drop = FALSE]
   class(df) <- "malecot_COI_mean_intervals"
   
   # produce quantile plot

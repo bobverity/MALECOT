@@ -21,6 +21,7 @@ public:
   std::vector< std::vector<double> > p_propSD;
   std::vector<double> m_prop_mean;
   std::vector<double> COI_mean_propSD;
+  std::vector<double> COI_mean_propSD_v2;
   
   // COI objects
   std::vector<double> COI_mean_vec;
@@ -48,6 +49,7 @@ public:
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
   std::vector<std::vector<double>> p_prop;
+  std::vector<int> m_prop;
   std::vector<double> COI_mean_prop;
   
   // initialise ordering of labels
@@ -67,6 +69,8 @@ public:
   std::vector<std::vector<int>> p_accept;
   std::vector<int> m_accept;
   int e_accept;
+  std::vector<int> COI_mean_accept;
+  std::vector<int> COI_mean_accept_v2;
   
   // function pointers
   double (Particle_biallelic::*logprob_genotype_ptr) (int, double, int, double, double);
@@ -85,6 +89,7 @@ public:
   void update_group();
   void update_e(bool robbins_monro_on, int iteration);
   void update_COI_mean(bool robbins_monro_on, int iteration);
+  void update_COI_mean_v2(bool robbins_monro_on, int iteration);
   void calculate_loglike();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   

@@ -79,7 +79,7 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
   // reset particles
   for (int r=0; r<rungs; r++) {
     particle_vec[r].reset();
-    particle_vec[r].beta_raised = beta_raised_vec[r];
+    //particle_vec[r].beta_raised = beta_raised_vec[r];
   }
   rung_order = seq_int(0,rungs-1);
   
@@ -112,6 +112,7 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
       if (COI_model == 2 || COI_model == 3) {
         if (estimate_COI_mean) {
           particle_vec[rung].update_COI_mean(true, rep+1);
+          particle_vec[rung].update_COI_mean_v2(true, rep+1);
         }
       }
       
@@ -205,8 +206,6 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
     print("   Warning: convergence still not reached within", burnin, "iterations");
   }
   
-  print_vector(particle_vec[cold_rung].m_prop_mean);
-  
 }
 
 //------------------------------------------------
@@ -225,7 +224,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   // reset acceptance rates
   for (int r=0; r<rungs; r++) {
     particle_vec[r].p_accept = vector<vector<int>>(K, vector<int>(L));
-    //particle_vec[r].e_accept = 0;
+    particle_vec[r].e_accept = 0;
   }
   coupling_accept = vector<int>(rungs-1);
   
@@ -251,6 +250,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
       if (COI_model == 2 || COI_model == 3) {
         if (estimate_COI_mean) {
           particle_vec[rung].update_COI_mean(false, 1);
+          particle_vec[rung].update_COI_mean_v2(false, 1);
         }
       }
       
@@ -347,6 +347,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   p_accept = particle_vec[cold_rung].p_accept;
   m_accept = particle_vec[cold_rung].m_accept;
   e_accept = particle_vec[cold_rung].e_accept;
+  
 }
 
 //------------------------------------------------
@@ -400,7 +401,7 @@ void MCMC_biallelic::metropolis_coupling() {
     
     // calculate acceptance ratio (still in log space)
     double acceptance = (loglike2*beta_raised1 + loglike1*beta_raised2) - (loglike1*beta_raised1 + loglike2*beta_raised2);
-
+    
     // accept or reject move
     double rand1 = runif1();
     if (log(rand1)<acceptance) {
@@ -408,6 +409,27 @@ void MCMC_biallelic::metropolis_coupling() {
       // swap beta values
       particle_vec[rung1].beta_raised = beta_raised2;
       particle_vec[rung2].beta_raised = beta_raised1;
+      
+      // swap proposal parameters
+      double e_propSD = particle_vec[rung1].e_propSD;
+      particle_vec[rung1].e_propSD = particle_vec[rung2].e_propSD;
+      particle_vec[rung2].e_propSD = e_propSD;
+      
+      vector<vector<double>> p_propSD = particle_vec[rung1].p_propSD;
+      particle_vec[rung1].p_propSD = particle_vec[rung2].p_propSD;
+      particle_vec[rung2].p_propSD = p_propSD;
+      
+      vector<double> m_prop_mean = particle_vec[rung1].m_prop_mean;
+      particle_vec[rung1].m_prop_mean = particle_vec[rung2].m_prop_mean;
+      particle_vec[rung2].m_prop_mean = m_prop_mean;
+      
+      vector<double> COI_mean_propSD = particle_vec[rung1].COI_mean_propSD;
+      particle_vec[rung1].COI_mean_propSD = particle_vec[rung2].COI_mean_propSD;
+      particle_vec[rung2].COI_mean_propSD = COI_mean_propSD;
+      
+      vector<double> COI_mean_propSD_v2 = particle_vec[rung1].COI_mean_propSD_v2;
+      particle_vec[rung1].COI_mean_propSD_v2 = particle_vec[rung2].COI_mean_propSD_v2;
+      particle_vec[rung2].COI_mean_propSD_v2 = COI_mean_propSD_v2;
       
       // swap rung order
       rung_order[i] = rung2;

@@ -102,7 +102,7 @@
       <h1>Tutorial 4: Comparing models (estimating K)</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-26</h4>
+            <h4 class="date">2018-09-27</h4>
       
       
       <div class="hidden name"><code>comparing-models.Rmd</code></div>
@@ -149,77 +149,70 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj, <span class="dt">name =</span> <span class="st">"simple model"</span>)</code></pre></div>
 <p>We will then run the MCMC for values of <span class="math inline">\(K\)</span> from 1 to 5. What makes this <em>thermodynamic</em> MCMC rather than regular MCMC is the <code>rungs</code> argument, which dictates the number of rungs on the temperature ladder. We will opt for 10 rungs for now. Be warned - this MCMC will take considerably longer to run than regular MCMC, so be prepared to go make yourself a cup of tea!</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run thermodynamic MCMC</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> reps, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
-                   <span class="dt">samples =</span> reps, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
+                   <span class="dt">samples =</span> <span class="fl">1e4</span>, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 1
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 2.36571 2.90913 2.44232 1.92111 3.64372 3.02044 4.31065 3.35806 3.13191 2.60477 3.35008 2.84336 4.55211 3.77551 3.02663 3.33374 3.44241 1.92222 2.72041 3.24112 3.02925 2.38237 2.78164 2.57415 2.59625 3.67413 1.72574 2.30125 2.05628 2.61264 3.25549 2.93131 3.02282 2.28852 3.26615 3.17855 2.63213 2.62692 3.49405 3.3894 2.98467 4.17414 3.31608 3.69049 3.64791 4.14358 3.45999 1.91996 3.22799 3.29458 2.74087 3.78224 2.99189 3.40772 2.79101 2.79391 4.26638 3.57906 3.09759 2.80823 3.49786 3.0533 4.2794 3.67005 3.42037 3.88865 3.51549 3.20152 2.27895 2.64539 4.1819 3.60357 3.06678 3.2212 2.66436 3.5623 1.55983 2.96128 2.73611 3.78209 2.55097 2.15065 2.78699 3.52943 2.90745 3.60523 2.62771 2.20475 3.43878 1.98858 3.53791 3.35654 3.0172 3.9261 3.19757 3.25294 3.35082 1.76564 3.22049 3.68694 
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.235656 seconds
+##    completed in 10.3787 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 2.23845 3.20835 2.87408 2.78689 3.67332 2.48276 3.45451 3.93545 2.62527 1.85617 2.58993 2.90434 3.7289 3.80672 4.77858 2.88468 2.07626 3.80109 2.49372 2.13281 3.0136 3.12704 3.16362 3.69091 2.88907 2.88003 3.89093 2.08857 2.90396 2.96486 3.50159 2.71761 2.20823 3.85453 3.15611 3.49063 2.74512 3.69842 4.01045 4.37698 2.97214 3.59288 4.37323 3.88332 3.56543 4.20597 4.54222 2.45084 4.79167 4.03945 2.83153 4.19769 2.72112 3.65539 3.21875 3.71891 5.132 4.58925 2.58613 3.07316 3.08866 2.30311 2.89569 2.97248 3.30391 4.1897 2.88934 4.18404 3.9785 3.90269 4.1618 5.75815 4.62998 3.43632 3.59367 5.00199 3.27304 4.61566 2.28014 4.04785 3.04732 3.67663 2.7983 4.43687 4.13371 4.47653 2.65024 2.06539 3.55844 2.97239 3.86508 3.1064 4.51447 2.13627 2.90866 3.19239 3.77156 2.6187 2.2343 5.1356 
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.389286 seconds
+##    completed in 19.1555 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 3.21861 2.51442 3.32195 1.85602 3.32861 2.722 3.96274 4.03423 3.76228 2.82281 4.09987 2.88595 2.97256 4.8322 3.16511 3.42526 3.39074 4.27996 3.10247 2.45101 3.31327 2.85639 4.51305 4.57626 3.05281 2.9452 2.95452 2.87404 3.97364 3.50705 4.34246 2.46959 3.07819 5.69472 3.13077 4.96221 2.21153 3.50573 4.52173 4.84821 3.85835 6.05617 4.43167 4.03151 3.84686 4.45435 5.22928 3.90491 5.52342 4.2802 3.86898 2.88302 1.45183 4.07946 2.1285 3.80719 4.68484 6.84785 4.64432 3.24325 3.08513 2.6913 5.64828 5.20054 4.29676 4.92852 4.22832 3.83243 3.61355 5.9952 2.59417 5.64848 3.33428 3.85225 1.86558 5.48679 3.4283 3.42126 2.91117 4.44473 2.82587 4.11091 4.1258 4.72928 4.37756 3.96801 2.60755 2.62939 3.26241 3.65682 4.24696 2.23494 3.96736 2.1518 3.23422 3.77116 3.58748 2.6224 2.81036 4.59339 
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.468157 seconds
+##    completed in 24.1739 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 2.04222 2.26324 4.12988 2.52375 4.75767 2.00139 2.96377 3.19208 4.19398 1.92839 4.90397 2.09801 4.44772 5.31494 3.91908 3.23527 3.20347 4.78278 2.28085 2.75425 4.0179 3.01621 4.69364 3.85142 4.19855 2.26987 3.69339 1.77938 2.80043 2.82225 4.2347 2.44541 3.55108 5.92301 2.30469 5.93132 2.88995 3.98963 4.32296 4.70033 4.29114 4.37523 4.58471 3.53694 4.14206 4.56772 3.61141 3.4134 6.84869 4.903 2.53045 4.81209 2.09653 4.7677 2.74293 4.30372 6.61129 5.26876 4.01514 3.32305 2.99166 2.14851 3.86084 4.22997 3.69439 4.01432 6.01739 3.99392 4.8055 4.90846 4.75797 6.41773 3.62478 3.75665 1.60507 4.55399 4.6689 3.94094 3.01629 4.00561 3.35218 3.61825 3.56499 6.60649 4.03176 4.4682 2.76625 2.96044 3.42929 3.60645 3.57443 3.41046 3.75675 2.55256 4.23781 4.21534 3.47044 3.27147 2.90186 4.46455 
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.548814 seconds
+##    completed in 29.6695 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 1.87791 2.12259 4.23513 2.60719 5.26352 2.28171 2.89506 2.95608 3.35481 2.08442 4.82081 3.88203 3.60844 5.77999 4.45093 3.1076 4.50846 5.70214 2.22293 2.49963 4.6337 2.29535 4.57317 3.71715 3.33705 2.07021 3.5291 3.20098 4.57127 1.98804 4.10498 2.98498 2.68148 6.16662 2.98262 4.56402 1.89154 4.72085 5.394 6.49914 4.08417 5.02211 5.10504 5.3314 5.07607 4.3601 4.12298 3.42959 6.00835 3.42905 3.45528 3.39698 3.3704 4.27815 2.78624 4.57132 6.78682 5.97306 5.38512 3.35865 3.08545 2.61548 5.82136 4.621 4.67556 5.40514 4.62389 4.65098 5.13005 3.82364 3.91585 6.35386 4.45166 5.03557 2.26733 5.37815 3.54452 4.36295 4.0334 4.31307 3.8544 4.36796 2.94029 5.40303 3.56097 4.07894 2.848 3.25661 5.01566 4.34184 4.28278 3.34798 4.56176 2.3363 4.30154 2.95914 3.36934 2.84792 2.9572 5.80163 
+##    converged within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.639926 seconds
+##    completed in 32.9772 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.78 seconds</code></pre>
-<pre><code>## 
-## **WARNING** at least one MCMC run did not converge</code></pre>
+<pre><code>## Total run-time: 1.99 minutes</code></pre>
 <p>Notice that convergence times are much longer than under regular MCMC. This is because the MCMC is only deemed to have converged when <em>every</em> chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.</p>
 </div>
 <div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
@@ -227,24 +220,31 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 <a href="#checking-thermodynamic-mcmc-behaviour" class="anchor"></a>Checking thermodynamic MCMC behaviour</h2>
 <p>There are more moving parts in thermodynamic MCMC, meaning we have more things to check. First, we should perform the same diagnostic checks as for regular MCMC:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>The <code>plot_loglike_diagnostic()</code> function uses the cold rung by default (in this case the 10th rung), or we can use the <code>rung</code> argument to produce plots for any given rung, for example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">rung =</span> <span class="dv">1</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <p>Running <code><a href="../reference/get_ESS.html">get_ESS()</a></code> now prints out the effective sample size of every rung:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<pre><code>##     rung1     rung2     rung3     rung4     rung5     rung6     rung7 
+##  782.7099  729.6338 1521.1626 1693.9167 1719.9875  895.9055 1416.8943 
+##     rung8     rung9    rung10 
+## 1386.5878 1495.3028 1377.8000</code></pre>
+<p>We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (less than one thousand as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples. For the sake of this tutorial we will laod in the result of re-running this MCMC with <code>samples = 2e4</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load results</span>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial4_myproj.rds"</span>)
+<span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <pre><code>##    rung1    rung2    rung3    rung4    rung5    rung6    rung7    rung8 
-## 45.70899 31.67886 18.16358 21.66121 21.37925 18.75050 17.77945 19.34429 
+## 1722.596 1653.128 2453.563 3634.268 3827.806 1608.611 3064.453 2819.667 
 ##    rung9   rung10 
-## 13.51520 12.07435</code></pre>
-<p>We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (less than one thousand as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples.</p>
+## 2717.754 3121.154</code></pre>
 <p>A useful plotting function when working with multiple rungs is the <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code> function, which plots the 95% quantiles of the log-likelihood over every rung:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike.html">plot_loglike</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-10-1.png" width="480"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-13-1.png" width="480"></p>
 <p>This plot should be always-increasing from left to right, aside from small variations due to the random nature of MCMC. If any rungs stand out from the overall pattern then it is worth running <code>plot_loglike_diagnostic()</code> on these particular rungs, as they may have mixed badly. As with all other checks, this should be performed on every explored value of <span class="math inline">\(K\)</span>.</p>
 <p>The GTI method takes the log-likelihood values above and multiplies them by weights, leading to a GTI “path”. The area between this path and the zero line is our estimate of the log-evidence. We can visualise this path using the <code><a href="../reference/plot_GTI_path.html">plot_GTI_path()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_GTI_path.html">plot_GTI_path</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-11-1.png" width="480"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-14-1.png" width="480"></p>
 <p>As our evidence estimate is derived from the area between the line and zero, it is important that this path is not too jagged. We are essentially approximating a smooth curve with a series of straight line segments, so if the straight lines cut the corners off the smooth curve then the area will be too large or too small, leading to a biased estimate. There are two ways that we can mitigate this:</p>
 <ol style="list-style-type: decimal">
 <li>Increase the number of rungs</li>
@@ -257,11 +257,11 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 <a href="#plotting-results" class="anchor"></a>Plotting results</h2>
 <p>Once we are happy with our log-likelihood estimates and our GTI path, we can use our log-evidence estimates to compare values of <span class="math inline">\(K\)</span>. The raw estimates can be plotted using the <code><a href="../reference/plot_logevidence_K.html">plot_logevidence_K()</a></code> function, which plots 95% credible intervals of the log-evidence for each value of <span class="math inline">\(K\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-12-1.png" width="480"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="480"></p>
 <p>We can see immediately that the model favors <span class="math inline">\(K = 3\)</span> in this case, which agrees with our simulation parameters. If we had seen large credible intervals at this stage then we could re-run the model with a larger number of <code>samples</code>, but in this example the intervals are non-overlapping and the signal is clear so there is no need.</p>
 <p>We can also use the <code><a href="../reference/plot_posterior_K.html">plot_posterior_K()</a></code> function to plot the posterior probability of each value of <span class="math inline">\(K\)</span>, which is obtained by taking these raw estimates out of log space and applying an equal prior over <span class="math inline">\(K\)</span>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-13-1.png" width="480"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-1.png" width="480"></p>
 <p>This second plot is often easier to interpret than the first as it is in units of ordinary probability. In this case we can see that there is a &gt;99% posterior probability that the data were drawn from <span class="math inline">\(K = 3\)</span> subpopulations (which we know to be true). Again, if we saw large credible intervals at this stage then it would be worth re-running the MCMC with a larger number of <code>samples</code>, but here there is no need.</p>
 </div>
 <div id="comparing-different-parameter-sets" class="section level2">
@@ -291,91 +291,25 @@ myproj</code></pre></div>
 ##    estimate error = TRUE
 ##    e1_max = 0.2
 ##    e2_max = 0.2</code></pre>
-<p>We will run thermodynamic MCMC for this parameter set over the same range of <span class="math inline">\(K\)</span> values:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run MCMC</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">1</span>:<span class="dv">5</span>, <span class="dt">burnin =</span> reps, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
-                   <span class="dt">samples =</span> reps, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Running MCMC for K = 1
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 3.04001 5.41221 5.72053 3.49245 5.0362 3.58405 4.8846 5.61344 4.09717 4.91134 5.62199 4.64143 5.63467 6.40117 5.08133 4.18682 5.96081 7.0658 4.20489 2.86522 5.83226 3.13481 6.21909 6.38359 4.03524 3.61564 4.06182 5.14161 5.46704 4.54514 6.29991 2.25406 1.93134 4.77364 3.36988 5.75537 5.20079 4.283 5.12991 5.90722 5.1234 5.44145 5.01453 5.42774 6.27145 6.29516 6.24622 3.25408 6.85633 6.26193 4.36148 5.27442 5.46126 5.43521 5.71404 6.2562 6.73511 5.15718 6.31432 5.67386 5.25588 2.93072 4.63677 4.07484 4.51507 5.39233 3.87774 4.76425 4.96955 6.66961 6.34874 5.93023 6.65906 6.78031 2.72165 6.52602 4.63616 5.57398 5.91764 7.03431 4.3387 5.24483 5.66604 4.95221 6.97741 6.60497 3.24067 4.51776 6.91389 5.83172 5.32382 4.9894 4.32121 3.9041 5.7963 5.40579 3.73004 5.8572 4.71151 5.94545 
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 0.403488 seconds
-## 
-## Running MCMC for K = 2
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 3.87524 4.40997 5.52731 3.9398 5.1708 3.16316 5.5751 4.81702 4.26783 4.59 6.04703 5.15618 6.05796 5.44725 5.20248 4.23004 6.05927 6.83818 3.39198 3.64338 6.09339 4.39851 6.37977 6.50285 5.26569 2.72534 5.48088 3.95554 4.97711 3.53219 5.48713 3.55019 2.48673 5.20782 3.00234 4.90881 4.46758 4.0293 7.0372 5.57135 6.42308 6.1945 5.75899 4.42598 6.25414 5.73736 5.99028 3.15857 5.88328 5.33825 5.49014 5.54684 4.54647 5.69156 6.02551 5.88989 5.64125 6.8753 5.35152 4.50411 6.21854 6.85814 5.53852 4.27175 6.04821 5.11855 5.59485 4.72001 4.48864 4.97955 5.57248 7.19052 6.85352 5.56554 3.04714 5.51379 4.47632 5.05067 4.55331 5.92304 4.211 5.43209 3.75252 5.77252 5.0078 4.83133 3.63003 2.72221 4.7921 4.92826 5.71943 4.06895 5.77847 3.84977 4.62502 4.54139 5.69501 4.1099 2.52733 6.32003 
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 0.615291 seconds
-## 
-## Running MCMC for K = 3
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 3.33767 4.58033 4.65683 4.18907 4.65911 2.783 6.23536 7.06234 4.70394 5.05577 5.26162 2.7955 4.82548 4.14456 4.54124 4.19317 6.06569 6.11871 5.0559 3.29893 6.25963 5.01899 6.07567 5.53988 6.45303 4.70868 4.49978 5.07703 4.26131 4.4775 5.4672 3.3363 3.81218 3.86882 2.63703 5.63016 4.38564 5.49389 4.60019 6.21346 5.48484 5.59986 6.34651 6.30597 7.24491 5.79543 5.88631 5.13956 7.15961 5.98438 5.24079 6.71201 4.34176 4.92746 4.69888 6.22453 5.52876 6.45265 5.23436 6.17694 4.7622 3.52858 4.44789 4.26688 5.19073 5.73475 4.71785 5.80937 4.43178 4.72325 5.77895 5.36049 5.72431 5.86299 2.72455 5.38054 3.79615 4.58602 6.37112 4.61559 3.9065 4.16494 4.57755 5.69799 5.05631 5.10125 3.02195 3.06519 6.42116 4.61335 5.80323 3.68938 5.03287 4.21767 5.62319 5.43722 4.42412 5.37467 2.89596 5.48831 
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 0.840867 seconds
-## 
-## Running MCMC for K = 4
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 2.90542 3.19675 4.10326 2.20424 5.81577 3.52397 4.88829 5.26071 4.79667 4.3269 5.83161 4.54536 5.20406 5.85105 4.26395 2.63033 4.35542 5.20693 4.03982 2.57788 5.77767 5.32448 4.59344 4.88424 4.19279 3.79685 5.94537 5.39512 6.56477 5.00447 4.15513 4.10611 2.72011 4.48697 2.86181 4.92237 4.45986 4.78036 6.67235 6.6063 6.80627 6.86154 6.62499 7.24335 6.23294 6.95248 6.1663 7.06569 5.96226 7.97507 6.57556 5.75958 4.08603 5.84997 6.05439 6.8494 7.13677 6.48104 6.27409 5.86521 6.19358 6.26515 6.37189 5.58528 6.61815 6.47573 6.96229 6.84484 5.76592 6.591 4.92093 7.49949 6.36747 5.85495 2.59722 6.76399 6.47359 5.3419 6.65494 5.91843 5.60754 6.43254 4.51134 7.27077 4.01589 5.87007 3.20891 3.85828 6.68202 5.8608 4.77788 2.71662 5.21877 3.13108 5.37586 6.06519 4.73042 6.29602 2.6769 6.16132 
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 0.93658 seconds
-## 
-## Running MCMC for K = 5
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    Warning: convergence still not reached within 100 iterations
-## 3.68618 3.52108 5.17434 4.16997 7.0704 2.51525 5.90352 5.80099 5.51643 4.5768 5.23403 4.4712 3.61536 6.75905 5.73898 3.44796 5.51176 7.92962 3.52008 2.70702 5.97573 3.69695 6.79282 5.31514 4.30641 3.21849 6.35874 3.8705 4.20274 4.63896 5.68488 3.22889 3.43738 5.86484 3.39563 6.59925 3.46316 7.55296 5.91427 4.98804 5.27758 6.6279 5.60319 5.04554 6.05533 7.63503 5.12455 5.44931 6.58649 7.27503 5.24689 5.53228 3.80147 5.64032 7.34951 6.67146 5.92374 4.94265 7.13839 5.94533 6.49779 4.6844 6.59683 5.5508 5.87008 5.98869 4.26671 6.43069 6.89443 5.06481 5.86991 4.44111 5.63845 5.39981 3.78227 5.53525 4.20816 5.76399 5.60281 4.25068 4.50255 4.6371 3.81277 5.53526 5.75538 5.85666 3.44888 1.71517 5.33389 4.90982 6.65672 2.74841 5.12521 3.41254 5.39038 5.03687 5.31465 5.52363 2.69066 5.56382 
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 1.05478 seconds
-## 
-## Processing results</code></pre>
-<pre><code>## Total run-time: 5.32 seconds</code></pre>
-<pre><code>## 
-## **WARNING** at least one MCMC run did not converge</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot diagnostics</span>
+<p>We then need to run thermodynamic MCMC for this parameter set over the same range of <span class="math inline">\(K\)</span> values. For the sake of this tutorial we will save time by loading results from file:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># uncomment to run MCMC</span>
+<span class="co">#myproj &lt;- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)</span>
+
+<span class="co"># load results</span>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial4_myproj2.rds"</span>)
+
+<span class="co"># plot diagnostics</span>
 <span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># report ESS</span>
 <span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<pre><code>##    rung1    rung2    rung3    rung4    rung5    rung6    rung7    rung8 
-## 50.11033 69.90919 19.01520  9.21560 42.55340 10.72829 47.48879 18.77706 
-##    rung9   rung10 
-## 20.90218 13.34424</code></pre>
+<pre><code>##      rung1      rung2      rung3      rung4      rung5      rung6 
+## 18650.5118 16459.0817 10262.0303  5502.0551  3517.9102   538.7991 
+##      rung7      rung8      rung9     rung10 
+##  2507.3351  3212.7812  2862.9790  2340.4819</code></pre>
 <p>Assuming we are happy with the MCMC behaviour we can go ahead and plot the posterior error estimates:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-16-1.png" width="384"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-20-1.png" width="384"></p>
 <p>We know from the simulation parameters that there are no errors in the data, meaning this extra flexibility of estimating the error is actually taking the model further away from the truth. Looking at the posterior credible intervals we can see that the model has struggled to arrive at precise estimates of the error rates, instead exploring the prior range <span class="math inline">\([0,0.2]\)</span> quite evenly.</p>
 <p>We continue with the same analyses as in the previous section:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># use gridExtra package to arrange plots</span>
@@ -387,14 +321,14 @@ plot2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_
 plot3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_logevidence_K.html">plot_logevidence_K</a></span>(myproj)
 plot4 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_posterior_K.html">plot_posterior_K</a></span>(myproj)
 <span class="kw"><a href="http://www.rdocumentation.org/packages/gridExtra/topics/arrangeGrob">grid.arrange</a></span>(plot1, plot2, plot3, plot4)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-17-1.png" width="960"></p>
-<p>The GTI path looks more concave this time, and so we might consider re-running the MCMC with a smaller value of <code>GTI_pow</code>. We can also see wide credible intervals around the posterior distribution of <span class="math inline">\(K\)</span> due to the evidence estimates being similar for <span class="math inline">\(K = 3\)</span> and <span class="math inline">\(K = 4\)</span>, and so we should re-run the MCMC with a larger number of <code>samples</code>.</p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-21-1.png" width="960"></p>
+<p>As with the previous model, the evidence is in favour of <span class="math inline">\(K = 3\)</span> in this example.</p>
 <p>Finally, we come to the issue of comparing parameter sets. Just as with the evidence estimates over <span class="math inline">\(K\)</span>, we can plot the log-evidence of a parameter set using the <code><a href="../reference/plot_logevidence_model.html">plot_logevidence_model()</a></code> function, or the posterior distribution over models assuming an equal prior using the <code><a href="../reference/plot_posterior_model.html">plot_posterior_model()</a></code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># produce evidence plots</span>
 plot1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_logevidence_model.html">plot_logevidence_model</a></span>(myproj)
 plot2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_posterior_model.html">plot_posterior_model</a></span>(myproj)
 <span class="kw"><a href="http://www.rdocumentation.org/packages/gridExtra/topics/arrangeGrob">grid.arrange</a></span>(plot1, plot2, <span class="dt">nrow =</span> <span class="dv">1</span>)</code></pre></div>
-<p><img src="comparing-models_files/figure-html/unnamed-chunk-19-1.png" width="768"></p>
+<p><img src="comparing-models_files/figure-html/unnamed-chunk-22-1.png" width="768"></p>
 <p>Here we can see that the former, simpler model has a higher evidence than the more complex error estimation model. To understand this, we can imagine the MCMC exploring the parameter space under each model. In the simple model the error is fixed at the correct value of zero, while in the more complex model the MCMC has a finite chance of exploring different error values, all of which are sub-optimal in terms of the likelihood. So the likelihood will, on average, be higher under the simple model. In other words, in the complex model we have introduced additional flexibility that has not been compensated for by a commensurate increase in the likelihood, and so the model evidence naturally punishes the model for being over-fitted.</p>
 <p>In this example we would conclude that a zero-error model is a better fit to the data, and so we would most likely only report detailed results from this model.</p>
 </div>

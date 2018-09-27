@@ -13,12 +13,16 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   // beta_raised stores values of beta (the thermodynamic power), raised to the
   // power GTI_pow
   this->beta_raised = beta_raised;
+  //this->beta_raised = 0.001;
+  //this->beta_raised = 0;
+  //print(this->beta_raised);
   
   // initialise proposal standard deviations
   e_propSD = 1;
   p_propSD = vector<vector<double>>(K, vector<double>(L,1));
   m_prop_mean = vector<double>(n,2);
   COI_mean_propSD = vector<double>(K,1);
+  COI_mean_propSD_v2 = vector<double>(K,1);
   
   // initialise COI_mean
   COI_mean_vec = vector<double>(K, COI_mean);
@@ -46,6 +50,7 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   sum_loglike_old_vec = vector<double>(K);
   sum_loglike_new_vec = vector<double>(K);
   p_prop = vector<vector<double>>(K, vector<double>(L));
+  m_prop = vector<int>(n);
   COI_mean_prop = vector<double>(K);
   
   // initialise ordering of labels
@@ -65,6 +70,8 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   p_accept = vector<vector<int>>(K, vector<int>(L));
   m_accept = vector<int>(n);
   e_accept = 0;
+  COI_mean_accept = vector<int>(K);
+  COI_mean_accept_v2 = vector<int>(K);
   
   // vary core likelihood function depending on user choices
   if (precision == 0) {
@@ -291,12 +298,25 @@ void Particle_biallelic::update_m(bool robbins_monro_on, int iteration) {
     }
     
     // propose new m
-    //int m_prop = rbernoulli1(0.5);
-    //m_prop = (m_prop==0) ? m[i]-1 : m[i]+1;
     int m_prop = m[i] + (2*rbernoulli1(0.5)-1)*(1 + rgeom1(1.0/m_prop_mean[i]));
     
     // skip if outside range
     if (m_prop < 1 || m_prop > COI_max) {
+      if (robbins_monro_on) {
+        m_prop_mean[i] -= 0.23/sqrt(double(iteration));
+        m_prop_mean[i] = (m_prop_mean[i] < 1.0) ? 1.0 : m_prop_mean[i];
+      }
+      continue;
+    }
+    
+    // accept move if propose same value
+    if (m_prop == m[i]) {
+      foo();
+      if (robbins_monro_on) {
+        m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
+      } else {
+        m_accept[i]++;
+      }
       continue;
     }
     
@@ -311,26 +331,25 @@ void Particle_biallelic::update_m(bool robbins_monro_on, int iteration) {
       sum_loglike_new += loglike_new[i][j];
     }
     
-    // raise to thermodynamic power
-    sum_loglike_old *= beta_raised;
-    sum_loglike_new *= beta_raised;
-    
     // catch impossible proposed values
     if (sum_loglike_new <= -OVERFLO) {
       continue;
     }
     
-    // apply Poisson or negative Binomial prior
+    // incorporate prior
+    double log_prior_old = 0;
+    double log_prior_new = 0;
     if (COI_model == 2) {
-      sum_loglike_old += dpois1(m[i]-1, COI_mean_vec[this_group]-1);
-      sum_loglike_new += dpois1(m_prop-1, COI_mean_vec[this_group]-1);
+      log_prior_old = dpois1(m[i]-1, COI_mean_vec[this_group]-1);
+      log_prior_new = dpois1(m_prop-1, COI_mean_vec[this_group]-1);
     } else if (COI_model == 3) {
-      sum_loglike_old += dnbinom1(m[i]-1, COI_mean_vec[this_group]-1, COI_dispersion);
-      sum_loglike_new += dnbinom1(m_prop-1, COI_mean_vec[this_group]-1, COI_dispersion);
+      log_prior_old = dnbinom1(m[i]-1, COI_mean_vec[this_group]-1, COI_dispersion);
+      log_prior_new = dnbinom1(m_prop-1, COI_mean_vec[this_group]-1, COI_dispersion);
     }
     
     // Metropolis-Hastings step
-    if (log(runif_0_1()) < (sum_loglike_new - sum_loglike_old)) {
+    double MH = (beta_raised*sum_loglike_new + log_prior_new) - (beta_raised*sum_loglike_old + log_prior_old);
+    if (log(runif_0_1()) < MH) {
       
       // update m
       m[i] = m_prop;
@@ -471,7 +490,8 @@ void Particle_biallelic::update_e(bool robbins_monro_on, int iteration) {
   }
   
   // Metropolis step
-  if (log(runif_0_1())<beta_raised*(sum_loglike_new - sum_loglike_old)) {
+  double MH = beta_raised*(sum_loglike_new - sum_loglike_old);
+  if (log(runif_0_1()) < MH) {
     
     // update e1 and e2
     e1 = e1_prop;
@@ -555,12 +575,15 @@ void Particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
     for (int k=0; k<K; k++) {
       
       // Metropolis step
-      if (log(runif_0_1())<(sum_loglike_new_vec[k] - sum_loglike_old_vec[k])) {
+      double MH = (sum_loglike_new_vec[k] - sum_loglike_old_vec[k]);
+      if (log(runif_0_1()) < MH) {
         COI_mean_vec[k] = COI_mean_prop[k];
         
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           COI_mean_propSD[k] += (1-0.23)/sqrt(double(iteration));
+        } else {
+          COI_mean_accept[k]++;
         }
         
       } else {
@@ -576,6 +599,102 @@ void Particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
       }  // end Metropolis step
     }  // end loop through k
   } // end negative binomial model
+}
+
+//------------------------------------------------
+// second method to update mean COI
+void Particle_biallelic::update_COI_mean_v2(bool robbins_monro_on, int iteration) {
+  
+  // only apply for low values of beta_raised
+  if (beta_raised > 0.1) {
+    return;
+  }
+  
+  // split method between poisson and negative binomial
+  // poisson model
+  if (COI_model == 2) {
+    
+    // reset loglike over demes
+    fill(sum_loglike_old_vec.begin(), sum_loglike_old_vec.end(), 0);
+    fill(sum_loglike_new_vec.begin(), sum_loglike_new_vec.end(), 0);
+    
+    // propose COI_mean for all demes
+    for (int k=0; k<K; k++) {
+      COI_mean_prop[k] = rnorm1_interval(COI_mean_vec[k], COI_mean_propSD_v2[k], 1, COI_max);
+    }
+    
+    // propose new COI and calculate new loglike for all samples
+    for (int i=0; i<n; ++i) {
+      int this_group = group[i];
+      
+      // propose new COI by drawing from prior around new COI_mean
+      m_prop[i] = rpois1(COI_mean_prop[this_group]-1) + 1;
+      m_prop[i] = (m_prop[i] > COI_max) ? COI_max : m_prop[i];
+      
+      // calculate likelihood
+      for (int j=0; j<L; j++) {
+        loglike_new[i][j] = logprob_genotype(data[i][j], p[this_group][j], m_prop[i], e1, e2);
+        sum_loglike_old_vec[this_group] += loglike_old[i][j];
+        sum_loglike_new_vec[this_group] += loglike_new[i][j];
+      }
+    }
+    
+    // Metropolis-Hastings for all demes
+    for (int k=0; k<K; k++) {
+      
+      // incorporate prior
+      double log_prior_old = dgamma1(COI_mean_vec[k], 0.25, 0.25);
+      double log_prior_new = dgamma1(COI_mean_prop[k], 0.25, 0.25);
+      
+      // Metropolis step
+      double MH = ((beta_raised*sum_loglike_new_vec[k] + log_prior_new) - (beta_raised*sum_loglike_old_vec[k] + log_prior_old));
+      if (log(runif_0_1()) < MH) {
+        
+        // update COI_mean
+        COI_mean_vec[k] = COI_mean_prop[k];
+        
+        // update COI and loglike for this deme
+        for (int i=0; i<n; i++) {
+          int this_group = group[i];
+          if (this_group != k) {
+            continue;
+          }
+          
+          // update COI
+          m[i] = m_prop[i];
+          
+          // update loglike
+          for (int j=0; j<L; j++) {
+            loglike_old[i][j] = loglike_new[i][j];
+          }
+        }
+        
+        // Robbins-Monro positive update
+        if (robbins_monro_on) {
+          COI_mean_propSD_v2[k] += (1-0.23)/sqrt(double(iteration));
+        } else {
+          COI_mean_accept_v2[k]++;
+        }
+        
+      } else {
+        
+        // Robbins-Monro negative update
+        if (robbins_monro_on) {
+          COI_mean_propSD_v2[k] -= 0.23/sqrt(double(iteration));
+          COI_mean_propSD_v2[k] = (COI_mean_propSD_v2[k] < 1) ? 1 : COI_mean_propSD_v2[k];
+        }
+        
+      }  // end Metropolis-Hastings step
+    }  // end loop over demes
+  } // end poisson model
+  
+  // negative binomial model
+  if (COI_model == 3) {
+    
+  } // end negative binomial model
+  
+  //print_vector(COI_mean_propSD_v2);
+  
 }
 
 //------------------------------------------------

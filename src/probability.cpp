@@ -209,6 +209,12 @@ double rgamma1(double shape, double rate) {
 }
 
 //------------------------------------------------
+// probability density of gamma(shape,rate) distribution
+double dgamma1(double x, double shape, double rate, bool return_log) {
+  return R::dgamma(x, shape, 1/rate, return_log);
+}
+
+//------------------------------------------------
 // draw from beta(alpha,beta) distribution
 double rbeta1(double shape1, double shape2) {
   if (shape1==1 && shape2==1) {
