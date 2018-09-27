@@ -89,13 +89,11 @@ Notice that the autocorrelation falls off much more slowly than it did under the
 ```{r, echo=FALSE}
 # secretly re-run MCMC and save results to file
 #myproj <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2, samples = 1e5, pb_markdown =  TRUE)
-#saveRDS(myproj, file = "../inst/extdata/tutorial3_myproj.rds")
+#saveRDS(myproj, file = "../ignore/inst/extdata/tutorial3_myproj.rds")
+myproj <- readRDS("../ignore/inst/extdata/tutorial3_myproj.rds")
 ```
 
 ```{r}
-# load results
-myproj <- malecot_file("tutorial3_myproj.rds")
-
 # check behaviour
 plot_loglike_dignostic(myproj, K = 5)
 get_ESS(myproj, K = 5)

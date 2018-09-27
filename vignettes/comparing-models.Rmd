@@ -114,14 +114,8 @@ We interpret ESS for hot chains the same way as for the cold chain - as the numb
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
-
-#saveRDS(myproj, file = "../inst/extdata/tutorial4_myproj.rds")
-```
-
-```{r}
-# load results
-myproj <- malecot_file("tutorial4_myproj.rds")
-get_ESS(myproj, K = 3)
+#saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj.rds")
+myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj.rds")
 ```
 
 A useful plotting function when working with multiple rungs is the `plot_loglike()` function, which plots the 95% quantiles of the log-likelihood over every rung:
@@ -178,12 +172,16 @@ myproj
 
 We then need to run thermodynamic MCMC for this parameter set over the same range of $K$ values. For the sake of this tutorial we will save time by loading results from file:
 
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
+#saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj2.rds")
+myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj2.rds")
+```
+
 ```{r}
 # uncomment to run MCMC
 #myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
-
-# load results
-myproj <- malecot_file("tutorial4_myproj2.rds")
 
 # plot diagnostics
 plot_loglike_dignostic(myproj, K = 3)
@@ -192,10 +190,7 @@ plot_loglike_dignostic(myproj, K = 3)
 get_ESS(myproj, K = 3)
 ```
 
-```{r, echo=FALSE}
-# secretly save/load data from file so results are consistent
-#saveRDS(myproj, file = "../inst/extdata/tutorial4_myproj2.rds")
-```
+
 
 Assuming we are happy with the MCMC behaviour we can go ahead and plot the posterior error estimates:
 

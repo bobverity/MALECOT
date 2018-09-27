@@ -159,10 +159,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 8.93615 seconds
+##    completed in 8.9884 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 10.09 seconds</code></pre>
+<pre><code>## Total run-time: 10.13 seconds</code></pre>
 <p>You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.</p>
 <p>As always we need to check the behaviour of our MCMC before moving on to results:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
@@ -171,10 +171,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 <pre><code>##    rung1 
 ## 636.3328</code></pre>
 <p>Notice that the autocorrelation falls off much more slowly than it did under the bi-allelic MCMC, and hence the effective sample size is smaller. This is one example where we should re-run the MCMC with a larger number of <code>samples</code> to increase the chance that the MCMC has explored the space well. For the sake of this tutorial we will save time by loading in results obtained by re-running this MCMC with <code>samples = 1e5</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load results</span>
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_file.html">malecot_file</a></span>(<span class="st">"tutorial3_myproj.rds"</span>)
-
-<span class="co"># check behaviour</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># check behaviour</span>
 <span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
 <p><img src="multiallelic-data_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(myproj, <span class="dt">K =</span> <span class="dv">5</span>)</code></pre></div>
