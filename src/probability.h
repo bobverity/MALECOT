@@ -103,6 +103,10 @@ double dsym_dirichlet1(const std::vector<double> &p, double shape, bool return_l
 std::vector<double> rdirichlet1(const std::vector<double> &shape_vec);
 
 //------------------------------------------------
+// probability density of Dirichlet distribution using vector of shape parameters
+double ddirichlet1(const std::vector<double> &p, const std::vector<double> &shape_vec, bool return_log = true);
+
+//------------------------------------------------
 // draw from dirichlet distribution using bespoke inputs. Outputs are given in x
 // (passed by reference for speed). Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.

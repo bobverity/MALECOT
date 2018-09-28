@@ -12,7 +12,6 @@ vignette: >
 ```{r, echo=FALSE}
 set.seed(3)
 library(MALECOT)
-reps <- 1e4
 ```
 
 This vignette demonstrates model comparison in MALECOT. It covers:
@@ -56,7 +55,7 @@ mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
 
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
-#saveRDS(mysim, file = "../inst/extdata/tutorial4_mysim.rds")
+#saveRDS(mysim, file = "../ignore/inst/extdata/tutorial4_mysim.rds")
 mysim <- readRDS("../ignore/inst/extdata/tutorial4_mysim.rds")
 ```
 
@@ -109,11 +108,13 @@ Running `get_ESS()` now prints out the effective sample size of every rung:
 get_ESS(myproj, K = 3)
 ```
 
-We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (less than one thousand as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples. For the sake of this tutorial we will laod in the result of re-running this MCMC with `samples = 2e4`.
+We interpret ESS for hot chains the same way as for the cold chain - as the number of independent samples that we have obtained from the target distribution once autocorrelation has been accounted for. If we see small values of the ESS (less than one thousand as a rule of thumb) then we should be concerned that that particular rung has has not explored the space well, and we should repeat the analysis with a larger number of samples. For the sake of this tutorial we will load in the result of re-running this MCMC with `samples = 1e5`, which took around 20 minutes.
 
 ```{r, echo=FALSE}
+# re-run MCMC
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)
+
 # secretly save/load data from file so results are consistent
-#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj.rds")
 myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj.rds")
 ```
@@ -147,7 +148,7 @@ Once we are happy with our log-likelihood estimates and our GTI path, we can use
 plot_logevidence_K(myproj)
 ```
 
-We can see immediately that the model favors $K = 3$ in this case, which agrees with our simulation parameters. If we had seen large credible intervals at this stage then we could re-run the model with a larger number of `samples`, but in this example the intervals are non-overlapping and the signal is clear so there is no need.
+We can see immediately that the model favours $K = 3$ in this case, which agrees with our simulation parameters. If we had seen large credible intervals at this stage then we could re-run the model with a larger number of `samples`, but in this example the intervals are non-overlapping and the signal is clear so there is no need.
 
 We can also use the `plot_posterior_K()` function to plot the posterior probability of each value of $K$, which is obtained by taking these raw estimates out of log space and applying an equal prior over $K$:
 
@@ -160,7 +161,7 @@ This second plot is often easier to interpret than the first as it is in units o
 
 ## Comparing different parameter sets
 
-One of the major advantages of the model evidence is that we can use it to compare wider evolutionary models, i.e. different parameter sets. Mathematically this is a simple as summing the evidence for each value of $K$, weighted by the prior.
+One of the major advantages of the model evidence is that we can use it to compare wider evolutionary models, i.e. different parameter sets. Mathematically this is as simple as summing the evidence for each value of $K$, weighted by the prior.
 
 We can test this by creating a second parameter set that differs from the first in that in that we now estimate the error terms:
 
@@ -173,15 +174,17 @@ myproj
 We then need to run thermodynamic MCMC for this parameter set over the same range of $K$ values. For the sake of this tutorial we will save time by loading results from file:
 
 ```{r, echo=FALSE}
+# re-run MCMC
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)
+
 # secretly save/load data from file so results are consistent
-#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj2.rds")
 myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj2.rds")
 ```
 
 ```{r}
 # uncomment to run MCMC
-#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 2e4, rungs = 10)
+#myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)
 
 # plot diagnostics
 plot_loglike_dignostic(myproj, K = 3)
@@ -198,7 +201,7 @@ Assuming we are happy with the MCMC behaviour we can go ahead and plot the poste
 plot_e(myproj, K = 3)
 ```
 
-We know from the simulation parameters that there are no errors in the data, meaning this extra flexibility of estimating the error is actually taking the model further away from the truth. Looking at the posterior credible intervals we can see that the model has struggled to arrive at precise estimates of the error rates, instead exploring the prior range $[0,0.2]$ quite evenly.
+We know from the simulation parameters that there are no errors in the data, meaning this extra flexibility of estimating the error is actually taking the model further away from the truth. Looking at the posterior credible intervals we can see that the model has struggled to arrive at precise estimates of the error rates, instead exploring the full prior range $[0,0.2]$ quite evenly.
 
 We continue with the same analyses as in the previous section:
 
@@ -219,13 +222,12 @@ As with the previous model, the evidence is in favour of $K = 3$ in this example
 Finally, we come to the issue of comparing parameter sets. Just as with the evidence estimates over $K$, we can plot the log-evidence of a parameter set using the `plot_logevidence_model()` function, or the posterior distribution over models assuming an equal prior using the `plot_posterior_model()` function:
 
 ```{r, fig.height=4, fig.width=8}
-# produce evidence plots
+# produce evidence plots over parameter sets
 plot1 <- plot_logevidence_model(myproj)
 plot2 <- plot_posterior_model(myproj)
 grid.arrange(plot1, plot2, nrow = 1)
 ```
 
-Here we can see that the former, simpler model has a higher evidence than the more complex error estimation model. To understand this, we can imagine the MCMC exploring the parameter space under each model. In the simple model the error is fixed at the correct value of zero, while in the more complex model the MCMC has a finite chance of exploring different error values, all of which are sub-optimal in terms of the likelihood. So the likelihood will, on average, be higher under the simple model. In other words, in the complex model we have introduced additional flexibility that has not been compensated for by a commensurate increase in the likelihood, and so the model evidence naturally punishes the model for being over-fitted.
+Here we can see that the former, simpler model has a higher evidence than the more complex error estimation model. To understand this, we can imagine the MCMC exploring the parameter space under each model. In the simple model the error is fixed at the correct value of zero, while in the more complex model the MCMC has a finite chance of exploring different error values, all of which are sub-optimal in terms of the likelihood. So the likelihood will, on average, be higher under the simple model. In other words, in the complex model we have introduced additional flexibility that has not been compensated for by a commensurate increase in the likelihood, and so the model evidence naturally punishes the model for being over-fitted. In this example we would conclude that a zero-error model is a better fit to the data, and so we would most likely only report detailed results from this model.
 
-In this example we would conclude that a zero-error model is a better fit to the data, and so we would most likely only report detailed results from this model.
-
+It is clear from this tutorial that thermodynamic MCMC over multiple temperature rungs can take considerably longer to run than regular MCMC. Hence, the [next tutorial](https://bobverity.github.io/MALECOT/articles/running-in-parallel.html) descibes how to run MALECOT in parallel over multiple cores.

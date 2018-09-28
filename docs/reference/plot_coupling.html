@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Run main MCMC — run_mcmc • MALECOT</title>
+<title>Plot Metropolis-coupling acceptance rates — plot_coupling • MALECOT</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -28,11 +28,9 @@
 
 
 
-<meta property="og:title" content="Run main MCMC — run_mcmc" />
+<meta property="og:title" content="Plot Metropolis-coupling acceptance rates — plot_coupling" />
 
-<meta property="og:description" content="Run the main MALECOT MCMC. Model parameters are taken from the 
-  current active parameter set, and MCMC parameters are passed in as 
-  arguments. All output is stored within the project." />
+<meta property="og:description" content="Plot Metropolis-coupling acceptance rates" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -131,24 +129,18 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Run main MCMC</h1>
+    <h1>Plot Metropolis-coupling acceptance rates</h1>
     
-    <div class="hidden name"><code>run_mcmc.Rd</code></div>
+    <div class="hidden name"><code>plot_coupling.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Run the main MALECOT MCMC. Model parameters are taken from the 
-  current active parameter set, and MCMC parameters are passed in as 
-  arguments. All output is stored within the project.</p>
+    <p>Plot Metropolis-coupling acceptance rates</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>run_mcmc</span>(<span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>precision</span> <span class='kw'>=</span> <span class='fl'>0.01</span>, <span class='kw'>burnin</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>samples</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>rungs</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>GTI_pow</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>auto_converge</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>converge_test</span> <span class='kw'>=</span> <span class='fu'>ceiling</span>(<span class='no'>burnin</span>/<span class='fl'>10</span>), <span class='kw'>solve_label_switching_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>coupling_on</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>cluster</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>pb_markdown</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>store_acceptance</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>store_raw</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>silent</span> <span class='kw'>=</span> !<span class='fu'>is.null</span>(<span class='no'>cluster</span>))</pre>
+    <pre class="usage"><span class='fu'>plot_coupling</span>(<span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -160,95 +152,17 @@
     </tr>
     <tr>
       <th>K</th>
-      <td><p>the values of K that the MCMC will explore</p></td>
-    </tr>
-    <tr>
-      <th>precision</th>
-      <td><p>the level of precision at which allele frequencies are 
-represented in the bi-allelic case. This allows the use of look-up tables
-for the likelihood, which significantly speeds up the MCMC. Set to 0 to use
-exact values (up to C++ "double" precision) rather than using look-up 
-tables</p></td>
-    </tr>
-    <tr>
-      <th>burnin</th>
-      <td><p>the number of burn-in iterations</p></td>
-    </tr>
-    <tr>
-      <th>samples</th>
-      <td><p>the number of sampling iterations</p></td>
-    </tr>
-    <tr>
-      <th>rungs</th>
-      <td><p>the number of temperature rungs</p></td>
-    </tr>
-    <tr>
-      <th>GTI_pow</th>
-      <td><p>the power used in the generalised thermodynamic integration 
-method. Must be greater than 1.1</p></td>
-    </tr>
-    <tr>
-      <th>auto_converge</th>
-      <td><p>whether convergence should be assessed automatically 
-every <code>converge_test</code> iterations, leading to termination of the 
-burn-in phase. If <code>FALSE</code> then the full <code>burnin</code> iterations are 
-used</p></td>
-    </tr>
-    <tr>
-      <th>converge_test</th>
-      <td><p>test for convergence every <code>convergence_test</code> 
-iterations if <code>auto_converge</code> is being used</p></td>
-    </tr>
-    <tr>
-      <th>solve_label_switching_on</th>
-      <td><p>whether to implement the Stevens' solution to
-the label-switching problem. If turned off then Q-matrix output will no 
-longer be correct, although evidence estimates will be unaffected.</p></td>
-    </tr>
-    <tr>
-      <th>coupling_on</th>
-      <td><p>whether to implement Metropolis-coupling over temperature 
-rungs</p></td>
-    </tr>
-    <tr>
-      <th>cluster</th>
-      <td><p>option to pass in a cluster environment (see package 
-"parallel")</p></td>
-    </tr>
-    <tr>
-      <th>pb_markdown</th>
-      <td><p>whether to run progress bars in markdown mode, in which 
-case they are updated once at the end to avoid large amounts of output</p></td>
-    </tr>
-    <tr>
-      <th>store_acceptance</th>
-      <td><p>whether to store acceptance rates for all parameters
-updated by Metropolis-Hastings. Proposal distributions are tuned adaptively
-with a target acceptance rate of 23%</p></td>
-    </tr>
-    <tr>
-      <th>store_raw</th>
-      <td><p>whether to store raw MCMC output in addition to summary 
-output. Setting to FALSE can considerably reduce output size in memory</p></td>
-    </tr>
-    <tr>
-      <th>silent</th>
-      <td><p>whether to suppress all console output</p></td>
+      <td><p>which value of K to plot</p></td>
     </tr>
     </table>
     
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'># TODO
-</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-            
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+                </ul>
 
   </div>
 </div>

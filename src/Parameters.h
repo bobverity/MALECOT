@@ -22,6 +22,7 @@ public:
   static bool solve_label_switching_on;
   static bool coupling_on;
   static bool pb_markdown;
+  static bool store_acceptance;
   static bool silent;
   
   // model parameters

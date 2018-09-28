@@ -102,7 +102,7 @@
       <h1>Bi-allelic data</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-27</h4>
+            <h4 class="date">2018-09-28</h4>
       
       
       <div class="hidden name"><code>tutorial-biallelic.Rmd</code></div>
@@ -222,7 +222,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.774036 seconds
+##    completed in 0.81509 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -234,9 +234,21 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.50381 seconds
+##    completed in 1.52234 seconds
 ## 
 ## Running MCMC for K = 3
+## Burn-in phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    converged within 200 iterations
+## Sampling phase
+## 
+  |                                                                       
+  |=================================================================| 100%
+##    completed in 2.00658 seconds
+## 
+## Running MCMC for K = 4
 ## Burn-in phase
 ## 
   |                                                                       
@@ -246,34 +258,22 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.97796 seconds
-## 
-## Running MCMC for K = 4
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 200 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 2.44257 seconds
+##    completed in 2.44689 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 200 iterations
+##    converged within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.95243 seconds
+##    completed in 3.02839 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 12.07 seconds</code></pre>
+<pre><code>## Total run-time: 12.21 seconds</code></pre>
 <p>If any values of <span class="math inline">\(K\)</span> failed to converge then we could use the same <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> function to re-run the MCMC for just a single value of <span class="math inline">\(K\)</span> and with different parameters (for example a longer burn-in). This will overwrite the existing output for the specified value of <span class="math inline">\(K\)</span>, but will leave all other values untouched:</p>
 </div>
 <div id="checking-mcmc-behaviour" class="section level2">

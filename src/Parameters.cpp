@@ -20,6 +20,7 @@ int Parameters::converge_test;
 bool Parameters::solve_label_switching_on;
 bool Parameters::coupling_on;
 bool Parameters::pb_markdown;
+bool Parameters::store_acceptance;
 bool Parameters::silent;
 
 // model parameters
@@ -54,16 +55,15 @@ Parameters::Parameters(const Rcpp::List &args) {
   solve_label_switching_on = rcpp_to_bool(args["solve_label_switching_on"]);
   coupling_on = rcpp_to_bool(args["coupling_on"]);
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
+  store_acceptance = rcpp_to_bool(args["store_acceptance"]);
   silent = rcpp_to_bool(args["silent"]);
   
   // model parameters
   lambda_type = rcpp_to_int(args["lambda_type"]);
   if (lambda_type == 1) {
-    lambda = vector<vector<double>>(1, vector<double>(1));
-    lambda[0][0] = rcpp_to_double(args["lambda"]);
+    lambda = vector<vector<double>>(1, vector<double>(1, rcpp_to_double(args["lambda"])));
   } else if (lambda_type == 2) {
     lambda = vector<vector<double>>(1, rcpp_to_vector_double(args["lambda"]));
-    //lambda[0][0] = rcpp_to_double(args["lambda"]);
   } else {
     lambda = rcpp_to_mat_double(args["lambda"]);
   }

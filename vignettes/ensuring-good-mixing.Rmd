@@ -9,4 +9,68 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-(TOD)
+```{r, echo=FALSE}
+set.seed(1)
+library(MALECOT)
+```
+
+```{r}
+# simulate data
+mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#saveRDS(mysim, file = "../ignore/inst/extdata/mixing_mysim.rds")
+mysim <- readRDS("../ignore/inst/extdata/mixing_mysim.rds")
+```
+
+```{r}
+# create project and bind data
+myproj <- malecot_project()
+myproj <- bind_data_biallelic(myproj, df = mysim$data, ID_col = 1, pop_col = 2)
+```
+
+```{r}
+# create parameter set
+myproj <- new_set(myproj)
+```
+
+```{r}
+# run thermodynamic MCMC
+myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e3, rungs = 10, pb_markdown =  TRUE)
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#saveRDS(myproj, file = "../ignore/inst/extdata/mixing_myproj1.rds")
+myproj <- readRDS("../ignore/inst/extdata/mixing_myproj1.rds")
+```
+
+```{r}
+# plot coupling rates
+plot_coupling(myproj, K = 3)
+```
+
+```{r}
+# run thermodynamic MCMC
+myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
+                   samples = 1e3, rungs = 30, pb_markdown =  TRUE)
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent
+#saveRDS(myproj, file = "../ignore/inst/extdata/mixing_myproj2.rds")
+myproj <- readRDS("../ignore/inst/extdata/mixing_myproj2.rds")
+```
+
+```{r}
+# plot coupling rates
+plot_coupling(myproj, K = 3)
+```
+
+
+
+
+

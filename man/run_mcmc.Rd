@@ -8,7 +8,7 @@ run_mcmc(project, K = NULL, precision = 0.01, burnin = 1000,
   samples = 1000, rungs = 1, GTI_pow = 3, auto_converge = TRUE,
   converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE,
   coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE,
-  silent = !is.null(cluster))
+  store_acceptance = TRUE, store_raw = TRUE, silent = !is.null(cluster))
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
@@ -50,7 +50,14 @@ rungs}
 "parallel")}
 
 \item{pb_markdown}{whether to run progress bars in markdown mode, in which 
-case they are updated once at the end to avoid large amounts of output.}
+case they are updated once at the end to avoid large amounts of output}
+
+\item{store_acceptance}{whether to store acceptance rates for all parameters
+updated by Metropolis-Hastings. Proposal distributions are tuned adaptively
+with a target acceptance rate of 23\%}
+
+\item{store_raw}{whether to store raw MCMC output in addition to summary 
+output. Setting to FALSE can considerably reduce output size in memory}
 
 \item{silent}{whether to suppress all console output}
 }

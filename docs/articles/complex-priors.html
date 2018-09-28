@@ -102,7 +102,7 @@
       <h1>More realistic models</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-27</h4>
+            <h4 class="date">2018-09-28</h4>
       
       
       <div class="hidden name"><code>complex-priors.Rmd</code></div>
@@ -173,15 +173,15 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 200 iterations
+##    converged within 100 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.23007 seconds
+##    completed in 3.10092 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.81 seconds</code></pre>
+<pre><code>## Total run-time: 3.69 seconds</code></pre>
 <p>As before, we need to check that we are happy with the behaviour of our MCMC by looking at trace plots and other diagnostics. Assuming everything looks OK, we can go ahead and produce the posterior allocation and and posterior COI plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -247,10 +247,10 @@ myproj_skew &lt;-<span class="st"> </span><span class="kw"><a href="../reference
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.1227 seconds
+##    completed in 2.1486 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.5 seconds</code></pre>
+<pre><code>## Total run-time: 2.52 seconds</code></pre>
 <p>After checking that our MCMC has behaved as expected, we can look at the posterior allocation plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># structure plot</span>
 <span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(myproj_skew, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
@@ -339,10 +339,10 @@ myproj_errors &lt;-<span class="st"> </span><span class="kw"><a href="../referen
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.47374 seconds
+##    completed in 3.47156 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 3.84 seconds</code></pre>
+<pre><code>## Total run-time: 3.91 seconds</code></pre>
 <p>After checking the behaviour of our MCMC we can plot the posterior 95% credible intervals of <code>e1</code> and <code>e2</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_e.html">plot_e</a></span>(myproj_errors)</code></pre></div>
 <pre><code>## using K = 3 by default</code></pre>

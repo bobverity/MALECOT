@@ -596,14 +596,19 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' @param cluster option to pass in a cluster environment (see package 
 #'   "parallel")
 #' @param pb_markdown whether to run progress bars in markdown mode, in which 
-#'   case they are updated once at the end to avoid large amounts of output.
+#'   case they are updated once at the end to avoid large amounts of output
+#' @param store_acceptance whether to store acceptance rates for all parameters
+#'   updated by Metropolis-Hastings. Proposal distributions are tuned adaptively
+#'   with a target acceptance rate of 23\%
+#' @param store_raw whether to store raw MCMC output in addition to summary 
+#'   output. Setting to FALSE can considerably reduce output size in memory
 #' @param silent whether to suppress all console output
 #'
 #' @export
 #' @examples
 #' # TODO
 
-run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
+run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_acceptance = TRUE, store_raw = TRUE, silent = !is.null(cluster)) {
   
   # start timer
   t0 <- Sys.time()
@@ -626,6 +631,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     assert_custom_class(project, "cluster")
   }
   assert_single_logical(pb_markdown)
+  assert_single_logical(store_acceptance)
   assert_single_logical(silent)
   
   # get active set
@@ -669,6 +675,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
                       solve_label_switching_on = solve_label_switching_on,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
+                      store_acceptance = store_acceptance,
                       silent = silent)
   
   # combine model parameters list with input arguments
@@ -891,10 +898,16 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     # ---------- acceptance rates ----------
     
     # process acceptance rates
-    p_accept <- rcpp_to_mat(output_raw[[i]]$p_accept)/samples
-    m_accept <- output_raw[[i]]$m_accept/samples
-    e_accept <- output_raw[[i]]$e_accept/samples
-    coupling_accept <- output_raw[[i]]$coupling_accept/samples
+    p_accept <- NULL
+    m_accept <- NULL
+    e_accept <- NULL
+    coupling_accept <- NULL
+    if (store_acceptance) {
+      p_accept <- rcpp_to_mat(output_raw[[i]]$p_accept)/samples
+      m_accept <- output_raw[[i]]$m_accept/samples
+      e_accept <- output_raw[[i]]$e_accept/samples
+      coupling_accept <- output_raw[[i]]$coupling_accept/samples
+    }
     
     # ---------- save arguments ----------
     
@@ -922,20 +935,24 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
                                                                     COI_mean_intervals = COI_mean_intervals,
                                                                     ESS = ESS,
                                                                     GTI_path = GTI_path,
-                                                                    GTI_logevidence = GTI_logevidence)
+                                                                    GTI_logevidence = GTI_logevidence,
+                                                                    converged = converged)
+    if (store_acceptance) {
+      project$output$single_set[[s]]$single_K[[K[i]]]$summary$p_accept <- p_accept
+      project$output$single_set[[s]]$single_K[[K[i]]]$summary$m_accept <- m_accept
+      project$output$single_set[[s]]$single_K[[K[i]]]$summary$e_accept <- e_accept
+      project$output$single_set[[s]]$single_K[[K[i]]]$summary$coupling_accept <- coupling_accept
+    }
     
-    project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
-                                                                loglike_sampling = loglike_sampling,
-                                                                COI = full_COI,
-                                                                p = full_p,
-                                                                e1 = full_e1,
-                                                                e2 = full_e2,
-                                                                COI_mean = full_COI_mean,
-                                                                p_accept = p_accept,
-                                                                m_accept = m_accept,
-                                                                e_accept = e_accept,
-                                                                coupling_accept = coupling_accept,
-                                                                converged = converged)
+    if (store_raw) {
+      project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
+                                                                  loglike_sampling = loglike_sampling,
+                                                                  COI = full_COI,
+                                                                  p = full_p,
+                                                                  e1 = full_e1,
+                                                                  e2 = full_e2,
+                                                                  COI_mean = full_COI_mean)
+    }
     
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,
                                                                           call = match.call())
@@ -1186,20 +1203,23 @@ align_qmatrix <- function(proj) {
     qmatrix <- qmatrix[, best_perm_order, drop = FALSE]
     colnames(qmatrix) <- deme_names
     
-    p_raw <- x[[i]]$raw$p[best_perm_order]
-    names(p_raw) <- deme_names
-    proj$output$single_set[[s]]$single_K[[i]]$raw$p <- p_raw
+    if (!is.null(x[[i]]$raw)) {
+      
+      p_raw <- x[[i]]$raw$p[best_perm_order]
+      names(p_raw) <- deme_names
+      proj$output$single_set[[s]]$single_K[[i]]$raw$p <- p_raw
+      
+      COI_mean_raw <- x[[i]]$raw$COI_mean
+      if (!is.null(COI_mean_raw)) {
+        COI_mean_raw <- COI_mean_raw[, best_perm_order, drop = FALSE]
+        colnames(COI_mean_raw) <- deme_names
+        proj$output$single_set[[s]]$single_K[[i]]$raw$COI_mean <- COI_mean_raw
+      }
+    }
     
     p_intervals <- x[[i]]$summary$p_intervals[best_perm_order]
     names(p_intervals) <- deme_names
     proj$output$single_set[[s]]$single_K[[i]]$summary$p_intervals <- p_intervals
-    
-    COI_mean_raw <- x[[i]]$raw$COI_mean
-    if (!is.null(COI_mean_raw)) {
-      COI_mean_raw <- COI_mean_raw[, best_perm_order, drop = FALSE]
-      colnames(COI_mean_raw) <- deme_names
-      proj$output$single_set[[s]]$single_K[[i]]$raw$COI_mean <- COI_mean_raw
-    }
     
     COI_mean_quantiles <- x[[i]]$summary$COI_mean_quantiles
     if (!is.null(COI_mean_quantiles)) {

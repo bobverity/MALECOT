@@ -13,9 +13,6 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   // beta_raised stores values of beta (the thermodynamic power), raised to the
   // power GTI_pow
   this->beta_raised = beta_raised;
-  //this->beta_raised = 0.001;
-  //this->beta_raised = 0;
-  //print(this->beta_raised);
   
   // initialise proposal standard deviations
   e_propSD = 1;
@@ -46,7 +43,7 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   log_qmatrix = vector<vector<double>>(n, vector<double>(K));
   qmatrix = vector<vector<double>>(n, vector<double>(K));
   
-  // probability vectors and matrices used when updating draws
+  // objects used when updating draws
   sum_loglike_old_vec = vector<double>(K);
   sum_loglike_new_vec = vector<double>(K);
   p_prop = vector<vector<double>>(K, vector<double>(L));
@@ -67,11 +64,13 @@ Particle_biallelic::Particle_biallelic(double beta_raised) {
   blocked_right = vector<int>(K);
   
   // store acceptance rates
-  p_accept = vector<vector<int>>(K, vector<int>(L));
-  m_accept = vector<int>(n);
-  e_accept = 0;
-  COI_mean_accept = vector<int>(K);
-  COI_mean_accept_v2 = vector<int>(K);
+  if (store_acceptance) {
+    p_accept = vector<vector<int>>(K, vector<int>(L));
+    m_accept = vector<int>(n);
+    e_accept = 0;
+    COI_mean_accept = vector<int>(K);
+    COI_mean_accept_v2 = vector<int>(K);
+  }
   
   // vary core likelihood function depending on user choices
   if (precision == 0) {
@@ -146,7 +145,10 @@ double Particle_biallelic::logprob_genotype_lookup_error(int S, double p, int m,
 
 //------------------------------------------------
 // reset particle
-void Particle_biallelic::reset() {
+void Particle_biallelic::reset(double beta_raised) {
+  
+  // beta_raised
+  this->beta_raised = beta_raised;
   
   // reset qmatrices
   for (int i=0; i<n; i++) {
@@ -256,7 +258,7 @@ void Particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           p_propSD[k][j]  += (1-0.23)/sqrt(double(iteration));
-        } else {
+        } else if (store_acceptance) {
           p_accept[k][j]++;
         }
         
@@ -298,24 +300,22 @@ void Particle_biallelic::update_m(bool robbins_monro_on, int iteration) {
     }
     
     // propose new m
-    int m_prop = m[i] + (2*rbernoulli1(0.5)-1)*(1 + rgeom1(1.0/m_prop_mean[i]));
+    int m_prop = m[i] + (2*rbernoulli1(0.5)-1)*rgeom1(1.0/(1.0+m_prop_mean[i]));
+    
+    // always accept if no change
+    if (m_prop == m[i]) {
+      if (robbins_monro_on) {
+        m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
+      } else if (store_acceptance) {
+        m_accept[i]++;
+      }
+    }
     
     // skip if outside range
     if (m_prop < 1 || m_prop > COI_max) {
       if (robbins_monro_on) {
         m_prop_mean[i] -= 0.23/sqrt(double(iteration));
-        m_prop_mean[i] = (m_prop_mean[i] < 1.0) ? 1.0 : m_prop_mean[i];
-      }
-      continue;
-    }
-    
-    // accept move if propose same value
-    if (m_prop == m[i]) {
-      foo();
-      if (robbins_monro_on) {
-        m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
-      } else {
-        m_accept[i]++;
+        m_prop_mean[i] = (m_prop_mean[i] < 0) ? 0 : m_prop_mean[i];
       }
       continue;
     }
@@ -362,7 +362,7 @@ void Particle_biallelic::update_m(bool robbins_monro_on, int iteration) {
       // Robbins-Monro positive update
       if (robbins_monro_on) {
         m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
-      } else {
+      } else if (store_acceptance) {
         m_accept[i]++;
       }
       
@@ -371,7 +371,7 @@ void Particle_biallelic::update_m(bool robbins_monro_on, int iteration) {
       // Robbins-Monro negative update
       if (robbins_monro_on) {
         m_prop_mean[i] -= 0.23/sqrt(double(iteration));
-        m_prop_mean[i] = (m_prop_mean[i] < 1.0) ? 1.0 : m_prop_mean[i];
+        m_prop_mean[i] = (m_prop_mean[i] < 0) ? 0 : m_prop_mean[i];
       }
       
     }  // end Metropolis-Hastings
@@ -507,7 +507,7 @@ void Particle_biallelic::update_e(bool robbins_monro_on, int iteration) {
     // Robbins-Monro positive update
     if (robbins_monro_on) {
       e_propSD  += (1-0.23)/sqrt(double(iteration));
-    } else {
+    } else if (store_acceptance) {
       e_accept++;
     }
     
@@ -582,7 +582,7 @@ void Particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           COI_mean_propSD[k] += (1-0.23)/sqrt(double(iteration));
-        } else {
+        } else if (store_acceptance) {
           COI_mean_accept[k]++;
         }
         
@@ -602,7 +602,10 @@ void Particle_biallelic::update_COI_mean(bool robbins_monro_on, int iteration) {
 }
 
 //------------------------------------------------
-// second method to update mean COI
+// second method to update mean COI. Proposes new COI_mean and m values
+// simultaneously. m values are drawn from the prior. This second method works
+// well when the power-posterior is close to the prior (i.e. for low
+// beta_raised) but not close to the posterior.
 void Particle_biallelic::update_COI_mean_v2(bool robbins_monro_on, int iteration) {
   
   // only apply for low values of beta_raised
@@ -672,7 +675,7 @@ void Particle_biallelic::update_COI_mean_v2(bool robbins_monro_on, int iteration
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           COI_mean_propSD_v2[k] += (1-0.23)/sqrt(double(iteration));
-        } else {
+        } else if (store_acceptance) {
           COI_mean_accept_v2[k]++;
         }
         
@@ -693,14 +696,13 @@ void Particle_biallelic::update_COI_mean_v2(bool robbins_monro_on, int iteration
     
   } // end negative binomial model
   
-  //print_vector(COI_mean_propSD_v2);
-  
 }
 
 //------------------------------------------------
 // solve label switching problem
 void Particle_biallelic::solve_label_switching(const vector<vector<double>> &log_qmatrix_running) {
   
+  // make cost matrix from old and new qmatrices
   for (int k1=0; k1<K; k1++) {
     fill(cost_mat[k1].begin(), cost_mat[k1].end(), 0);
     for (int k2=0; k2<K; k2++) {

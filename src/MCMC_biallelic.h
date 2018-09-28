@@ -43,6 +43,7 @@ public:
   std::vector<std::vector<int>> p_accept;
   std::vector<int> m_accept;
   int e_accept;
+  std::vector<int> COI_mean_accept;
   std::vector<int> coupling_accept;
   
   // store convergence
@@ -56,7 +57,5 @@ public:
   // other functions
   void burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
-  void update_qmatrix_running();
-  void update_qmatrix_final();
   void metropolis_coupling();
 };

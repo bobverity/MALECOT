@@ -14,11 +14,11 @@ Particle_multiallelic::Particle_multiallelic(double beta_raised) {
   // power GTI_pow
   this->beta_raised = beta_raised;
   
-  // scalar lambda value
-  lambda0 = lambda[0][0];
-  
   // initialise proposal standard deviations
   p_propSD = vector<vector<double>>(K, vector<double>(L,1));
+  m_prop_mean = vector<double>(n,2);
+  COI_mean_propSD = vector<double>(K,1);
+  COI_mean_propSD_v2 = vector<double>(K,1);
   
   // initialise COI_mean
   COI_mean_vec = vector<double>(K, COI_mean);
@@ -56,6 +56,7 @@ Particle_multiallelic::Particle_multiallelic(double beta_raised) {
   sum_loglike_new_vec = vector<double>(K);
   p_prop = p;
   logp_prop = logp;
+  m_prop = vector<int>(n);
   COI_mean_prop = vector<double>(K);
   
   // initialise ordering of labels
@@ -72,8 +73,12 @@ Particle_multiallelic::Particle_multiallelic(double beta_raised) {
   blocked_right = vector<int>(K);
   
   // store acceptance rates
-  p_accept = vector<vector<int>>(K, vector<int>(L));
-  m_accept = vector<int>(n);
+  if (store_acceptance) {
+    p_accept = vector<vector<int>>(K, vector<int>(L));
+    m_accept = vector<int>(n);
+    COI_mean_accept = vector<int>(K);
+    COI_mean_accept_v2 = vector<int>(K);
+  }
 }
 
 //------------------------------------------------
@@ -154,7 +159,10 @@ double Particle_multiallelic::logprob_genotype(const vector<int> &x, const vecto
 
 //------------------------------------------------
 // reset particle
-void Particle_multiallelic::reset() {
+void Particle_multiallelic::reset(double beta_raised) {
+  
+  // beta_raised
+  this->beta_raised = beta_raised;
   
   // reset qmatrices
   for (int i=0; i<n; i++) {
@@ -238,8 +246,18 @@ void Particle_multiallelic::update_p(bool robbins_monro_on, int iteration) {
       }
       
       // incorporate prior
-      double log_prior_old = dsym_dirichlet1(p[k][l], lambda0);
-      double log_prior_new = dsym_dirichlet1(p_prop[k][l], lambda0);
+      double log_prior_old = 0;
+      double log_prior_new = 0;
+      if (lambda_type == 1) {
+        log_prior_old = dsym_dirichlet1(p[k][l], lambda[0][0]);
+        log_prior_new = dsym_dirichlet1(p_prop[k][l], lambda[0][0]);
+      } else if (lambda_type == 2) {
+        log_prior_old = ddirichlet1(p[k][l], lambda[0]);
+        log_prior_new = ddirichlet1(p_prop[k][l], lambda[0]);
+      } else if (lambda_type == 3) {
+        log_prior_old = ddirichlet1(p[k][l], lambda[l]);
+        log_prior_new = ddirichlet1(p_prop[k][l], lambda[l]);
+      }
       
       // adjust for proposal density
       double log_prop_forwards = dmlogitnorm2(p_prop[k][l], p[k][l], p_propSD[k][l]);
@@ -282,7 +300,7 @@ void Particle_multiallelic::update_p(bool robbins_monro_on, int iteration) {
 
 //------------------------------------------------
 // linear update of m
-void Particle_multiallelic::update_m() {
+void Particle_multiallelic::update_m(bool robbins_monro_on, int iteration) {
   
   // define sum over old and new likelihood
   double sum_loglike_old = 0;
@@ -298,11 +316,23 @@ void Particle_multiallelic::update_m() {
     }
     
     // propose new m
-    int m_prop = rbernoulli1(0.5);
-    m_prop = (m_prop == 0) ? m[i]-1 : m[i]+1;
+    int m_prop = m[i] + (2*rbernoulli1(0.5)-1)*rgeom1(1.0/(1.0+m_prop_mean[i]));
+    
+    // always accept if no change
+    if (m_prop == m[i]) {
+      if (robbins_monro_on) {
+        m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
+      } else if (store_acceptance) {
+        m_accept[i]++;
+      }
+    }
     
     // skip if outside range
     if (m_prop < observed_COI[i] || m_prop > COI_max) {
+      if (robbins_monro_on) {
+        m_prop_mean[i] -= 0.23/sqrt(double(iteration));
+        m_prop_mean[i] = (m_prop_mean[i] < 0) ? 0 : m_prop_mean[i];
+      }
       continue;
     }
     
@@ -343,13 +373,21 @@ void Particle_multiallelic::update_m() {
       }
       
       // Robbins-Monro positive update
-      //if (robbins_monro_on) {
-      //  m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
-      //} else {
-      //  m_accept[i]++;
-      //}
+      if (robbins_monro_on) {
+        m_prop_mean[i] += (1-0.23)/sqrt(double(iteration));
+      } else if (store_acceptance) {
+        m_accept[i]++;
+      }
       
-    }
+    } else {
+      
+      // Robbins-Monro negative update
+      if (robbins_monro_on) {
+        m_prop_mean[i] -= 0.23/sqrt(double(iteration));
+        m_prop_mean[i] = (m_prop_mean[i] < 0) ? 0 : m_prop_mean[i];
+      }
+      
+    }  // end Metropolis-Hastings
     
   }   // end loop through individuals
   
@@ -431,7 +469,8 @@ void Particle_multiallelic::update_group() {
     
     // update group
     group[i] = new_group;
-  }
+    
+  }  // end loop through individuals
   
 }
 
@@ -488,20 +527,119 @@ void Particle_multiallelic::update_COI_mean(bool robbins_monro_on, int iteration
         // Robbins-Monro positive update
         if (robbins_monro_on) {
           COI_mean_propSD[k] += (1-0.23)/sqrt(double(iteration));
+        } else if (store_acceptance) {
+          COI_mean_accept[k]++;
         }
         
       } else {
-      
-      // Robbins-Monro negative update
-      if (robbins_monro_on) {
-        COI_mean_propSD[k] -= 0.23/sqrt(double(iteration));
-        if (COI_mean_propSD[k] < UNDERFLO) {
-          COI_mean_propSD[k] = UNDERFLO;
+        
+        // Robbins-Monro negative update
+        if (robbins_monro_on) {
+          COI_mean_propSD[k] -= 0.23/sqrt(double(iteration));
+          if (COI_mean_propSD[k] < UNDERFLO) {
+            COI_mean_propSD[k] = UNDERFLO;
+          }
         }
-      }
+        
+      }  // end Metropolis step
+    }  // end loop through k
+  } // end negative binomial model
+  
+}
+
+//------------------------------------------------
+// second method to update mean COI. Proposes new COI_mean and m values
+// simultaneously. m values are drawn from the prior. This second method works
+// well when the power-posterior is close to the prior (i.e. for low
+// beta_raised) but not close to the posterior.
+void Particle_multiallelic::update_COI_mean_v2(bool robbins_monro_on, int iteration) {
+  
+  // only apply for low values of beta_raised
+  if (beta_raised > 0.1) {
+    return;
+  }
+  
+  // split method between poisson and negative binomial
+  // poisson model
+  if (COI_model == 2) {
+    
+    // reset loglike over demes
+    fill(sum_loglike_old_vec.begin(), sum_loglike_old_vec.end(), 0);
+    fill(sum_loglike_new_vec.begin(), sum_loglike_new_vec.end(), 0);
+    
+    // propose COI_mean for all demes
+    for (int k=0; k<K; k++) {
+      COI_mean_prop[k] = rnorm1_interval(COI_mean_vec[k], COI_mean_propSD_v2[k], 1, COI_max);
+    }
+    
+    // propose new COI and calculate new loglike for all samples
+    for (int i=0; i<n; ++i) {
+      int this_group = group[i];
       
+      // propose new COI by drawing from prior around new COI_mean
+      m_prop[i] = rpois1(COI_mean_prop[this_group]-1) + 1;
+      m_prop[i] = (m_prop[i] > COI_max) ? COI_max : m_prop[i];
+      
+      // calculate likelihood
+      for (int j=0; j<L; j++) {
+        loglike_new[i][j] = logprob_genotype(data[i][j], logp[this_group][j], m_prop[i]);
+        sum_loglike_old_vec[this_group] += loglike_old[i][j];
+        sum_loglike_new_vec[this_group] += loglike_new[i][j];
       }
-    }  // end Metropolis step
+    }
+    
+    // Metropolis-Hastings for all demes
+    for (int k=0; k<K; k++) {
+      
+      // incorporate prior
+      double log_prior_old = dgamma1(COI_mean_vec[k], 0.25, 0.25);
+      double log_prior_new = dgamma1(COI_mean_prop[k], 0.25, 0.25);
+      
+      // Metropolis step
+      double MH = ((beta_raised*sum_loglike_new_vec[k] + log_prior_new) - (beta_raised*sum_loglike_old_vec[k] + log_prior_old));
+      if (log(runif_0_1()) < MH) {
+        
+        // update COI_mean
+        COI_mean_vec[k] = COI_mean_prop[k];
+        
+        // update COI and loglike for this deme
+        for (int i=0; i<n; i++) {
+          int this_group = group[i];
+          if (this_group != k) {
+            continue;
+          }
+          
+          // update COI
+          m[i] = m_prop[i];
+          
+          // update loglike
+          for (int j=0; j<L; j++) {
+            loglike_old[i][j] = loglike_new[i][j];
+          }
+        }
+        
+        // Robbins-Monro positive update
+        if (robbins_monro_on) {
+          COI_mean_propSD_v2[k] += (1-0.23)/sqrt(double(iteration));
+        } else if (store_acceptance) {
+          COI_mean_accept_v2[k]++;
+        }
+        
+      } else {
+        
+        // Robbins-Monro negative update
+        if (robbins_monro_on) {
+          COI_mean_propSD_v2[k] -= 0.23/sqrt(double(iteration));
+          COI_mean_propSD_v2[k] = (COI_mean_propSD_v2[k] < 1) ? 1 : COI_mean_propSD_v2[k];
+        }
+        
+      }  // end Metropolis-Hastings step
+    }  // end loop over demes
+  } // end poisson model
+  
+  // negative binomial model
+  if (COI_model == 3) {
+    
   } // end negative binomial model
   
 }
@@ -510,6 +648,7 @@ void Particle_multiallelic::update_COI_mean(bool robbins_monro_on, int iteration
 // solve label switching problem
 void Particle_multiallelic::solve_label_switching(const vector<vector<double>> &log_qmatrix_running) {
   
+  // make cost matrix from old and new qmatrices
   for (int k1=0; k1<K; k1++) {
     fill(cost_mat[k1].begin(), cost_mat[k1].end(), 0);
     for (int k2=0; k2<K; k2++) {

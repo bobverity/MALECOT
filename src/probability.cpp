@@ -250,7 +250,7 @@ vector<double> rsym_dirichlet1(double shape, int d) {
 
 //------------------------------------------------
 // probability density of symmetric Dirichlet distribution
-double dsym_dirichlet1(const std::vector<double> &p, double shape, bool return_log) {
+double dsym_dirichlet1(const vector<double> &p, double shape, bool return_log) {
   int d = p.size();
   double ret = lgamma(d*shape);
   double lgs = lgamma(shape);
@@ -264,7 +264,7 @@ double dsym_dirichlet1(const std::vector<double> &p, double shape, bool return_l
 }
 
 //------------------------------------------------
-// draw from dirichlet distribution using vector of shape parameters
+// draw from Dirichlet distribution using vector of shape parameters
 vector<double> rdirichlet1(const vector<double> &shape_vec) {
   // draw a series of gamma random variables
   int n = shape_vec.size();
@@ -280,6 +280,26 @@ vector<double> rdirichlet1(const vector<double> &shape_vec) {
     ret[i] *= retSumInv;
   }
   return(ret);
+}
+
+//------------------------------------------------
+// probability density of Dirichlet distribution using vector of shape parameters
+double ddirichlet1(const vector<double> &p, const vector<double> &shape_vec, bool return_log) {
+  int d = p.size();
+  if (shape_vec.size() != d) {
+    Rcpp::stop("ddirichlet p and shape_vec not same size");
+  }
+  double ret = 0;
+  double tmp = 0;
+  for (int i=0; i<d; ++i) {
+    ret += (shape_vec[i] - 1)*log(p[i]) - lgamma(shape_vec[i]);
+    tmp += shape_vec[i];
+  }
+  ret += lgamma(tmp);
+  if (!return_log) {
+    return exp(ret);
+  }
+  return ret;
 }
 
 //------------------------------------------------

@@ -43,9 +43,12 @@ MCMC_multiallelic::MCMC_multiallelic() {
   COI_mean_store = vector<vector<double>>(samples, vector<double>(K));
   
   // objects for storing acceptance rates
-  p_accept = vector<vector<int>>(K, vector<int>(L));
-  m_accept = vector<int>(n);
-  coupling_accept = vector<int>(rungs-1);
+  if (store_acceptance) {
+    p_accept = vector<vector<int>>(K, vector<int>(L));
+    m_accept = vector<int>(n);
+    COI_mean_accept = vector<int>(K);
+    coupling_accept = vector<int>(rungs-1);
+  }
   
   // store convergence
   rung_converged = vector<bool>(rungs, false);
@@ -75,8 +78,7 @@ void MCMC_multiallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args
   
   // reset particles
   for (int r=0; r<rungs; r++) {
-    particle_vec[r].reset();
-    particle_vec[r].beta_raised = beta_raised_vec[r];
+    particle_vec[r].reset(beta_raised_vec[r]); 
   }
   rung_order = seq_int(0,rungs-1);
   
@@ -98,12 +100,13 @@ void MCMC_multiallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args
       particle_vec[rung].update_p(true, rep+1);
       
       // update m
-      particle_vec[rung].update_m();
+      particle_vec[rung].update_m(true, rep+1);
       
       // update COI_means
       if (COI_model == 2 || COI_model == 3) {
         if (estimate_COI_mean) {
           particle_vec[rung].update_COI_mean(true, rep+1);
+          particle_vec[rung].update_COI_mean_v2(true, rep+1);
         }
       }
        
@@ -223,12 +226,13 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
       particle_vec[rung].update_p(false, rep+1);
       
       // update m
-      particle_vec[rung].update_m();
+      particle_vec[rung].update_m(true, rep+1);
       
       // update COI_means
       if (COI_model == 2 || COI_model == 3) {
         if (estimate_COI_mean) {
           particle_vec[rung].update_COI_mean(false, rep+1);
+          particle_vec[rung].update_COI_mean_v2(false, rep+1);
         }
       }
       
@@ -320,36 +324,6 @@ void MCMC_multiallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &ar
 }
 
 //------------------------------------------------
-// add qmatrix to qmatrix_running
-void MCMC_multiallelic::update_qmatrix_running() {
-/*
-  for (int i=0; i<n; i++) {
-    for (int k=0; k<K; k++) {
-      qmatrix_running[i][k] += particle_vec[cold_rung].qmatrix[i][particle_vec[cold_rung].label_order[k]];
-      double lq = log(qmatrix_running[i][k]);
-      if (lq < -OVERFLO) {
-        log_qmatrix_running[i][k] = -OVERFLO;
-      } else {
-        log_qmatrix_running[i][k] = lq;
-      }
-    }
-  }
-*/
-}
-
-//------------------------------------------------
-// add qmatrix to qmatrix_final
-void MCMC_multiallelic::update_qmatrix_final() {
-/*
-  for (int i=0; i<n; i++) {
-    for (int k=0; k<K; k++) {
-      qmatrix_final[i][k] += particle_vec[cold_rung].qmatrix[i][particle_vec[cold_rung].label_order[k]];
-    }
-  }
-*/
-}
-
-//------------------------------------------------
 // Metropolis-coupling to propose swaps between temperature rungs
 void MCMC_multiallelic::metropolis_coupling() {
   
@@ -378,6 +352,23 @@ void MCMC_multiallelic::metropolis_coupling() {
       // swap beta values
       particle_vec[rung1].beta_raised = beta_raised2;
       particle_vec[rung2].beta_raised = beta_raised1;
+      
+      // swap proposal parameters
+      vector<vector<double>> p_propSD = particle_vec[rung1].p_propSD;
+      particle_vec[rung1].p_propSD = particle_vec[rung2].p_propSD;
+      particle_vec[rung2].p_propSD = p_propSD;
+      
+      vector<double> m_prop_mean = particle_vec[rung1].m_prop_mean;
+      particle_vec[rung1].m_prop_mean = particle_vec[rung2].m_prop_mean;
+      particle_vec[rung2].m_prop_mean = m_prop_mean;
+      
+      vector<double> COI_mean_propSD = particle_vec[rung1].COI_mean_propSD;
+      particle_vec[rung1].COI_mean_propSD = particle_vec[rung2].COI_mean_propSD;
+      particle_vec[rung2].COI_mean_propSD = COI_mean_propSD;
+      
+      vector<double> COI_mean_propSD_v2 = particle_vec[rung1].COI_mean_propSD_v2;
+      particle_vec[rung1].COI_mean_propSD_v2 = particle_vec[rung2].COI_mean_propSD_v2;
+      particle_vec[rung2].COI_mean_propSD_v2 = COI_mean_propSD_v2;
       
       // swap rung order
       rung_order[i] = rung2;

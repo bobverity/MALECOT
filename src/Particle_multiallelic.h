@@ -16,17 +16,16 @@ public:
   // power GTI_pow
   double beta_raised;
   
-  // scalar lambda value
-  double lambda0;
-  
   // proposal standard deviations
   std::vector< std::vector<double> > p_propSD;
+  std::vector<double> m_prop_mean;
+  std::vector<double> COI_mean_propSD;
+  std::vector<double> COI_mean_propSD_v2;
   
   // COI objects
   std::vector<double> COI_mean_vec;
   std::vector<double> COI_mean_shape;
   std::vector<double> COI_mean_rate;
-  std::vector<double> COI_mean_propSD;
   
   // grouping
   std::vector<int> group;
@@ -51,6 +50,7 @@ public:
   std::vector<double> sum_loglike_old_vec;
   std::vector<double> sum_loglike_new_vec;
   std::vector<std::vector<std::vector<double>>> p_prop;
+  std::vector<int> m_prop;
   std::vector<std::vector<std::vector<double>>> logp_prop;
   std::vector<double> COI_mean_prop;
   
@@ -70,6 +70,8 @@ public:
   // store acceptance rates
   std::vector<std::vector<int>> p_accept;
   std::vector<int> m_accept;
+  std::vector<int> COI_mean_accept;
+  std::vector<int> COI_mean_accept_v2;
   
   // PUBLIC FUNCTIONS
   
@@ -79,11 +81,13 @@ public:
   
   // other functions
   double logprob_genotype(const std::vector<int> &x, const std::vector<double> &logp, int m);
-  void reset();
+  
+  void reset(double beta_raised);
   void update_p(bool robbins_monro_on, int iteration);
-  void update_m();
+  void update_m(bool robbins_monro_on, int iteration);
   void update_group();
   void update_COI_mean(bool robbins_monro_on, int iteration);
+  void update_COI_mean_v2(bool robbins_monro_on, int iteration);
   void calculate_loglike();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   

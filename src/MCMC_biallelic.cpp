@@ -45,10 +45,13 @@ MCMC_biallelic::MCMC_biallelic() {
   COI_mean_store = vector<vector<double>>(samples, vector<double>(K));
   
   // objects for storing acceptance rates
-  p_accept = vector<vector<int>>(K, vector<int>(L));
-  m_accept = vector<int>(n);
-  e_accept = 0;
-  coupling_accept = vector<int>(rungs-1);
+  if (store_acceptance) {
+    p_accept = vector<vector<int>>(K, vector<int>(L));
+    m_accept = vector<int>(n);
+    e_accept = 0;
+    COI_mean_accept = vector<int>(K);
+    coupling_accept = vector<int>(rungs-1);
+  }
   
   // store convergence
   rung_converged = vector<bool>(rungs, false);
@@ -78,8 +81,7 @@ void MCMC_biallelic::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_pr
   
   // reset particles
   for (int r=0; r<rungs; r++) {
-    particle_vec[r].reset();
-    //particle_vec[r].beta_raised = beta_raised_vec[r];
+    particle_vec[r].reset(beta_raised_vec[r]);
   }
   rung_order = seq_int(0,rungs-1);
   
@@ -344,40 +346,13 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   }
   
   // store acceptance rates
-  p_accept = particle_vec[cold_rung].p_accept;
-  m_accept = particle_vec[cold_rung].m_accept;
-  e_accept = particle_vec[cold_rung].e_accept;
+  if (store_acceptance) {
+    p_accept = particle_vec[cold_rung].p_accept;
+    m_accept = particle_vec[cold_rung].m_accept;
+    e_accept = particle_vec[cold_rung].e_accept;
+    COI_mean_accept = particle_vec[cold_rung].COI_mean_accept;
+  }
   
-}
-
-//------------------------------------------------
-// add qmatrix to qmatrix_running
-void MCMC_biallelic::update_qmatrix_running() {
-/*
-  for (int i=0; i<n; i++) {
-    for (int k=0; k<K; k++) {
-      qmatrix_running[i][k] += particle_vec[cold_rung].qmatrix[i][particle_vec[cold_rung].label_order[k]];
-      double lq = log(qmatrix_running[i][k]);
-      if (lq < -OVERFLO) {
-        log_qmatrix_running[i][k] = -OVERFLO;
-      } else {
-        log_qmatrix_running[i][k] = lq;
-      }
-    }
-  }
-*/
-}
-
-//------------------------------------------------
-// add qmatrix to qmatrix_final
-void MCMC_biallelic::update_qmatrix_final() {
-/*
-  for (int i=0; i<n; i++) {
-    for (int k=0; k<K; k++) {
-      qmatrix_final[i][k] += particle_vec[cold_rung].qmatrix[i][particle_vec[cold_rung].label_order[k]];
-    }
-  }
-*/
 }
 
 //------------------------------------------------

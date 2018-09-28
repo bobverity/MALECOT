@@ -82,7 +82,12 @@ public:
   Particle_biallelic(double beta_raised);
   
   // other functions
-  void reset();
+  double logprob_genotype(int S, double p, int m, double e1, double e2);
+  double logprob_genotype_exact(int S, double p, int m, double e1, double e2);
+  double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
+  double logprob_genotype_lookup_error(int S, double p, int m, double e1, double e2);
+  
+  void reset(double beta_raised);
   double get_lambda(int i, int j);
   void update_p(bool robbins_monro_on, int iteration);
   void update_m(bool robbins_monro_on, int iteration);
@@ -92,10 +97,5 @@ public:
   void update_COI_mean_v2(bool robbins_monro_on, int iteration);
   void calculate_loglike();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
-  
-  double logprob_genotype(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_exact(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_lookup(int S, double p, int m, double e1, double e2);
-  double logprob_genotype_lookup_error(int S, double p, int m, double e1, double e2);
   
 };
