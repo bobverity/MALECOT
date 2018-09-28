@@ -38,7 +38,9 @@ mysim <- sim_data(data_format = "multiallelic", n = 100, L = 10, K = 5, COI_mean
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(mysim, file = "../ignore/inst/extdata/tutorial3_mysim.rds")
-mysim <- readRDS(file = "../ignore/inst/extdata/tutorial3_mysim.rds")
+if (file.exists("../ignore/inst/extdata/tutorial3_mysim.rds")) {
+  mysim <- readRDS(file = "../ignore/inst/extdata/tutorial3_mysim.rds")
+}
 ```
 
 ```{r}
@@ -72,7 +74,9 @@ myproj <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load results from file so results are consistent
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial3_myproj0.rds")
-myproj <- readRDS("../ignore/inst/extdata/tutorial3_myproj0.rds")
+if (file.exists("../ignore/inst/extdata/tutorial3_myproj0.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/tutorial3_myproj0.rds")
+}
 ```
 
 You may find that this MCMC takes considerably longer to run than the bi-allelic MCMC. This is because the likelihood calculation is more complicated when there are more than two alleles.
@@ -90,7 +94,9 @@ Notice that the autocorrelation falls off much more slowly than it did under the
 # secretly re-run MCMC and save results to file
 #myproj <- run_mcmc(myproj, K = 5, burnin = 1e4, converge_test = 1e2, samples = 1e5, pb_markdown =  TRUE)
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial3_myproj.rds")
-myproj <- readRDS("../ignore/inst/extdata/tutorial3_myproj.rds")
+if (file.exists("../ignore/inst/extdata/tutorial3_myproj.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/tutorial3_myproj.rds")
+}
 ```
 
 ```{r}

@@ -35,7 +35,7 @@ mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3, COI_mean = 
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent between tutorials
 #saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-mysim <- readRDS("../inst/extdata/tutorial1_mysim.rds")
+mysim <- malecot_file("tutorial1_mysim.rds")
 ```
 
 Running `names(mysim)` we can see that the simulated data contains several elements:

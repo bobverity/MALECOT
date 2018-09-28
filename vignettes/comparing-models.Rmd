@@ -56,7 +56,9 @@ mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(mysim, file = "../ignore/inst/extdata/tutorial4_mysim.rds")
-mysim <- readRDS("../ignore/inst/extdata/tutorial4_mysim.rds")
+if (file.exists("../ignore/inst/extdata/tutorial4_mysim.rds")) {
+  mysim <- readRDS("../ignore/inst/extdata/tutorial4_mysim.rds")
+}
 ```
 
 ```{r}
@@ -83,7 +85,9 @@ myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj0.rds")
-myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj0.rds")
+if (file.exists("../ignore/inst/extdata/tutorial4_myproj0.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj0.rds")
+}
 ```
 
 Notice that convergence times are much longer than under regular MCMC. This is because the MCMC is only deemed to have converged when *every* chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.
@@ -116,7 +120,9 @@ We interpret ESS for hot chains the same way as for the cold chain - as the numb
 
 # secretly save/load data from file so results are consistent
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj.rds")
-myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj.rds")
+if (file.exists("../ignore/inst/extdata/tutorial4_myproj.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj.rds")
+}
 ```
 
 A useful plotting function when working with multiple rungs is the `plot_loglike()` function, which plots the 95% quantiles of the log-likelihood over every rung:
@@ -179,7 +185,9 @@ We then need to run thermodynamic MCMC for this parameter set over the same rang
 
 # secretly save/load data from file so results are consistent
 #saveRDS(myproj, file = "../ignore/inst/extdata/tutorial4_myproj2.rds")
-myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj2.rds")
+if (file.exists("../ignore/inst/extdata/tutorial4_myproj2.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/tutorial4_myproj2.rds")
+}
 ```
 
 ```{r}
