@@ -180,6 +180,10 @@ myproj
 We then need to run thermodynamic MCMC for this parameter set over the same range of $K$ values. For the sake of this tutorial we will save time by loading results from file:
 
 ```{r, echo=FALSE}
+# annoyingly need to run at least some MCMC to pass travis checks. This output
+# will be overwritten when run locally
+myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e1, converge_test = 1e2, samples = 1e1, rungs = 10)
+
 # re-run MCMC
 #myproj <- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)
 
