@@ -22,7 +22,9 @@ mysim <- sim_data(data_format = "biallelic", n = 100, L = 24, K = 3)
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(mysim, file = "../ignore/inst/extdata/mixing_mysim.rds")
-mysim <- readRDS("../ignore/inst/extdata/mixing_mysim.rds")
+if (file.exists("../ignore/inst/extdata/mixing_mysim.rds")) {
+  mysim <- readRDS("../ignore/inst/extdata/mixing_mysim.rds")
+}
 ```
 
 ```{r}
@@ -45,7 +47,9 @@ myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(myproj, file = "../ignore/inst/extdata/mixing_myproj1.rds")
-myproj <- readRDS("../ignore/inst/extdata/mixing_myproj1.rds")
+if (file.exists("../ignore/inst/extdata/mixing_myproj1.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/mixing_myproj1.rds")
+}
 ```
 
 ```{r}
@@ -62,7 +66,9 @@ myproj <- run_mcmc(myproj, K = 3, burnin = 1e4, converge_test = 1e2,
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent
 #saveRDS(myproj, file = "../ignore/inst/extdata/mixing_myproj2.rds")
-myproj <- readRDS("../ignore/inst/extdata/mixing_myproj2.rds")
+if (file.exists("../ignore/inst/extdata/mixing_myproj2.rds")) {
+  myproj <- readRDS("../ignore/inst/extdata/mixing_myproj2.rds")
+}
 ```
 
 ```{r}
