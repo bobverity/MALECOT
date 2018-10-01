@@ -102,7 +102,7 @@
       <h1>Tutorial 4: Comparing models (estimating K)</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-29</h4>
+            <h4 class="date">2018-10-01</h4>
       
       
       <div class="hidden name"><code>comparing-models.Rmd</code></div>
@@ -161,7 +161,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 9.99471 seconds
+##    completed in 9.85676 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -173,7 +173,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 17.6309 seconds
+##    completed in 17.3467 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -185,7 +185,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 21.9558 seconds
+##    completed in 21.7758 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -197,7 +197,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 27.1313 seconds
+##    completed in 26.6059 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -209,10 +209,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 31.8146 seconds
+##    completed in 32.0234 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 1.86 minutes</code></pre>
+<pre><code>## Total run-time: 1.84 minutes</code></pre>
 <p>Notice that convergence times are much longer than under regular MCMC. This is because the MCMC is only deemed to have converged when <em>every</em> chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.</p>
 </div>
 <div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
@@ -285,7 +285,7 @@ myproj</code></pre></div>
 ##    e1_max = 0.2
 ##    e2_max = 0.2</code></pre>
 <p>We then need to run thermodynamic MCMC for this parameter set over the same range of <span class="math inline">\(K\)</span> values. For the sake of this tutorial we will save time by loading results from file:</p>
-<pre><code>## Total run-time: 1.77 seconds</code></pre>
+<pre><code>## Total run-time: 1.75 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># uncomment to run MCMC</span>
 <span class="co">#myproj &lt;- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)</span>
 
