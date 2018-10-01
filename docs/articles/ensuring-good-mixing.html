@@ -102,7 +102,7 @@
       <h1>Ensuring good mixing</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-09-29</h4>
+            <h4 class="date">2018-10-01</h4>
       
       
       <div class="hidden name"><code>ensuring-good-mixing.Rmd</code></div>
@@ -111,16 +111,52 @@
 
     
     
+<p>In order for MCMC results to be reliable, it is important that the MCMC has “mixed” well. This vignette covers:</p>
+<ol style="list-style-type: decimal">
+<li>What is mixing?</li>
+<li>Adaptive MCMC</li>
+<li>Improving mixing through Metropolis coupling</li>
+</ol>
+<div id="what-is-mcmc-mixing" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-is-mcmc-mixing" class="anchor"></a>What is MCMC mixing?</h2>
+<p>MCMC is a method for sampling from a given probability distribution called the “target” distribution. It works by making a series random moves from its current position, causing it to wander around and explore a range of parameter values. The series of values that we end up with is referred to as a “chain”. The probabilities of the random moves are carefully chosen to ensure that the length of time spent in any given parameter value is proportional to its probability under the target distribution. In a Bayesian setting the target distribution is almost always the posterior distribution, so what we end up with is a series of draws from the posterior distribution.</p>
+<p>However, draws from the target distribution are not independent, as the next value in the chain depends on the current value. This leads to auto-correlation, which can cause the chain to move slowly and sluggishly through the space. If the chain is too sluggish then it may end up spending too much time in one region of parameter space by pure chance, meaning we end up with a skewed picture of the posterior distribution. In more severe cases we might find that there are large “valleys” in the target distribution that the chain struggles to cross, in which case some parts of the posterior might be missed entirely. Both of these situations are referred to as bad <em>mixing</em>.</p>
+<p>There are several factors that influence mixing, including:</p>
+<ul>
+<li>The shape of the target distribution</li>
+<li>The level of correlation between parameters</li>
+<li>The exact MCMC algorithm used</li>
+<li>The parameters of the “proposal” distribution (under certain algorithms)</li>
+<li>The type of proposal(s)</li>
+</ul>
+<p>The first two factors are structural, in that they are a consequence of the mathematical model assumed, but the last three are algorithmic and can be modified by varying the MCMC approach.</p>
+<p>Unfortunately, mixture models like the one that underpins MALECOT are among the more difficult problems in terms of the structural aspects. The posterior distribution is typically very lumpy, with large valleys that the MCMC struggles to traverse, and parameters are also highly correlated meaning we have to be clever about how we propose new values. Some of the algorithmic methods used to overcome this in MALECOT are described below.</p>
+</div>
+<div id="adaptive-mcmc" class="section level2">
+<h2 class="hasAnchor">
+<a href="#adaptive-mcmc" class="anchor"></a>Adaptive MCMC</h2>
+<p>MALECOT uses a combination of <a href="https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm">Metropolis-Hastings</a> and <a href="https://en.wikipedia.org/wiki/Gibbs_sampling">Gibbs sampling</a> to propose new moves. In Metropolis-Hastings we propose new parameter values by drawing from a proposal distribution around the current value, and this proposed value is then either accepted or rejected. If the proposal distribution is too tight then moves will be very small, meaning almost every move will be accepted but it will take a long time to traverse the parameter space. On the other hand, if the proposal distribution is too spread out then most proposed values will tend to be in low likelihood regions, meaning almost every move will be rejected and the chain will stay put. We can therefore use the acceptance rate as a running measure of how well our proposal is doing. If too many moves are being accepted then we increase the proposal variance, and if too many moves are being rejected then we decrease the variance. This is a form of adaptive MCMC.</p>
+<p>In MALECOT we use the Robbins-Monro algorithm to tune the proposal distribution towards a particular target acceptance rate. It has been proved theoretically that the optimal acceptance rate under certain assumptions is around 23% (see <span class="citation">Rosenthal (2011)</span>), so we target this value. This method is used for all Metropolis-Hastings update steps, which includes; allele frequencies, COI, error rates, and mean COI per subpopulation.</p>
+</div>
+<div id="improving-mixing-through-metropolis-coupling" class="section level2">
+<h2 class="hasAnchor">
+<a href="#improving-mixing-through-metropolis-coupling" class="anchor"></a>Improving mixing through Metropolis coupling</h2>
+<p>As described in <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">another vignette</a>, MALECOT has the option to use multiple temperature rungs in a method called thermodynamic MCMC. These temperature rungs are central to the <a href="https://bobverity.github.io/MALECOT/articles/gti-mathematical-details.html">GTI method</a> of estimating the model evidence, but they can also be useful in improving mixing through a technique called Metropolis coupling. In Metropolis coupling we propose swaps between different temperature rungs, such that the hot chain becomes the cold chain and vice versa. This proposed moved is accepted or rejected according to a ratio built from the relative likelihoods, similar to ordinary Metropolis-Hastings. This can drastically improve mixing, as the hot chains are free to explore a wider space than the cold chains, allowing them to traverse large valleys in the ordinary posterior, and the coupling step then bubble sorts these results up to cold chain. Any time we are performing thermodynamic MCMC we have access to these extra temperature rungs, and so we may as well implement Metropolis coupling, and for difficult problems we may consider implementing this method even if we are not interested in the model evidence.</p>
+<p>To explore Metropolis coupling in action we will require some simulated data, a new MALECOT project, and an example parameter set:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># simulate data</span>
 mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="dt">data_format =</span> <span class="st">"biallelic"</span>, <span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">L =</span> <span class="dv">24</span>, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create project and bind data</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/malecot_project.html">malecot_project</a></span>()
-myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, <span class="dt">df =</span> mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create parameter set</span>
+myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data_biallelic.html">bind_data_biallelic</a></span>(myproj, <span class="dt">df =</span> mysim$data, <span class="dt">ID_col =</span> <span class="dv">1</span>, <span class="dt">pop_col =</span> <span class="dv">2</span>)
+
+<span class="co"># create parameter set</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/new_set.html">new_set</a></span>(myproj)</code></pre></div>
+<p>We then run the MCMC with multiple rungs - in this first example we will use 10 rungs. The <code>coupling_on</code> argument ensures that Metropolis coupling is turned on (the default setting).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run thermodynamic MCMC</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
-                   <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
+                   <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">10</span>, <span class="dt">coupling_on =</span> <span class="ot">TRUE</span>,
+                   <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running MCMC for K = 3
 ## Burn-in phase
 ## 
@@ -131,13 +167,16 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.56346 seconds
+##    completed in 2.62317 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.95 seconds</code></pre>
+<pre><code>## Total run-time: 3.02 seconds</code></pre>
+<p>In the <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">model comparison tutorial</a> we saw how to plot the log-likelihood quantiles at each temperature rung using the <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code> function. Here we will use the <code><a href="../reference/plot_coupling.html">plot_coupling()</a></code> function, which produces a variation of the same plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot coupling rates</span>
 <span class="kw"><a href="../reference/plot_coupling.html">plot_coupling</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="ensuring-good-mixing_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="ensuring-good-mixing_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p>The red points give the Metropolis-coupling acceptance rates between the two temperature rungs to either side of that point (values to be read off the right-hand y-axis). In this example we can see that almost all acceptance rates are zero, or very close to zero. This can be understood by looking at the overlap of different log-likelihood quantiles - for example the quantiles of the first and second rungs. If there is little or no overlap between quantiles then the two chains are exploring quite different distributions. There may be times that the hotter chain gets lucky and explores a parameter combination with high log-likelihood, and simultaneously the colder chain may get unlucky and explore a parameter combination with low log-likelihood, but the log-likelihood of the colder chain will still on average be so much higher than the hot chain that there is very little chance of a proposed swap being accepted. The jump in temperature between rungs is just too large for swaps between rungs to occur.</p>
+<p>Now compare this with the result obtained by running the same MCMC with 30 rungs:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run thermodynamic MCMC</span>
 myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">burnin =</span> <span class="fl">1e4</span>, <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
                    <span class="dt">samples =</span> <span class="fl">1e3</span>, <span class="dt">rungs =</span> <span class="dv">30</span>, <span class="dt">pb_markdown =</span>  <span class="ot">TRUE</span>)</code></pre></div>
@@ -151,16 +190,38 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 7.77799 seconds
+##    completed in 7.88405 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 8.17 seconds</code></pre>
+<pre><code>## Total run-time: 8.29 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot coupling rates</span>
 <span class="kw"><a href="../reference/plot_coupling.html">plot_coupling</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="ensuring-good-mixing_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="ensuring-good-mixing_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>Now there is extensive overlap between quantiles, meaning swaps between rungs have a good chance of being accepted. We can see this in the acceptance rates, which appear to be correlated with the degree of overlap between quantiles. Note that - unlike in standard Metropolis-Hastings - we are not aiming for an intermedate acceptance rate of 23% here, rather the higher the acceptance rate the better.</p>
+<p>When looking at this plot we want to ensure that the acceptance rate never dips to zero. If the acceptance rate in the plot above hit zero in the middle then information would be flowing between rungs to the left of this break, and between rungs to the right of this break, but not over this break. This would mean the parameter space explored in the hottest chains was not able to bubble-sort up to the cold chain, and so these chains would be doing nothing to improve mixing. In the example above we can be fairly confident that the MCMC has explored the space well, subject to the usual checks of ESS, sampling iterations and so forth.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="hasAnchor">
+<a href="#references" class="anchor"></a>References</h2>
+<div id="refs" class="references">
+<div id="ref-rosenthal2011optimal">
+<p>Rosenthal, Jeffrey S et al. 2011. “Optimal Proposal Distributions and Adaptive Mcmc.” <em>Handbook of Markov Chain Monte Carlo</em> 4 (10.1201). CRC Press, Boca Raton, FL.</p>
+</div>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#what-is-mcmc-mixing">What is MCMC mixing?</a></li>
+      <li><a href="#adaptive-mcmc">Adaptive MCMC</a></li>
+      <li><a href="#improving-mixing-through-metropolis-coupling">Improving mixing through Metropolis coupling</a></li>
+      <li><a href="#references">References</a></li>
+      </ul>
+</div>
       </div>
 
 </div>
