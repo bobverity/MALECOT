@@ -16,14 +16,16 @@ library(MALECOT)
 
 One of the major advantages of simulated data is that we can test the power of the program under different scenarios, hopefully allowing us to design field and lab studies that are powered to detect a signal. MALECOT is a Bayesian program and therefore power in this context is a Bayesian equivalent of traditional power, defined as the posterior probability of the true (simulated) value averaged over a large number of simulations drawn from the same model. For example, if the power to detect population structure is 0.9 then that means the true grouping will tend to have a posterior probability of 0.9.
 
-For those interested in the headline result:
+For those interested in the headline results:
+
 **bi-allelic data**
+
 *under realistic assumptions - including a skewed allele frequency distribution, 5% genotyping error and a mean COI of 2 per subpopulation - power analysis indicates that 100 independent loci are sufficient to detect population structure with >90% posterior probability with as few as 10 samples per subpopulation.*
 
 
 ## Simulation details
 
-The following sections explore power to detect population structure for the following parameter ranges:
+The following parameter ranges were used when simulating data:
 
 * Always assuming K = 5 subpopulations
 * Sample size (*n*) in the range [25, 100]. Note that this is the total sample size over all 5 subpopulations, meaning the number of samples per subpopulation is 1/5th this value
@@ -32,7 +34,7 @@ The following sections explore power to detect population structure for the foll
 * Shape parameter of the prior on allele frequencies (*lambda1*) in {1, 5, 10}, representing different levels of skewed allele frequency distribution
 * Proportion erronious genotyping calls (both false homozygote and false heterozygote) in {0.00, 0.05, 0.10}
 
-Results are averaged over 50 simulated data sets, analysed by MCMC with the following parameters:
+Simulated datasets were analysed by MCMC with the following parameters:
 
 * 10,000 burn-in iterations. Test for convergence automatically every 100 iterations
 * 10,000 sampling iterations
@@ -68,6 +70,7 @@ plot3 <- prior_plot <- plot_prior_p(lambda = c(10, 1)) + ggtitle("lambda1 = 10")
 grid.arrange(plot1, plot2, plot3, nrow = 1)
 ```
 
+Each simulation parameter set was repeated 50 times, and results were averaged over simulations.
 
 ## Power to detect population structure
 
