@@ -9,7 +9,7 @@ default_colours <- function(K) {
   my_palette <- colorRampPalette(raw_cols)
   
   # simple case if small K
-  if (K<=2) {
+  if (K <= 2) {
     return(my_palette(K))
   }
   
@@ -97,15 +97,15 @@ plot_pca <- function(data, type = "3D", missing_data = -1, target_group = NULL) 
 # ggplot theme with minimal objects
 #' @noRd
 theme_empty <- function() {
-  theme(axis.line=element_blank(),
-        axis.text.x=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks=element_blank(),
-        panel.background=element_blank(),
-        panel.border=element_blank(),
-        panel.grid.major=element_blank(),
-        panel.grid.minor=element_blank(),
-        plot.background=element_blank())
+  theme(axis.line = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.background = element_blank())
 }
 
 #------------------------------------------------
@@ -144,7 +144,7 @@ plot.malecot_qmatrix <- function(x, y, ...) {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
+#' @param K which value of K to plot
 #' @param divide_ind_on whether to add dividing lines between bars
 #'
 #' @export
@@ -247,7 +247,7 @@ plot.malecot_loglike_intervals <- function(x, y, ...) {
 #'   
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
+#' @param K which value of K to plot
 #' @param axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
 #'   beta, 3 = values of beta raised to the GTI power
 #' @param connect_points whether to connect points in the middle of intervals
@@ -353,14 +353,13 @@ plot.malecot_COI_intervals <- function(x, y, ...) {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
-#' @param ... TODO
+#' @param K which value of K to plot
 #'
 #' @export
 #' @examples
 #' # TODO
 
-plot_COI <- function(project, K = NULL, ...) {
+plot_COI <- function(project, K = NULL) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -490,15 +489,14 @@ plot_p_multiallelic <- function(x) {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K TODO
+#' @param K which value of K to plot
 #' @param deme TODO
-#' @param ... TODO
 #'
 #' @export
 #' @examples
 #' # TODO
 
-plot_p <- function(project, K = NULL, deme = 1, ...) {
+plot_p <- function(project, K = NULL, deme = 1) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -575,14 +573,13 @@ plot.malecot_e_intervals <- function(x, y, ...) {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K TODO
-#' @param ... TODO
+#' @param K which value of K to plot
 #'
 #' @export
 #' @examples
 #' # TODO
 
-plot_e <- function(project, K = NULL, ...) {
+plot_e <- function(project, K = NULL) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -657,15 +654,14 @@ plot.malecot_COI_mean_intervals <- function(x, y, ...) {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K TODO
+#' @param K which value of K to plot
 #' @param deme_order the order in which to plot demes. Defaults to increasing order
-#' @param ... TODO
 #'
 #' @export
 #' @examples
 #' # TODO
 
-plot_COI_mean <- function(project, K = NULL, deme_order = NULL, ...) {
+plot_COI_mean <- function(project, K = NULL, deme_order = NULL) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -767,7 +763,7 @@ plot.malecot_GTI_path <- function(x, y, ...) {
 #'
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
-#' @param K which value of K to produce the plot for
+#' @param K which value of K to plot
 #' @param axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
 #'   beta
 #'
@@ -1283,6 +1279,42 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @export
 
 plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black") {
+  
+  # check inputs
+  assert_custom_class(project, "malecot_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K, zero_allowed = FALSE)
+  }
+  if (!is.null(rung)) {
+    assert_single_pos_int(rung)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no loglike_sampling output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
+  if (is.null(loglike_sampling)) {
+    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
+  }
+  
+  # use cold rung by default
+  rungs <- ncol(loglike_sampling)
+  rung <- define_default(rung, rungs)
+  assert_leq(rung, rungs)
   
   # produce individual diagnostic plots and add features
   plot1 <- plot_trace(project, K = K, rung = rung, col = col)

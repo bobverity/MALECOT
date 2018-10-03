@@ -223,13 +223,6 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
   Rcpp::Function test_convergence = args_functions["test_convergence"];
   Rcpp::Function update_progress = args_functions["update_progress"];
   
-  // reset acceptance rates
-  for (int r=0; r<rungs; r++) {
-    particle_vec[r].p_accept = vector<vector<int>>(K, vector<int>(L));
-    particle_vec[r].e_accept = 0;
-  }
-  coupling_accept = vector<int>(rungs-1);
-  
   // loop through sampling iterations
   for (int rep=0; rep<samples; rep++) {
     
@@ -273,7 +266,7 @@ void MCMC_biallelic::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_
     cold_rung = rung_order[rungs-1];
     
     // methods that only apply when K>1
-    if (K>1) {
+    if (K > 1) {
       
       // fix labels
       if (solve_label_switching_on) {

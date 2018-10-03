@@ -4,17 +4,15 @@
 \alias{plot_COI_mean}
 \title{Plot COI_mean 95\% credible intervals}
 \usage{
-plot_COI_mean(project, K = NULL, deme_order = NULL, ...)
+plot_COI_mean(project, K = NULL, deme_order = NULL)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{TODO}
+\item{K}{which value of K to plot}
 
 \item{deme_order}{the order in which to plot demes. Defaults to increasing order}
-
-\item{...}{TODO}
 }
 \description{
 Plot COI_mean 95\% credible intervals of current active set

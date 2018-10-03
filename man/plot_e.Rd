@@ -4,15 +4,13 @@
 \alias{plot_e}
 \title{Plot error rate 95\% credible intervals}
 \usage{
-plot_e(project, K = NULL, ...)
+plot_e(project, K = NULL)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{TODO}
-
-\item{...}{TODO}
+\item{K}{which value of K to plot}
 }
 \description{
 Plot error rate 95\% credible intervals of current active set

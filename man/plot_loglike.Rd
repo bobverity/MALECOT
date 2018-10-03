@@ -11,7 +11,7 @@ plot_loglike(project, K = NULL, axis_type = 1, connect_points = FALSE,
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to plot}
 
 \item{axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
 beta, 3 = values of beta raised to the GTI power}

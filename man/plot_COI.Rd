@@ -4,15 +4,13 @@
 \alias{plot_COI}
 \title{Plot COI 95\% credible intervals}
 \usage{
-plot_COI(project, K = NULL, ...)
+plot_COI(project, K = NULL)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{which value of K to produce the plot for}
-
-\item{...}{TODO}
+\item{K}{which value of K to plot}
 }
 \description{
 Plot COI 95\% credible intervals of current active set

@@ -267,9 +267,7 @@ void Particle_biallelic::update_p(bool robbins_monro_on, int iteration) {
         // Robbins-Monro negative update
         if (robbins_monro_on) {
           p_propSD[k][j]  -= 0.23/sqrt(double(iteration));
-          if (p_propSD[k][j] < UNDERFLO) {
-            p_propSD[k][j] = UNDERFLO;
-          }
+          p_propSD[k][j]  = (p_propSD[k][j] < 0) ? -p_propSD[k][j] : p_propSD[k][j];
         }
         
       }  // end Metropolis step

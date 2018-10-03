@@ -18,7 +18,7 @@ One of the major advantages of simulated data is that we can test the power of t
 
 For those interested in the headline results:
 
-**bi-allelic data**
+#### bi-allelic data
 
 *under realistic assumptions - including a skewed allele frequency distribution, 5% genotyping error and a mean COI of 2 per subpopulation - power analysis indicates that 100 independent loci are sufficient to detect population structure with >90% posterior probability with as few as 10 samples per subpopulation.*
 

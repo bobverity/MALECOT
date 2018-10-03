@@ -10,7 +10,7 @@ plot_GTI_path(project, K = NULL, axis_type = 1)
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to plot}
 
 \item{axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
 beta}

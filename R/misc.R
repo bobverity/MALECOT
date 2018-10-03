@@ -145,170 +145,57 @@ update_progress <- function(pb_list, name, i, max_i) {
 # Overload print function for malecot_qmatrix
 #' @noRd
 print.malecot_qmatrix <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_qmatrix
-#' @noRd
-summary.malecot_qmatrix <- function(object, ...) {
-  
-  # print raw summary
-  summary(unclass(object))
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------
 # Overload print function for malecot_loglike_intervals
 #' @noRd
 print.malecot_loglike_intervals <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_loglike_intervals
-#' @noRd
-summary.malecot_loglike_intervals <- function(object, ...) {
-  
-  # print raw summary
-  summary(unclass(object))
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------
 # Overload print function for malecot_COI_intervals
 #' @noRd
 print.malecot_COI_intervals <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_COI_intervals
-#' @noRd
-summary.malecot_COI_intervals <- function(object, ...) {
-  
-  # print raw summary
-  summary(unclass(object))
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------
 # Overload print function for malecot_p_intervals
 #' @noRd
 print.malecot_p_intervals <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_p_intervals
-#' @noRd
-summary.malecot_p_intervals <- function(object, ...) {
-  
-  # print raw summary
-  summary(unclass(object))
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------
 # Overload print function for malecot_e_intervals
 #' @noRd
 print.malecot_e_intervals <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_e_intervals
-#' @noRd
-summary.malecot_e_intervals <- function(object, ...) {
-  
-  # print raw summary
-  summary(unclass(object))
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------
 # Overload print function for malecot_COI_mean_intervals
 #' @noRd
 print.malecot_COI_mean_intervals <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_COI_mean_intervals
-#' @noRd
-summary.malecot_COI_mean_intervals <- function(object, ...) {
-  
-  # print raw summary
-  summary(unclass(object))
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------
 # Overload print function for malecot_GTI_path
 #' @noRd
 print.malecot_GTI_path <- function(x, ...) {
-  
-  # print raw list
   class(x) <- "data.frame"
   print(x)
-  
-  # return invisibly
   invisible(x)
-}
-
-#------------------------------------------------
-# Overload summary function for malecot_GTI_path
-#' @noRd
-summary.malecot_GTI_path <- function(object, ...) {
-  
-  # print raw summary
-  class(x) <- "data.frame"
-  summary(x)
-  
-  # return invisibly
-  invisible(object)
 }
 
 #------------------------------------------------

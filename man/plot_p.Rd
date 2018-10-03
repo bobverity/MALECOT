@@ -4,17 +4,15 @@
 \alias{plot_p}
 \title{Plot allele frequency 95\% credible intervals}
 \usage{
-plot_p(project, K = NULL, deme = 1, ...)
+plot_p(project, K = NULL, deme = 1)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{TODO}
+\item{K}{which value of K to plot}
 
 \item{deme}{TODO}
-
-\item{...}{TODO}
 }
 \description{
 Plot allele frequency 95\% credible intervals of current active set

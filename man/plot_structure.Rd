@@ -10,7 +10,7 @@ plot_structure(project, K = NULL, divide_ind_on = FALSE)
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to plot}
 
 \item{divide_ind_on}{whether to add dividing lines between bars}
 }

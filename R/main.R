@@ -919,7 +919,10 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
                         auto_converge = auto_converge,
                         converge_test = converge_test,
                         solve_label_switching_on = solve_label_switching_on,
+                        coupling_on = coupling_on,
                         pb_markdown = pb_markdown,
+                        store_acceptance = store_acceptance,
+                        store_raw = store_raw,
                         silent = silent)
     
     # ---------- save results ----------
