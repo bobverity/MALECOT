@@ -608,7 +608,7 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' @examples
 #' # TODO
 
-run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_acceptance = TRUE, store_raw = TRUE, silent = !is.null(cluster)) {
+run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = 1e2, solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_acceptance = TRUE, store_raw = TRUE, silent = !is.null(cluster)) {
   
   # start timer
   t0 <- Sys.time()
@@ -812,6 +812,9 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     COI_intervals <- t(apply(full_COI, 2, quantile_95))
     class(COI_intervals) <- "malecot_COI_intervals"
     
+    # get COI matrix
+    COI_matrix <- apply(full_COI, 2, function(x) tabulate(x, nbins = args_model$COI_max))/samples
+    
     # get 95% credible intervals over p
     p_intervals <- list()
     for (k in 1:K[i]) {
@@ -932,6 +935,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
     
     project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(qmatrix = qmatrix,
                                                                     loglike_intervals = loglike_intervals,
+                                                                    COI_matrix = COI_matrix,
                                                                     COI_intervals = COI_intervals,
                                                                     p_intervals = p_intervals,
                                                                     e_intervals = e_intervals,

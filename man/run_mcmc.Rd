@@ -6,7 +6,7 @@
 \usage{
 run_mcmc(project, K = NULL, precision = 0.01, burnin = 1000,
   samples = 1000, rungs = 1, GTI_pow = 3, auto_converge = TRUE,
-  converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE,
+  converge_test = 100, solve_label_switching_on = TRUE,
   coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE,
   store_acceptance = TRUE, store_raw = TRUE, silent = !is.null(cluster))
 }

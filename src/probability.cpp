@@ -286,7 +286,7 @@ vector<double> rdirichlet1(const vector<double> &shape_vec) {
 // probability density of Dirichlet distribution using vector of shape parameters
 double ddirichlet1(const vector<double> &p, const vector<double> &shape_vec, bool return_log) {
   int d = p.size();
-  if (shape_vec.size() != d) {
+  if (int(shape_vec.size()) != d) {
     Rcpp::stop("ddirichlet p and shape_vec not same size");
   }
   double ret = 0;

@@ -43,7 +43,7 @@ Data_multiallelic::Data_multiallelic(const Rcpp::List &args) {
   observed_COI = vector<int>(n);
   for (int i=0; i<n; ++i) {
     for (int l=0; l<L; ++l) {
-      if (data[i][l].size() > observed_COI[i]) {
+      if (int(data[i][l].size()) > observed_COI[i]) {
         observed_COI[i] = data[i][l].size();
       }
     }

@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">MALECOT</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.1.0</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.1.1</span>
       </span>
     </div>
 
@@ -102,7 +102,7 @@
       <h1>Ensuring good mixing</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2018-10-01</h4>
+            <h4 class="date">2018-10-04</h4>
       
       
       <div class="hidden name"><code>ensuring-good-mixing.Rmd</code></div>
@@ -167,10 +167,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.57745 seconds
+##    completed in 2.69601 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 2.98 seconds</code></pre>
+<pre><code>## Total run-time: 3.09 seconds</code></pre>
 <p>In the <a href="https://bobverity.github.io/MALECOT/articles/comparing-models.html">model comparison tutorial</a> we saw how to plot the log-likelihood quantiles at each temperature rung using the <code><a href="../reference/plot_loglike.html">plot_loglike()</a></code> function. Here we will use the <code><a href="../reference/plot_coupling.html">plot_coupling()</a></code> function, which produces a variation of the same plot:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot coupling rates</span>
 <span class="kw"><a href="../reference/plot_coupling.html">plot_coupling</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
@@ -185,15 +185,15 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    converged within 300 iterations
+##    converged within 200 iterations
 ## Sampling phase
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 7.70767 seconds
+##    completed in 7.7244 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 8.11 seconds</code></pre>
+<pre><code>## Total run-time: 8.12 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plot coupling rates</span>
 <span class="kw"><a href="../reference/plot_coupling.html">plot_coupling</a></span>(myproj, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="ensuring-good-mixing_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>

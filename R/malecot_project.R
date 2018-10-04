@@ -163,7 +163,7 @@ summary.malecot_project <- function(object, ...) {
     }
     cat("\n")
     
-    # print details of active set
+    # get details of active set
     name <- object$parameter_sets[[s]]$name
     lambda <- object$parameter_sets[[s]]$lambda
     lambda_range <- range(unlist(lambda))
@@ -179,6 +179,7 @@ summary.malecot_project <- function(object, ...) {
     e1_max <- object$parameter_sets[[s]]$e1_max
     e2_max <- object$parameter_sets[[s]]$e2_max
     
+    # print details of active set
     cat(sprintf("ACTIVE SET: SET%s\n", s))
     if (lambda_range[1] == lambda_range[2]) {
       cat(sprintf("   lambda = %s\n", lambda_range[1]))
