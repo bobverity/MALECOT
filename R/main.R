@@ -8,7 +8,6 @@
 #' @import coda
 #' @import ggplot2
 #' @import gridExtra
-#' @importFrom plotly plot_ly
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom Rcpp sourceCpp
 #' @importFrom grDevices colorRampPalette grey
@@ -438,9 +437,10 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
                                       e1_max = e1_max,
                                       e2_max = e2_max)
   
+  # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
   
-  # create new output corresponding to this set
+  # create new output at all_K level
   GTI_logevidence <- data.frame(K = numeric(),
                                 mean = numeric(),
                                 SE = numeric())
@@ -456,6 +456,7 @@ new_set <- function(project, name = "(no name)", lambda = 1.0, COI_model = "pois
                                          all_K = list(GTI_logevidence = GTI_logevidence,
                                                       GTI_posterior = GTI_posterior))
   
+  # name new output
   names(project$output$single_set) <- paste0("set", 1:length(project$output$single_set))
   
   # expand summary output over all parameter sets
@@ -980,7 +981,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
-  if (tdiff<60) {
+  if (tdiff < 60) {
     message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
   } else {
     message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))

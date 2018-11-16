@@ -5,9 +5,10 @@
 \title{Simulate genetic data}
 \usage{
 sim_data(n = 100, L = 24, K = 3, data_format = "biallelic",
-  pop_col_on = TRUE, alleles = 2, lambda = 1, COI_model = "poisson",
-  COI_max = 20, COI_manual = rep(-1, n), COI_mean = 3,
-  COI_dispersion = 2, e1 = 0, e2 = 0, prop_missing = 0)
+  pop_col_on = TRUE, alleles = 2, lambda = 1,
+  COI_model = "poisson", COI_max = 20, COI_manual = rep(-1, n),
+  COI_mean = 3, COI_dispersion = 2, e1 = 0, e2 = 0,
+  prop_missing = 0)
 }
 \arguments{
 \item{n}{the number of samples}

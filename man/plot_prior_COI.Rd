@@ -4,8 +4,8 @@
 \alias{plot_prior_COI}
 \title{Plot prior on COI}
 \usage{
-plot_prior_COI(COI_model = "poisson", COI_mean = 3, COI_dispersion = 2,
-  COI_max = 20)
+plot_prior_COI(COI_model = "poisson", COI_mean = 3,
+  COI_dispersion = 2, COI_max = 20)
 }
 \arguments{
 \item{COI_model}{the type of prior on COI. Must be one of "uniform", 

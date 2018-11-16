@@ -1,96 +1,61 @@
 
 #------------------------------------------------
-# default MALECOT colours
+# red-to-blue colours
 #' @noRd
-default_colours <- function(K) {
-  
-  # generate palette and colours
-  raw_cols <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
-  my_palette <- colorRampPalette(raw_cols)
-  
-  # simple case if small K
-  if (K <= 2) {
-    return(my_palette(K))
-  }
-  
-  # some logic to choose a palette size and sequence of colours that is
-  # consistent across different values of K
-  ncol <- 3
-  while(ncol<K) {
-    ncol <- ncol+(ncol-1)
-  }
-  dist_mat <- matrix(1:ncol, ncol, ncol)
-  dist_mat <- abs(t(dist_mat)-dist_mat)
-  x <- rep(FALSE, ncol)
-  
-  col_index <- 1
-  for (i in 2:K) {
-    x[col_index] <- TRUE
-    s <- apply(dist_mat[which(x),,drop=FALSE], 2, min)
-    next_index <- which.max(s)
-    col_index <- c(col_index, next_index)
-  }
-  col_index
-  ret <- my_palette(ncol)[col_index]
-  
+col_hotcold <- function() {
+  ret <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
   return(ret)
 }
 
 #------------------------------------------------
-#' @title Produce PCA plot from MALECOT data
+#' @title Expand series of colours by interpolation
 #'
-#' @description TODO
+#' @description Expand a series of colours by interpolation to produce any 
+#'   number of colours from a given series. The pattern of interpolation is 
+#'   designed so that (n+1)th value contains the nth value plus one more colour,
+#'   rather than being a completely different series. For example, running
+#'   \code{more_colours(5)} and \code{more_colours(4)}, the first 4 colours will
+#'   be shared between the two series.
 #'
-#' @details TODO
-#'
-#' @param data TODO
-#' @param type TODO
-#' @param missing_data TODO
-#' @param target_group TODO
+#' @param n how many colours to return
+#' @param raw_cols vector of colours to interpolate
 #'
 #' @export
-#' @examples
-#' # TODO
 
-plot_pca <- function(data, type = "3D", missing_data = -1, target_group = NULL) {
+more_colours <- function(n = 5, raw_cols = col_hot_cold()) {
   
-  # TODO - check inputs
-  assert_in(type, c("2D", "3D"))
+  # check inputs
+  assert_single_pos_int(n, zero_allowed = FALSE)
+  assert_string(raw_cols)
+  assert_vector(raw_cols)
   
-  # TODO - get data format automatically
+  # generate colour palette from raw colours
+  my_palette <- colorRampPalette(raw_cols)
   
-  # define defaults
-  n <- nrow(data)
-  target_group <- define_default(target_group, rep(1, n))
-  
-  # impute missing with mean allele frequencies per locus
-  locus_means <- colMeans(data, na.rm=TRUE)
-  data <- apply(data, 2, function(x){
-    x[x==missing_data] <- locus_means[x==missing_data]
-    return(x)})
-  
-  # compute PCA
-  PCA <- prcomp(data)
-  
-  # compute variance explained
-  PCA$var <- PCA$sdev^2/sum(PCA$sdev^2) * 100
-  
-  # barchart
-  plot_bar <- plot_ly(x = colnames(PCA$x)[1:9], y=PCA$var[1:9], type="bar", width=500, height=500)
-  
-  # 2D or 3D scatter
-  col_vec <- default_colours(length(unique(target_group)))
-  
-  if (type=="3D") {
-    plot_scat <- plot_ly(as.data.frame(PCA$x[,1:3]), x = ~PC1, y = ~PC2, z = ~PC3, color = target_group, colors = col_vec, type = "scatter3d", mode = "markers", marker = list(size=5))
-  } else {
-    plot_scat <- plot_ly(as.data.frame(PCA$x), x = ~PC1, y = ~PC2, color = target_group, colors = col_vec, type = "scatter", mode = "markers", marker = list(size=10))
+  # simple case if n small
+  if (n <= 2) {
+    return(my_palette(3)[1:n])
   }
-  print(plot_scat)
   
-  # return list of plots invisibly
-  plot_list <- list(plot_bar, plot_scat)
-  invisible(plot_list)
+  # interpolate colours by repeatedly splitting the [0,1] interval until we have
+  # enough values. n_steps is the number of times we have to do this. n_breaks
+  # is the number of breaks for each step
+  n_steps <- ceiling(log(n-1)/log(2))
+  n_breaks <- 2^(1:n_steps) + 1
+  
+  # split the [0,1] interval this many times and drop duplicated values
+  s <- unlist(mapply(function(x) seq(0,1,l=x), n_breaks, SIMPLIFY = FALSE))
+  s <- s[!duplicated(s)]
+  
+  # convert s to integer index
+  w <- match(s, seq(0,1,l = n_breaks[n_steps]))
+  w <- w[1:n]
+  
+  # get final colours
+  all_cols <- my_palette(n_breaks[n_steps])
+  ret <- all_cols[w]
+  
+  return(ret)
 }
 
 #------------------------------------------------
@@ -126,7 +91,7 @@ plot.malecot_qmatrix <- function(x, y, ...) {
   plot1 <- plot1 + xlab("sample") + ylab("probability")
   
   # add legends
-  plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
+  plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
   plot1 <- plot1 + scale_colour_manual(values = "white")
   plot1 <- plot1 + guides(colour = FALSE)
   
@@ -145,11 +110,13 @@ plot.malecot_qmatrix <- function(x, y, ...) {
 #' @param project a MALECOT project, as produced by the function 
 #'   \code{malecot_project()}
 #' @param K which value of K to plot
+#' @param base_colours colours from which final plotting colours are taken.
+#'   These will be interpolated to produce final colours
 #' @param divide_ind_on whether to add dividing lines between bars
 #'
 #' @export
 
-plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
+plot_structure <- function(project, K = NULL, base_colours = col_hot_cold(), divide_ind_on = FALSE) {
   
   # check inputs
   assert_custom_class(project, "malecot_project")
@@ -205,7 +172,7 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
   }
   
   # add legends
-  plot1 <- plot1 + scale_fill_manual(values = default_colours(max(K)), name = "group")
+  plot1 <- plot1 + scale_fill_manual(values = more_colours(max(K), base_colours), name = "group")
   plot1 <- plot1 + scale_colour_manual(values = "white")
   plot1 <- plot1 + guides(colour = FALSE)
   

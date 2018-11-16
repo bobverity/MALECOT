@@ -2,7 +2,7 @@
 title: "Frequently Asked Questions"
 author: "Bob Verity"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: html_document
 vignette: >
   %\VignetteIndexEntry{"Frequently Asked Questions"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,3 +15,16 @@ vignette: >
 
 Example answer.
 
+## Tabbed test {.tabset .tabset-fade}
+
+### page 1
+
+```{r, echo = FALSE}
+plot(5)
+```
+
+### page 2
+
+```{r, echo = FALSE}
+plot(1:10)
+```

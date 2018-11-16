@@ -4,13 +4,17 @@
 \alias{plot_structure}
 \title{Posterior allocation plot}
 \usage{
-plot_structure(project, K = NULL, divide_ind_on = FALSE)
+plot_structure(project, K = NULL, base_colours = col_hot_cold(),
+  divide_ind_on = FALSE)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
 \code{malecot_project()}}
 
 \item{K}{which value of K to plot}
+
+\item{base_colours}{colours from which final plotting colours are taken.
+These will be interpolated to produce final colours}
 
 \item{divide_ind_on}{whether to add dividing lines between bars}
 }

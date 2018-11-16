@@ -5,7 +5,8 @@
 \title{Simulate genetic data subject to constraints}
 \usage{
 sim_data_safe(..., data_format = "biallelic", no_invariant_loci = TRUE,
-  no_missing_samples = TRUE, no_missing_loci = TRUE, max_attempts = 1000)
+  no_missing_samples = TRUE, no_missing_loci = TRUE,
+  max_attempts = 1000)
 }
 \arguments{
 \item{...}{TODO}

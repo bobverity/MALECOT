@@ -4,10 +4,11 @@
 \alias{new_set}
 \title{Create new MALECOT parameter set}
 \usage{
-new_set(project, name = "(no name)", lambda = 1, COI_model = "poisson",
-  COI_max = 20, COI_manual = NULL, estimate_COI_mean = TRUE,
-  COI_mean = 3, COI_dispersion = 2, estimate_error = FALSE, e1 = 0,
-  e2 = 0, e1_max = 0.2, e2_max = 0.2)
+new_set(project, name = "(no name)", lambda = 1,
+  COI_model = "poisson", COI_max = 20, COI_manual = NULL,
+  estimate_COI_mean = TRUE, COI_mean = 3, COI_dispersion = 2,
+  estimate_error = FALSE, e1 = 0, e2 = 0, e1_max = 0.2,
+  e2_max = 0.2)
 }
 \arguments{
 \item{project}{a MALECOT project, as produced by the function 
