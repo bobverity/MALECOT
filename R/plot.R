@@ -2,7 +2,7 @@
 #------------------------------------------------
 # red-to-blue colours
 #' @noRd
-col_hotcold <- function() {
+col_hot_cold <- function() {
   ret <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
   return(ret)
 }

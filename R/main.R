@@ -609,7 +609,7 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' @examples
 #' # TODO
 
-run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = 1e2, solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_acceptance = TRUE, store_raw = TRUE, silent = !is.null(cluster)) {
+run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples = 1e3, rungs = 1, GTI_pow = 3, auto_converge = TRUE, converge_test = 1e2, solve_label_switching_on = TRUE, coupling_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_acceptance = TRUE, store_raw = TRUE, silent = FALSE) {
   
   # start timer
   t0 <- Sys.time()
@@ -677,7 +677,7 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
                       store_acceptance = store_acceptance,
-                      silent = silent)
+                      silent = !is.null(cluster))
   
   # combine model parameters list with input arguments
   args_model <- c(project$parameter_sets[[s]], args_inputs)
@@ -980,19 +980,19 @@ run_mcmc <- function(project, K = NULL, precision = 0.01, burnin = 1e3, samples 
   project <- recalculate_evidence(project)
   
   # end timer
-  tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
-  if (tdiff < 60) {
-    message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
-  } else {
-    message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
+  if (!silent) {
+    tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+    if (tdiff < 60) {
+      message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
+    } else {
+      message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
+    }
   }
   
   # warning if any rungs in any MCMCs did not converge
   if (!all_converged && !silent) {
-    message("\n**WARNING** at least one MCMC run did not converge\n")
+    message("\n**WARNING** at least one MCMC run did not converge within specified burn-in\n")
   }
-  
-  project$output$single_set[[s]]$single_K[[K[i]]]$raw
   
   # return invisibly
   invisible(project)

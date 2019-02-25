@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Produce MCMC trace plot — plot_trace • MALECOT</title>
+<title>Expand series of colours by interpolation — more_colours • MALECOT</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,14 @@
 
 
 
-<meta property="og:title" content="Produce MCMC trace plot — plot_trace" />
+<meta property="og:title" content="Expand series of colours by interpolation — more_colours" />
 
-<meta property="og:description" content="Produce MCMC trace plot of the log-likelihood at each iteration." />
+<meta property="og:description" content="Expand a series of colours by interpolation to produce any 
+  number of colours from a given series. The pattern of interpolation is 
+  designed so that (n+1)th value contains the nth value plus one more colour,
+  rather than being a completely different series. For example, running
+  more_colours(5) and more_colours(4), the first 4 colours will
+  be shared between the two series." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -134,38 +139,34 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Produce MCMC trace plot</h1>
+    <h1>Expand series of colours by interpolation</h1>
     
-    <div class="hidden name"><code>plot_trace.Rd</code></div>
+    <div class="hidden name"><code>more_colours.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Produce MCMC trace plot of the log-likelihood at each iteration.</p>
+    <p>Expand a series of colours by interpolation to produce any 
+  number of colours from a given series. The pattern of interpolation is 
+  designed so that (n+1)th value contains the nth value plus one more colour,
+  rather than being a completely different series. For example, running
+  <code>more_colours(5)</code> and <code>more_colours(4)</code>, the first 4 colours will
+  be shared between the two series.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>plot_trace</span>(<span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rung</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>col</span> <span class='kw'>=</span> <span class='st'>"black"</span>)</pre>
+    <pre class="usage"><span class='fu'>more_colours</span>(<span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>5</span>, <span class='kw'>raw_cols</span> <span class='kw'>=</span> <span class='fu'>col_hot_cold</span>())</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>project</th>
-      <td><p>a MALECOT project, as produced by the function 
-<code><a href='malecot_project.html'>malecot_project()</a></code></p></td>
+      <th>n</th>
+      <td><p>how many colours to return</p></td>
     </tr>
     <tr>
-      <th>K</th>
-      <td><p>which value of K to plot</p></td>
-    </tr>
-    <tr>
-      <th>rung</th>
-      <td><p>which rung to plot. Defaults to the cold chain</p></td>
-    </tr>
-    <tr>
-      <th>col</th>
-      <td><p>colour of the trace</p></td>
+      <th>raw_cols</th>
+      <td><p>vector of colours to interpolate</p></td>
     </tr>
     </table>
     
