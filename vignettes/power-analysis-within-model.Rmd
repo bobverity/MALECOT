@@ -7,6 +7,10 @@ vignette: >
   %\VignetteIndexEntry{"Power analysis - within model"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{ggplot2}
+  %\VignetteDepends{gridExtra}
+  %\VignetteDepends{tidyr}
+  %\VignetteDepends{plotly}
 ---
 
 ```{r, echo=FALSE}
