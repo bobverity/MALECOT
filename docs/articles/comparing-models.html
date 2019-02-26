@@ -162,7 +162,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 10.2168 seconds
+##    completed in 10.2658 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -174,7 +174,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 18.368 seconds
+##    completed in 18.2566 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -186,7 +186,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 23.1866 seconds
+##    completed in 22.5467 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -198,7 +198,7 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 27.98 seconds
+##    completed in 28.0845 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -210,10 +210,10 @@ myproj &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 33.3836 seconds
+##    completed in 32.6704 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 1.93 minutes</code></pre>
+<pre><code>## Total run-time: 1.9 minutes</code></pre>
 <p>Notice that convergence times are much longer than under regular MCMC. This is because the MCMC is only deemed to have converged when <em>every</em> chain has converged, meaning we are only as strong as the weakest link. When running thermodynamic MCMC it is therefore important to keep an eye on convergence, and to increase the number of burn-in iterations if needed.</p>
 </div>
 <div id="checking-thermodynamic-mcmc-behaviour" class="section level2">
@@ -332,7 +332,7 @@ myproj</code></pre></div>
   |==========================================================       |  90%
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.0472756 seconds
+##    completed in 0.0460471 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -380,7 +380,7 @@ myproj</code></pre></div>
   |==========================================================       |  90%
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.0677227 seconds
+##    completed in 0.065241 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -428,7 +428,7 @@ myproj</code></pre></div>
   |==========================================================       |  90%
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.0849723 seconds
+##    completed in 0.0808711 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -476,7 +476,7 @@ myproj</code></pre></div>
   |==========================================================       |  90%
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.104825 seconds
+##    completed in 0.0964479 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -524,7 +524,7 @@ myproj</code></pre></div>
   |==========================================================       |  90%
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.119033 seconds</code></pre>
+##    completed in 0.113186 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># uncomment to run MCMC</span>
 <span class="co">#myproj &lt;- run_mcmc(myproj, K = 1:5, burnin = 1e4, converge_test = 1e2, samples = 1e5, rungs = 10)</span>
 

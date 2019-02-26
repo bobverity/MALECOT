@@ -28,5 +28,7 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
-    tidyr
+    tidyr,
+    plotly,
+    gridExtra
 VignetteBuilder: knitr
